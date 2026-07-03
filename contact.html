@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Contact Vero Flashback by phone, email, or at Wildwood Antique Mall in Vero Beach." />
+    <title>Contact | Vero Flashback</title>
+    <link rel="stylesheet" href="./page.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="site-header">
+        <a class="logo-link" href="./index.html" aria-label="Vero Flashback home">
+          <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo" />
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./items.html">The Shop</a>
+          <a class="nav-link" href="./new-arrivals.html">Whats New</a>
+          <a class="nav-link" href="./retro-room.html">Retro Room</a>
+          <a class="nav-link" href="./contact.html">Contact</a>
+        </nav>
+      </header>
+
+      <section class="hero-page">
+        <div>
+          <h1>Contact Vero Flashback</h1>
+          <p>
+            Reach out for video games, designer fashion, antiques, collectibles, vintage tech, or anything worth
+            bringing back into the light.
+          </p>
+        </div>
+        <div class="contact-card-zone">
+          <div class="contact-flip-wrap" aria-label="Interactive Vero Flashback business card">
+            <div class="contact-business-card" id="contactBusinessCard" role="button" tabindex="0" aria-label="Flip Vero Flashback business card">
+              <div class="contact-card-face contact-card-front">
+                <img src="./Pictures/business-card-front.png" alt="Vero Flashback business card front" />
+              </div>
+              <div class="contact-card-face contact-card-back">
+                <img src="./Pictures/business-card-back.png" alt="Vero Flashback business card back" />
+              </div>
+            </div>
+            <button class="contact-flip-button" type="button" id="contactFlipButton" aria-pressed="false">Click Me</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="ebay-store-strip" aria-label="Vero Flashback eBay store">
+        <a class="ebay-store-link" href="https://www.ebay.com/usr/veroflashback" target="_blank" rel="noreferrer">
+          Visit eBay Store
+          <span>veroflashback</span>
+        </a>
+      </section>
+
+      <section class="content-section">
+        <div class="section-heading">
+          <h2>Contact Details</h2>
+          <p>Call, email, message, or visit the Wildwood Antique Mall location.</p>
+        </div>
+        <div class="contact-grid">
+          <article class="contact-card">
+            <strong>Address</strong>
+            <span>720 S US1<br />Vero Beach, FL<br />Wildwood Antique Mall</span>
+            <a
+              class="contact-link accent-red"
+              href="https://www.google.com/maps/search/?api=1&query=720%20S%20US1%20Vero%20Beach%20FL%20Wildwood%20Antique%20Mall"
+            >
+              Directions
+            </a>
+          </article>
+          <article class="contact-card">
+            <strong>Phone</strong>
+            <span>772-268-4654</span>
+            <a class="contact-link accent-green" href="tel:+17722684654">Call Now</a>
+          </article>
+          <article class="contact-card">
+            <strong>Email</strong>
+            <span>Flashbackvero@gmail.com</span>
+            <a class="contact-link accent-blue" href="mailto:Flashbackvero@gmail.com">Send Email</a>
+          </article>
+          <article class="contact-card">
+            <strong>Instagram</strong>
+            <span>@flashbackvero</span>
+            <a class="contact-link accent-red" href="https://www.instagram.com/flashbackvero/">Follow</a>
+          </article>
+        </div>
+      </section>
+    </main>
+    <script>
+      var contactFlipButton = document.getElementById("contactFlipButton");
+      var contactBusinessCard = document.getElementById("contactBusinessCard");
+      var contactCardRotation = 0;
+
+      function flipContactCard() {
+        contactCardRotation += 180;
+        contactBusinessCard.style.transform = "rotate3d(1, 1, 0, " + contactCardRotation + "deg)";
+        contactFlipButton.setAttribute("aria-pressed", contactCardRotation % 360 === 180 ? "true" : "false");
+      }
+
+      contactFlipButton.addEventListener("click", flipContactCard);
+      contactBusinessCard.addEventListener("click", flipContactCard);
+      contactBusinessCard.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          flipContactCard();
+        }
+      });
+    </script>
+    <script src="./page-background.js"></script>
+  </body>
+</html>

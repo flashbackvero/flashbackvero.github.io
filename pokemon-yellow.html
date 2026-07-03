@@ -1,0 +1,674 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pokemon Yellow | Vero Flashback</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+          #f4f3ef;
+        background-size: 36px 36px, 36px 36px, auto;
+        color: #242424;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .page {
+        width: min(1320px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 26px 0 76px;
+      }
+
+      .shape-field {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 118vh;
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      .shape {
+        position: absolute;
+        display: block;
+        opacity: 0.96;
+      }
+
+      .square {
+        width: var(--s);
+        height: var(--s);
+        background: var(--c);
+      }
+
+      .triangle {
+        width: 0;
+        height: 0;
+        border-left: calc(var(--s) * 0.5) solid transparent;
+        border-right: calc(var(--s) * 0.5) solid transparent;
+        border-bottom: calc(var(--s) * 0.86) solid var(--c);
+        transform: rotate(var(--r, 0deg));
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        margin-bottom: 22px;
+      }
+
+      .logo-link {
+        display: block;
+        width: clamp(148px, 18vw, 220px);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        filter: drop-shadow(0 13px 16px rgba(0, 0, 0, 0.12));
+      }
+
+      .logo-link img {
+        width: 100%;
+        aspect-ratio: 1.28;
+        object-fit: contain;
+        object-position: center;
+      }
+
+      .back-link,
+      .action-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 18px;
+        border: 2px solid #242424;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #14528c;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 21px;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 0 7px 0 rgba(20, 82, 140, 0.14);
+      }
+
+      .item-nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: clamp(16px, 2vw, 30px);
+      }
+
+      .item-nav .back-link {
+        min-height: auto;
+        padding: 10px 0;
+        border: 0;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        color: #242424;
+        font-size: 20px;
+        transition: border-color 180ms ease, color 180ms ease;
+      }
+
+      .item-nav .back-link:hover,
+      .item-nav .back-link:focus-visible {
+        transform: none;
+        box-shadow: none;
+        border-color: currentColor;
+      }
+
+      .item-nav .back-link:nth-child(3n + 1):hover,
+      .item-nav .back-link:nth-child(3n + 1):focus-visible {
+        color: #cf2b21;
+      }
+
+      .item-nav .back-link:nth-child(3n + 2):hover,
+      .item-nav .back-link:nth-child(3n + 2):focus-visible {
+        color: #168246;
+      }
+
+      .item-nav .back-link:nth-child(3n):hover,
+      .item-nav .back-link:nth-child(3n):focus-visible {
+        color: #14528c;
+      }
+
+      .hero {
+        position: relative;
+        overflow: hidden;
+        display: grid;
+        grid-template-columns: minmax(300px, 0.9fr) minmax(360px, 1fr);
+        gap: clamp(26px, 4vw, 58px);
+        align-items: center;
+        padding: clamp(22px, 4vw, 46px);
+        border: 3px solid rgba(19, 79, 134, 0.24);
+        border-radius: 22px;
+        background: #fffdf5;
+        box-shadow: 0 26px 58px rgba(61, 60, 55, 0.14);
+      }
+
+      .hero-copy,
+      .hero-photo {
+        position: relative;
+        z-index: 1;
+      }
+
+      .kicker {
+        display: inline-flex;
+        width: fit-content;
+        margin: 0 0 16px;
+        padding: 8px 13px;
+        border: 2px solid #242424;
+        border-radius: 999px;
+        background: #ffffff;
+        color: #168246;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      h1 {
+        margin: 0;
+        color: #242424;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(54px, 7vw, 96px);
+        line-height: 0.92;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+
+      .hero-copy p {
+        margin: 20px 0 0;
+        color: #14528c;
+        font-size: clamp(18px, 1.6vw, 23px);
+        font-weight: 800;
+        line-height: 1.58;
+        text-wrap: pretty;
+      }
+
+      .hero-copy .grail-line {
+        margin-top: 14px;
+        color: #ffc20f;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(30px, 4vw, 54px);
+        font-weight: 900;
+        line-height: 0.98;
+        text-transform: uppercase;
+      }
+
+      .hero-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-top: 24px;
+      }
+
+      .hero-photo {
+        display: block;
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: 0 20px 42px rgba(61, 60, 55, 0.18);
+      }
+
+      .hero-photo img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: contain;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+      }
+
+      .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .stat {
+        min-height: 110px;
+        padding: 16px;
+        border: 2px solid #242424;
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 8px 0 rgba(36, 36, 36, 0.12);
+      }
+
+      .stat strong {
+        display: block;
+        color: #cf2b21;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 0.95;
+      }
+
+      .stat span {
+        display: block;
+        margin-top: 8px;
+        color: #14528c;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.25;
+      }
+
+      .article-shell {
+        display: grid;
+        grid-template-columns: minmax(280px, 0.82fr) minmax(360px, 1fr);
+        gap: clamp(20px, 3vw, 36px);
+        margin-top: 30px;
+      }
+
+      .article-panel,
+      .evidence-board,
+      .media-section {
+        border: 2px solid #242424;
+        border-radius: 18px;
+        background: #fffdf5;
+        box-shadow: 0 18px 38px rgba(83, 61, 39, 0.14);
+      }
+
+      .article-panel {
+        padding: clamp(22px, 3vw, 36px);
+      }
+
+      .article-panel p {
+        margin: 0 0 18px;
+        color: #14528c;
+        font-size: clamp(18px, 1.55vw, 21px);
+        font-weight: 800;
+        line-height: 1.68;
+        text-wrap: pretty;
+      }
+
+      .article-panel p:first-child {
+        color: #cf2b21;
+        font-size: clamp(23px, 2.2vw, 31px);
+        line-height: 1.34;
+      }
+
+      .evidence-board {
+        align-self: start;
+        display: grid;
+        gap: 14px;
+        padding: 18px;
+      }
+
+      .evidence-title,
+      .media-section h2 {
+        margin: 0;
+        color: #242424;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(34px, 4vw, 54px);
+        line-height: 0.96;
+        text-transform: uppercase;
+      }
+
+      .evidence-card {
+        display: grid;
+        grid-template-columns: 72px 1fr;
+        gap: 14px;
+        align-items: center;
+        padding: 14px;
+        border: 2px solid rgba(36, 36, 36, 0.78);
+        border-radius: 14px;
+        background: #ffffff;
+      }
+
+      .evidence-card b {
+        display: grid;
+        place-items: center;
+        min-height: 64px;
+        border-radius: 12px;
+        background: #cf2b21;
+        color: white;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 30px;
+        line-height: 1;
+      }
+
+      .evidence-card:nth-child(3) b {
+        background: #078d3f;
+        color: white;
+      }
+
+      .evidence-card:nth-child(4) b {
+        background: #1563c5;
+        color: white;
+      }
+
+      .evidence-card span {
+        color: #14528c;
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1.35;
+      }
+
+      .evidence-stack {
+        overflow: hidden;
+        display: grid;
+        gap: 0;
+        margin-top: 2px;
+        border: 2px solid rgba(36, 36, 36, 0.78);
+        border-radius: 14px;
+        background: #14528c;
+      }
+
+      .evidence-stack a {
+        display: block;
+      }
+
+      .evidence-stack img {
+        width: 100%;
+        aspect-ratio: 1.84;
+        object-fit: contain;
+        background: #14528c;
+      }
+
+      .media-section {
+        margin-top: 30px;
+        padding: clamp(20px, 3vw, 34px);
+      }
+
+      .media-section > p {
+        max-width: 920px;
+        margin: 12px 0 22px;
+        color: #14528c;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .image-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .image-grid.research {
+        grid-template-columns: 1fr;
+      }
+
+      figure {
+        margin: 0;
+        overflow: hidden;
+        border: 2px solid #ffffff;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 12px 26px rgba(83, 61, 39, 0.14);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      figure:hover {
+        transform: translateY(-7px);
+        box-shadow: 0 22px 36px rgba(83, 61, 39, 0.2);
+      }
+
+      figure img {
+        width: 100%;
+        background: #ffffff;
+      }
+
+      .item-photo img {
+        aspect-ratio: 1.1;
+        object-fit: contain;
+      }
+
+      .side-photo img {
+        aspect-ratio: 2.35;
+      }
+
+      .side-photo figcaption {
+        padding: 9px 12px 11px;
+        font-size: 14px;
+      }
+
+      .research img {
+        aspect-ratio: 1.84;
+        object-fit: contain;
+      }
+
+      figcaption {
+        padding: 12px 14px 15px;
+        color: #242424;
+        font-size: 16px;
+        font-weight: 900;
+        line-height: 1.35;
+        text-transform: uppercase;
+      }
+
+      @media (max-width: 900px) {
+        .hero,
+        .article-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+
+      @media (max-width: 760px) {
+        .page {
+          width: min(100% - 20px, 1320px);
+          padding-top: 10px;
+        }
+
+        .topbar {
+          display: grid;
+        }
+
+        .item-nav {
+          justify-content: flex-start;
+        }
+
+        .back-link,
+        .action-link {
+          width: 100%;
+        }
+
+        .item-nav .back-link {
+          width: auto;
+        }
+
+        h1 {
+          font-size: 50px;
+        }
+
+        .image-grid,
+        .stats-row {
+          grid-template-columns: 1fr;
+        }
+
+        .research img {
+          aspect-ratio: auto;
+        }
+
+        .evidence-stack img {
+          aspect-ratio: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shape-field" aria-hidden="true">
+      <span class="shape square" style="--s: 116px; --c: #1563c5; left: 3%; top: 3%;"></span>
+      <span class="shape triangle" style="--s: 88px; --c: #e40303; left: 18%; top: 7%;"></span>
+      <span class="shape square" style="--s: 42px; --c: #078d3f; left: 31%; top: 7%;"></span>
+      <span class="shape triangle" style="--s: 132px; --c: #ffc20f; left: 41%; top: 8%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 94px; --c: #e40303; left: 54%; top: 5%;"></span>
+      <span class="shape triangle" style="--s: 164px; --c: #078d3f; left: 69%; top: 2%;"></span>
+      <span class="shape square" style="--s: 128px; --c: #ffc20f; left: 88%; top: 4%;"></span>
+      <span class="shape triangle" style="--s: 126px; --c: #078d3f; left: 7%; top: 25%; --r: 90deg;"></span>
+      <span class="shape square" style="--s: 78px; --c: #ffc20f; left: 21%; top: 30%;"></span>
+      <span class="shape triangle" style="--s: 102px; --c: #1563c5; left: 32%; top: 30%;"></span>
+      <span class="shape square" style="--s: 132px; --c: #e40303; left: 44%; top: 26%;"></span>
+      <span class="shape triangle" style="--s: 68px; --c: #ffc20f; left: 62%; top: 32%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 94px; --c: #1563c5; left: 74%; top: 31%;"></span>
+      <span class="shape triangle" style="--s: 126px; --c: #e40303; left: 91%; top: 30%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 64px; --c: #e40303; left: 4%; top: 58%;"></span>
+      <span class="shape triangle" style="--s: 132px; --c: #ffc20f; left: 16%; top: 51%;"></span>
+      <span class="shape square" style="--s: 118px; --c: #1563c5; left: 30%; top: 57%;"></span>
+      <span class="shape triangle" style="--s: 72px; --c: #078d3f; left: 47%; top: 58%; --r: 90deg;"></span>
+      <span class="shape square" style="--s: 150px; --c: #ffc20f; left: 56%; top: 55%;"></span>
+      <span class="shape triangle" style="--s: 92px; --c: #e40303; left: 73%; top: 56%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 86px; --c: #078d3f; left: 87%; top: 58%;"></span>
+      <span class="shape triangle" style="--s: 158px; --c: #1563c5; left: 6%; top: 84%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 86px; --c: #e40303; left: 23%; top: 86%;"></span>
+      <span class="shape triangle" style="--s: 92px; --c: #078d3f; left: 36%; top: 86%;"></span>
+      <span class="shape square" style="--s: 138px; --c: #ffc20f; left: 48%; top: 82%;"></span>
+      <span class="shape triangle" style="--s: 78px; --c: #e40303; left: 65%; top: 87%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 112px; --c: #1563c5; left: 78%; top: 84%;"></span>
+      <span class="shape triangle" style="--s: 112px; --c: #ffc20f; left: 92%; top: 85%;"></span>
+    </div>
+
+    <main class="page">
+      <header class="topbar">
+        <a class="logo-link" href="./index.html"><img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo" /></a>
+        <nav class="item-nav" aria-label="Primary navigation">
+          <a class="back-link" href="./index.html">Home</a>
+          <a class="back-link" href="./items.html">The Shop</a>
+          <a class="back-link" href="./new-arrivals.html">Whats New</a>
+          <a class="back-link" href="./retro-room.html">Retro Room</a>
+          <a class="back-link" href="./contact.html">Contact</a>
+        </nav>
+      </header>
+
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="kicker">Featured Archive Piece</p>
+          <h1>Pokemon Yellow 9.8 A++</h1>
+          <p class="grail-line">A True 1 Of 1 Grail</p>
+          <p>
+            A rare Wal-Mart Movie Ticket Sticker variant tied to the 1999 Pokemon movie era, presented as a Vero
+            Flashback archive entry with item photos and supporting reference graphics.
+          </p>
+          <div class="hero-buttons">
+            <a class="action-link" href="#article">Read the Story</a>
+            <a class="action-link" href="#photos">View Photos</a>
+          </div>
+        </div>
+        <a class="hero-photo" href="./Pictures/pokemon yellow wata graded pro pic front.jpg">
+          <img src="./Pictures/pokemon yellow wata graded pro pic front.jpg" alt="Factory-sealed Pokemon Yellow graded Game Boy item front" />
+        </a>
+      </section>
+
+      <section class="stats-row" aria-label="Key item highlights">
+        <div class="stat"><strong>9.8</strong><span>WATA box grade</span></div>
+        <div class="stat"><strong>A++</strong><span>Highest-tier seal designation</span></div>
+        <div class="stat"><strong>6</strong><span>Recorded sealed examples of this variant</span></div>
+        <div class="stat"><strong>1</strong><span>Known 9.8 A++ example in current report</span></div>
+      </section>
+
+      <section class="article-shell" id="article">
+        <article class="article-panel">
+          <p>Some collectibles are rare because they survived in exceptional condition. This one is scarce before condition even enters the conversation.</p>
+          <p>This is a factory-sealed copy of Pokemon Yellow Version: Special Pikachu Edition in the elusive Wal-Mart Movie Ticket Sticker packaging variation, an early retailer promotion connected to the era of Pokemon: The First Movie.</p>
+          <p>Graded WATA 9.8 A++, this copy combines a near-perfect box grade with WATA's highest-tier seal designation. More importantly, PSA Games' current population data records only six sealed examples of this exact Wal-Mart Movie Ticket Sticker variant. Of those, just one is graded 9.8 A++.</p>
+          <p>That makes this copy a true population one: the sole highest-graded certified example currently recorded for one of the rarest retail variants of Pokemon Yellow.</p>
+          <p>Population reports can change as new copies are discovered and submitted, but as of the current report, this is not simply a high-grade Pokemon game. It is the top certified example of a historic 1999 Pokemon promotion.</p>
+        </article>
+
+        <aside class="evidence-board" aria-label="Quick evidence notes">
+          <h2 class="evidence-title">Why It Matters</h2>
+          <div class="evidence-card"><b>1</b><span>Elusive Wal-Mart Movie Ticket Sticker packaging variation.</span></div>
+          <div class="evidence-card"><b>2</b><span>Connected to the Pokemon: The First Movie promotion era.</span></div>
+          <div class="evidence-card"><b>3</b><span>Combines a WATA 9.8 box grade with A++ seal designation.</span></div>
+          <div class="evidence-stack" aria-label="Supporting reference graphics">
+            <a href="./Pictures/pokemon-retailer-promotions.png"><img src="./Pictures/pokemon-retailer-promotions.png" alt="Pixelated rating box retailer promotions graphic" /></a>
+            <a href="./Pictures/pokemon-production-timeline.png"><img src="./Pictures/pokemon-production-timeline.png" alt="Pokemon Yellow production timeline graphic" /></a>
+            <a href="./Pictures/pokemon-print-variants.png"><img src="./Pictures/pokemon-print-variants.png" alt="Pokemon Yellow print variant comparison graphic" /></a>
+          </div>
+        </aside>
+      </section>
+
+      <section class="media-section" id="photos" aria-label="Item photos">
+        <h2>Graded And Ungraded Reference Photos</h2>
+        <div class="image-grid">
+          <figure class="item-photo">
+            <a href="./Pictures/pokemon yellow wata graded pro pic front.jpg"><img src="./Pictures/pokemon yellow wata graded pro pic front.jpg" alt="Pokemon Yellow front of graded item" /></a>
+            <figcaption>Graded Front</figcaption>
+          </figure>
+          <figure class="item-photo">
+            <a href="./Pictures/pokemon yellow graded pro pic back.jpg"><img src="./Pictures/pokemon yellow graded pro pic back.jpg" alt="Pokemon Yellow back of graded item" /></a>
+            <figcaption>Graded Back</figcaption>
+          </figure>
+          <figure class="item-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic front.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic front.jpg" alt="Pokemon Yellow ungraded front" /></a>
+            <figcaption>Ungraded Front</figcaption>
+          </figure>
+          <figure class="item-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic back.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic back.jpg" alt="Pokemon Yellow ungraded back" /></a>
+            <figcaption>Ungraded Back</figcaption>
+          </figure>
+          <figure class="item-photo side-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic side 1.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic side 1.jpg" alt="Pokemon Yellow ungraded side 1" /></a>
+            <figcaption>Side 1</figcaption>
+          </figure>
+          <figure class="item-photo side-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic side 2.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic side 2.jpg" alt="Pokemon Yellow ungraded side 2" /></a>
+            <figcaption>Side 2</figcaption>
+          </figure>
+          <figure class="item-photo side-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic side 3.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic side 3.jpg" alt="Pokemon Yellow ungraded side 3" /></a>
+            <figcaption>Side 3</figcaption>
+          </figure>
+          <figure class="item-photo side-photo">
+            <a href="./Pictures/pokemon yellow ungraded pro pic side 4.jpg"><img src="./Pictures/pokemon yellow ungraded pro pic side 4.jpg" alt="Pokemon Yellow ungraded side 4" /></a>
+            <figcaption>Side 4</figcaption>
+          </figure>
+        </div>
+      </section>
+
+    </main>
+    <script>
+      var shapeField = document.querySelector(".shape-field");
+      var ticking = false;
+
+      function moveBackground() {
+        var offset = Math.min(window.scrollY * 0.16, 180);
+        shapeField.style.transform = "translate3d(0, -" + offset + "px, 0)";
+        ticking = false;
+      }
+
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (!ticking) {
+            window.requestAnimationFrame(moveBackground);
+            ticking = true;
+          }
+        },
+        { passive: true },
+      );
+    </script>
+  </body>
+</html>

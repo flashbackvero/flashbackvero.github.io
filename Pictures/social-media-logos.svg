@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1000" role="img" aria-label="YouTube and Instagram social media logos">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#151515"/>
+      <stop offset="0.52" stop-color="#27231f"/>
+      <stop offset="1" stop-color="#0d0d0d"/>
+    </linearGradient>
+    <radialGradient id="insta" cx="28%" cy="18%" r="92%">
+      <stop offset="0" stop-color="#ffd86f"/>
+      <stop offset="0.28" stop-color="#ff7a18"/>
+      <stop offset="0.55" stop-color="#e1306c"/>
+      <stop offset="0.78" stop-color="#833ab4"/>
+      <stop offset="1" stop-color="#405de6"/>
+    </radialGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="22" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+    <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#ffffff" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+  <rect width="1050" height="1000" rx="44" fill="url(#bg)"/>
+  <path d="M70 190c130-76 260-82 390-18 114 56 214 57 325 4 74-35 138-37 194-7v657c-111-58-218-55-322 9-119 74-247 76-384 7-80-40-148-48-203-26z" fill="#fffdf5" opacity="0.055"/>
+  <g filter="url(#shadow)">
+    <rect x="135" y="226" width="352" height="352" rx="76" fill="#ffffff"/>
+    <rect x="176" y="316" width="270" height="172" rx="48" fill="#ff0033"/>
+    <path d="M288 355v94l84-47z" fill="#ffffff"/>
+    <text x="311" y="668" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="54">YouTube</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="565" y="226" width="352" height="352" rx="86" fill="url(#insta)"/>
+    <rect x="640" y="301" width="202" height="202" rx="58" fill="none" stroke="#ffffff" stroke-width="24" filter="url(#glow)"/>
+    <circle cx="741" cy="402" r="54" fill="none" stroke="#ffffff" stroke-width="24"/>
+    <circle cx="815" cy="328" r="18" fill="#ffffff"/>
+    <text x="741" y="668" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="54">Instagram</text>
+  </g>
+  <text x="525" y="805" text-anchor="middle" fill="#ffc20f" font-family="Arial Black, Impact, sans-serif" font-size="68">FOLLOW VERO FLASHBACK</text>
+  <text x="525" y="867" text-anchor="middle" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="31" font-weight="700">finds, booth updates, and videos</text>
+</svg>

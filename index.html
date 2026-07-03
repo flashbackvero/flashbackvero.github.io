@@ -1,0 +1,1147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Vero Flashback features vintage technology, retro games, media, collectibles, antiques, and unusual finds."
+    />
+    <title>Vero Flashback | Vintage Finds & Archive</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.025) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
+          #f4f3ef;
+        background-size: 36px 36px, 36px 36px, auto;
+        color: #242424;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      img {
+        display: block;
+        max-width: 100%;
+      }
+
+      .page {
+        width: min(1480px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 78px;
+      }
+
+      .shape-field {
+        position: fixed;
+        left: 0;
+        right: 0;
+        top: 0;
+        height: 118vh;
+        z-index: -1;
+        overflow: hidden;
+        pointer-events: none;
+        will-change: transform;
+      }
+
+      .shape {
+        position: absolute;
+        display: block;
+        opacity: 0.96;
+      }
+
+      .square {
+        width: var(--s);
+        height: var(--s);
+        background: var(--c);
+      }
+
+      .triangle {
+        width: 0;
+        height: 0;
+        border-left: calc(var(--s) * 0.5) solid transparent;
+        border-right: calc(var(--s) * 0.5) solid transparent;
+        border-bottom: calc(var(--s) * 0.86) solid var(--c);
+        transform: rotate(var(--r, 0deg));
+      }
+
+      .top-shell {
+        position: relative;
+        overflow: hidden;
+        border: 3px solid rgba(19, 79, 134, 0.24);
+        border-radius: 18px;
+        background:
+          radial-gradient(circle, rgba(90, 90, 90, 0.26) 0 1.25px, transparent 1.45px) 0 0 / 18px 18px,
+          rgba(255, 255, 255, 0.08);
+        box-shadow: 0 26px 58px rgba(61, 60, 55, 0.14);
+      }
+
+      .top-shell::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        pointer-events: none;
+        opacity: 0.3;
+        background:
+          radial-gradient(circle, rgba(255, 255, 255, 0.56) 0 1px, transparent 1.2px) 9px 9px / 18px 18px;
+      }
+
+      .site-header {
+        position: relative;
+        z-index: 4;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 24px;
+        padding: 24px clamp(18px, 3vw, 42px) 16px;
+      }
+
+      .logo-card {
+        width: clamp(148px, 18vw, 220px);
+        padding: 0;
+        border: 0;
+        background: transparent;
+        filter: drop-shadow(0 13px 16px rgba(0, 0, 0, 0.12));
+      }
+
+      .logo-card img {
+        width: 100%;
+        aspect-ratio: 1.28;
+        object-fit: contain;
+        object-position: center;
+      }
+
+      .nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: flex-end;
+        gap: clamp(16px, 2vw, 30px);
+      }
+
+      .nav a,
+      .menu-button,
+      .button,
+      .small-action {
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 20px;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .nav a {
+        padding: 10px 0;
+        border-bottom: 2px solid transparent;
+        color: #242424;
+      }
+
+      .nav a:nth-child(3n + 1):hover,
+      .nav a:nth-child(3n + 1):focus-visible,
+      .red-text {
+        color: #2a8f8a;
+      }
+
+      .nav a:nth-child(3n + 2):hover,
+      .nav a:nth-child(3n + 2):focus-visible,
+      .green-text {
+        color: #168246;
+      }
+
+      .nav a:nth-child(3n):hover,
+      .nav a:nth-child(3n):focus-visible,
+      .blue-text {
+        color: #14528c;
+      }
+
+      .nav a:hover,
+      .nav a:focus-visible {
+        border-color: currentColor;
+        outline: none;
+      }
+
+      .menu-button {
+        display: none;
+        min-height: 44px;
+        padding: 0 16px;
+        border: 2px solid #242424;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.8);
+        color: #14528c;
+        cursor: pointer;
+      }
+
+      .hero {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: minmax(260px, 0.78fr) minmax(360px, 1.08fr);
+        gap: clamp(34px, 5vw, 76px);
+        align-items: center;
+        padding: 28px clamp(18px, 3vw, 42px) 52px;
+      }
+
+      .hero-copy {
+        position: relative;
+        z-index: 3;
+        display: grid;
+        gap: 22px;
+        max-width: 500px;
+      }
+
+      .hero-copy h1 {
+        margin: 0;
+        color: #242424;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(54px, 6.3vw, 92px);
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+
+      .hero-copy p {
+        margin: 0;
+        color: #14528c;
+        font-size: 20px;
+        font-weight: 800;
+        line-height: 1.55;
+        text-wrap: pretty;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+      }
+
+      .button,
+      .small-action,
+      .flip-button {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 18px;
+        border: 3px solid #242424;
+        border-radius: 999px;
+        box-shadow: 0 8px 0 rgba(36, 36, 36, 0.16);
+      }
+
+      .button.primary {
+        background: #cf2b21;
+        color: #ffffff;
+      }
+
+      .button.secondary {
+        background: #ffc20f;
+        color: #242424;
+      }
+
+      .button:hover,
+      .button:focus-visible,
+      .small-action:hover,
+      .small-action:focus-visible {
+        transform: translateY(-4px);
+        outline: none;
+      }
+
+      .flip-button:hover,
+      .flip-button:focus-visible {
+        outline: none;
+      }
+
+      .feature-carousel {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+        width: min(800px, 100%);
+        justify-self: center;
+      }
+
+      .feature-track {
+        position: relative;
+        width: 100%;
+        min-height: 466px;
+      }
+
+      .feature-card {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(700px, 93%);
+        opacity: 0;
+        pointer-events: none;
+        display: grid;
+        grid-template-columns: 285px minmax(0, 1fr);
+        gap: 20px;
+        align-items: center;
+        padding: 18px;
+        border: 3px solid rgba(36, 36, 36, 0.18);
+        border-radius: 16px;
+        background: #fffdf5;
+        box-shadow: 0 18px 34px rgba(83, 61, 39, 0.18);
+        transform: translate(-50%, -50%) translateX(var(--orbit-x, 48px)) translateY(var(--orbit-y, 20px)) scale(var(--orbit-scale, 0.92));
+        transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms ease, filter 600ms ease;
+        filter: saturate(0.92);
+      }
+
+      .feature-card.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 3;
+        --orbit-x: 0;
+        --orbit-y: 10px;
+        --orbit-scale: 1.04;
+        transform: translate(-50%, -50%) translateX(0) translateY(10px) scale(1.04);
+        filter: none;
+      }
+
+      .feature-card.is-prev {
+        opacity: 1;
+        z-index: 1;
+        --orbit-x: -58px;
+        --orbit-y: 10px;
+        --orbit-scale: 0.9;
+      }
+
+      .feature-card.is-next {
+        opacity: 1;
+        z-index: 1;
+        --orbit-x: 58px;
+        --orbit-y: 10px;
+        --orbit-scale: 0.9;
+      }
+
+      .feature-photo {
+        display: block;
+        overflow: hidden;
+        border: 4px solid #242424;
+        border-radius: 10px;
+        background: #000000;
+        box-shadow: 0 14px 26px rgba(83, 61, 39, 0.16);
+      }
+
+      .feature-photo img {
+        width: 100%;
+        aspect-ratio: 1;
+        object-fit: cover;
+        object-position: center;
+        background: #000000;
+        transform: none;
+      }
+
+      .feature-photo.contain img {
+        height: 100%;
+        object-fit: cover;
+        transform: none;
+        background: #000000;
+      }
+
+      .feature-copy {
+        display: grid;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .feature-label {
+        width: fit-content;
+        color: #168246;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 18px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .feature-copy h2 {
+        margin: 0;
+        color: #cf2b21;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(32px, 3.1vw, 52px);
+        line-height: 1;
+        text-transform: uppercase;
+        text-wrap: balance;
+      }
+
+      .feature-copy p {
+        margin: 0;
+        color: #14528c;
+        font-size: 17px;
+        font-weight: 800;
+        line-height: 1.34;
+      }
+
+      .small-action {
+        width: fit-content;
+        background: #ffffff;
+        color: #14528c;
+      }
+
+      .feature-dots {
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .feature-dot {
+        width: 14px;
+        height: 14px;
+        padding: 0;
+        border: 2px solid #242424;
+        border-radius: 50%;
+        background: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(36, 36, 36, 0.14);
+      }
+
+      .feature-dot.is-active {
+        background: #14528c;
+      }
+
+      .feature-dot:focus-visible {
+        outline: 3px solid rgba(20, 82, 140, 0.28);
+        outline-offset: 3px;
+      }
+
+      .feature-arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 5;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        border: 2px solid #242424;
+        border-radius: 50%;
+        background: rgba(255, 253, 245, 0.96);
+        color: #14528c;
+        cursor: pointer;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 26px;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 5px 0 rgba(36, 36, 36, 0.13);
+        transform: translateY(-50%);
+      }
+
+      .feature-arrow:hover,
+      .feature-arrow:focus-visible {
+        outline: none;
+        color: #2a8f8a;
+        transform: translateY(calc(-50% - 2px));
+      }
+
+      .feature-arrow.prev {
+        left: -4px;
+      }
+
+      .feature-arrow.next {
+        right: -4px;
+      }
+
+      .content-band {
+        margin-top: 30px;
+        padding: clamp(22px, 3vw, 34px);
+        border: 3px solid rgba(20, 82, 140, 0.2);
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.82);
+        box-shadow: 0 18px 40px rgba(61, 60, 55, 0.11);
+      }
+
+      .section-title {
+        display: grid;
+        gap: 10px;
+        max-width: 850px;
+        margin-bottom: 22px;
+      }
+
+      .section-title h2,
+      .home-contact h2 {
+        margin: 0;
+        color: #14528c;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(38px, 5vw, 66px);
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .section-title p,
+      .home-contact p {
+        margin: 0;
+        color: #242424;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.55;
+      }
+
+      .polaroid-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: clamp(22px, 3vw, 34px);
+      }
+
+      .polaroid {
+        display: grid;
+        gap: 9px;
+        padding: 10px 10px 15px;
+        border: 2px solid rgba(36, 36, 36, 0.18);
+        border-radius: 6px;
+        background: #fffdf5;
+        box-shadow: 0 12px 24px rgba(83, 61, 39, 0.16);
+        transition: transform 180ms ease, box-shadow 180ms ease;
+      }
+
+      .polaroid:nth-child(odd) {
+        transform: rotate(-1.2deg);
+      }
+
+      .polaroid:nth-child(even) {
+        transform: rotate(1.2deg);
+      }
+
+      .polaroid:nth-child(4n + 1) {
+        transform: rotate(-1.4deg);
+      }
+
+      .polaroid:nth-child(4n + 2) {
+        transform: rotate(1.4deg);
+      }
+
+      .polaroid:nth-child(4n + 3) {
+        transform: rotate(-1deg);
+      }
+
+      .polaroid:nth-child(4n) {
+        transform: rotate(1deg);
+      }
+
+      .polaroid:hover,
+      .polaroid:focus-visible {
+        transform: translateY(-4px) rotate(0deg);
+        box-shadow: 0 24px 34px rgba(83, 61, 39, 0.22);
+        outline: none;
+      }
+
+      .polaroid img {
+        width: 100%;
+        aspect-ratio: 1;
+        padding: 10px;
+        object-fit: contain;
+        background: #ffffff;
+      }
+
+      .polaroid img.social-logo-card {
+        object-fit: contain;
+        background: #ffffff;
+      }
+
+      .polaroid img.museum-polaroid-photo {
+        padding: 0;
+        object-fit: cover;
+        background: #000000;
+      }
+
+      .polaroid strong {
+        color: #2a8f8a;
+        font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+        font-size: clamp(24px, 2vw, 30px);
+        font-weight: 800;
+        letter-spacing: 0;
+        line-height: 1.12;
+        text-transform: none;
+      }
+
+      .polaroid small {
+        color: #14528c;
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.32;
+      }
+
+      .lower-links {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 16px;
+        margin-top: 24px;
+      }
+
+      .info-link {
+        display: grid;
+        gap: 8px;
+        min-height: 130px;
+        padding: 20px;
+        border: 2px solid #242424;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 8px 0 rgba(36, 36, 36, 0.12);
+      }
+
+      .info-link strong {
+        font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+        font-size: 29px;
+        font-weight: 800;
+        letter-spacing: 0;
+        line-height: 1.12;
+        text-transform: none;
+      }
+
+      .info-link span {
+        color: #242424;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.45;
+      }
+
+      .home-contact {
+        display: grid;
+        grid-template-columns: minmax(300px, 500px) minmax(300px, 400px);
+        gap: clamp(22px, 3.5vw, 44px);
+        align-items: center;
+        justify-content: center;
+        max-width: 1060px;
+        margin: 30px auto 0;
+        padding: clamp(24px, 3vw, 34px);
+        border: 3px solid rgba(36, 36, 36, 0.2);
+        border-radius: 18px;
+        background: #fffdf5;
+      }
+
+      .home-contact > div:first-child {
+        max-width: 500px;
+      }
+
+      .card-zone {
+        width: min(230px, 100%);
+        perspective: 1400px;
+        justify-self: center;
+        overflow: visible;
+      }
+
+      .flip-wrap {
+        position: relative;
+        display: grid;
+        width: 100%;
+        justify-items: center;
+      }
+
+      .business-card {
+        position: relative;
+        width: 100%;
+        max-width: 200px;
+        aspect-ratio: 0.585;
+        cursor: default;
+        transform-style: preserve-3d;
+        transition: transform 700ms ease;
+      }
+
+      .card-face {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+        border: 5px solid #000000;
+        border-radius: 10px;
+        background: #000000;
+        backface-visibility: hidden;
+        box-shadow: 0 18px 34px rgba(83, 61, 39, 0.22);
+      }
+
+      .card-face img {
+        display: block;
+        width: 100%;
+        height: calc(100% + 12px);
+        margin-top: -6px;
+        object-fit: cover;
+      }
+
+      .card-back {
+        transform: rotate3d(1, 1, 0, 180deg);
+      }
+
+      .flip-button {
+        position: absolute;
+        right: -14px;
+        bottom: 8px;
+        z-index: 5;
+        background: #168246;
+        color: #ffffff;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 15px;
+        font-weight: 900;
+        text-transform: uppercase;
+        cursor: pointer;
+        min-height: 34px;
+        padding: 0 12px;
+        border-width: 2px;
+        box-shadow: 0 5px 0 rgba(36, 36, 36, 0.16);
+        transform: rotate(-30deg);
+      }
+
+      @media (max-width: 980px) {
+        .site-header,
+        .hero,
+        .home-contact {
+          grid-template-columns: 1fr;
+        }
+
+        .feature-card {
+          grid-template-columns: 1fr;
+          width: min(470px, 88%);
+        }
+
+        .feature-track {
+          min-height: 660px;
+        }
+
+        .nav {
+          display: none;
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+          padding-top: 10px;
+        }
+
+        .nav.open {
+          display: flex;
+        }
+
+        .menu-button {
+          display: inline-flex;
+          justify-self: end;
+        }
+
+        .polaroid-grid,
+        .lower-links {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      @media (min-width: 981px) {
+        .page {
+          padding: 14px 0 48px;
+        }
+
+        .top-shell {
+          min-height: calc(100dvh - 28px);
+          display: grid;
+          grid-template-rows: auto minmax(0, 1fr);
+        }
+
+        .site-header {
+          gap: 18px;
+          padding: 14px clamp(18px, 3vw, 36px) 8px;
+        }
+
+        .logo-card {
+          width: clamp(124px, 13vw, 168px);
+        }
+
+        .hero {
+          min-height: 0;
+          gap: clamp(24px, 4vw, 54px);
+          padding: 12px clamp(18px, 3vw, 36px) 24px;
+        }
+
+        .hero-copy {
+          gap: 16px;
+        }
+
+        .hero-copy h1 {
+          font-size: clamp(56px, 5.8vw, 86px);
+        }
+
+        .hero-copy p {
+          font-size: 18px;
+          line-height: 1.42;
+        }
+
+        .feature-card {
+          gap: 18px;
+          padding: 18px;
+        }
+
+        .feature-track {
+          min-height: 466px;
+        }
+
+        .feature-photo img {
+          aspect-ratio: 1;
+          max-height: min(46dvh, 390px);
+        }
+
+        .feature-copy {
+          gap: 10px;
+        }
+
+        .feature-copy h2 {
+          font-size: clamp(28px, 2.7vw, 42px);
+        }
+      }
+
+      @media (max-width: 620px) {
+        .page {
+          width: min(100% - 20px, 1480px);
+          padding-top: 12px;
+        }
+
+        .site-header {
+          gap: 14px;
+          padding: 18px;
+        }
+
+        .logo-card,
+        .menu-button,
+        .button {
+          width: 100%;
+        }
+
+        .menu-button {
+          justify-self: stretch;
+        }
+
+        .hero {
+          padding: 20px 18px 32px;
+        }
+
+        .hero-copy {
+          max-width: 100%;
+        }
+
+        .feature-track {
+          min-height: 590px;
+        }
+
+        .feature-card {
+          width: min(420px, 88%);
+        }
+
+        .feature-arrow.prev {
+          left: 0;
+        }
+
+        .feature-arrow.next {
+          right: 0;
+        }
+
+        .polaroid-grid,
+        .lower-links {
+          grid-template-columns: 1fr;
+        }
+
+        .card-zone {
+          justify-self: center;
+        }
+
+        .business-card {
+          width: min(200px, 82vw);
+        }
+
+      .flip-button {
+          right: -8px;
+          bottom: 6px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="shape-field" aria-hidden="true">
+      <span class="shape square" style="--s: 116px; --c: #1563c5; left: 3%; top: 3%;"></span>
+      <span class="shape triangle" style="--s: 88px; --c: #e40303; left: 18%; top: 7%;"></span>
+      <span class="shape square" style="--s: 42px; --c: #078d3f; left: 31%; top: 7%;"></span>
+      <span class="shape triangle" style="--s: 132px; --c: #ffc20f; left: 41%; top: 8%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 94px; --c: #e40303; left: 54%; top: 5%;"></span>
+      <span class="shape triangle" style="--s: 164px; --c: #078d3f; left: 69%; top: 2%;"></span>
+      <span class="shape square" style="--s: 128px; --c: #ffc20f; left: 88%; top: 4%;"></span>
+      <span class="shape triangle" style="--s: 126px; --c: #078d3f; left: 7%; top: 25%; --r: 90deg;"></span>
+      <span class="shape square" style="--s: 78px; --c: #ffc20f; left: 21%; top: 30%;"></span>
+      <span class="shape triangle" style="--s: 102px; --c: #1563c5; left: 32%; top: 30%;"></span>
+      <span class="shape square" style="--s: 132px; --c: #e40303; left: 44%; top: 26%;"></span>
+      <span class="shape triangle" style="--s: 68px; --c: #ffc20f; left: 62%; top: 32%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 94px; --c: #1563c5; left: 74%; top: 31%;"></span>
+      <span class="shape triangle" style="--s: 126px; --c: #e40303; left: 91%; top: 30%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 64px; --c: #e40303; left: 4%; top: 58%;"></span>
+      <span class="shape triangle" style="--s: 132px; --c: #ffc20f; left: 16%; top: 51%;"></span>
+      <span class="shape square" style="--s: 118px; --c: #1563c5; left: 30%; top: 57%;"></span>
+      <span class="shape triangle" style="--s: 72px; --c: #078d3f; left: 47%; top: 58%; --r: 90deg;"></span>
+      <span class="shape square" style="--s: 150px; --c: #ffc20f; left: 56%; top: 55%;"></span>
+      <span class="shape triangle" style="--s: 92px; --c: #e40303; left: 73%; top: 56%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 86px; --c: #078d3f; left: 87%; top: 58%;"></span>
+      <span class="shape triangle" style="--s: 158px; --c: #1563c5; left: 6%; top: 84%; --r: 180deg;"></span>
+      <span class="shape square" style="--s: 86px; --c: #e40303; left: 23%; top: 86%;"></span>
+      <span class="shape triangle" style="--s: 92px; --c: #078d3f; left: 36%; top: 86%;"></span>
+      <span class="shape square" style="--s: 138px; --c: #ffc20f; left: 48%; top: 82%;"></span>
+      <span class="shape triangle" style="--s: 78px; --c: #e40303; left: 65%; top: 87%; --r: -90deg;"></span>
+      <span class="shape square" style="--s: 112px; --c: #1563c5; left: 78%; top: 84%;"></span>
+      <span class="shape triangle" style="--s: 112px; --c: #ffc20f; left: 92%; top: 85%;"></span>
+    </div>
+
+    <main class="page" id="home">
+      <section class="top-shell" aria-label="Vero Flashback storefront">
+        <header class="site-header">
+          <a class="logo-card" href="#home" aria-label="Vero Flashback home">
+            <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo" />
+          </a>
+          <button class="menu-button" id="menuButton" type="button" aria-label="Toggle navigation" aria-expanded="false">
+            Menu
+          </button>
+          <nav class="nav" id="siteNav" aria-label="Primary navigation">
+            <a href="#home">Home</a>
+            <a href="./items.html">The Shop</a>
+            <a href="./new-arrivals.html">Whats New</a>
+            <a href="./retro-room.html">Retro Room</a>
+            <a href="./contact.html">Contact</a>
+          </nav>
+        </header>
+
+        <section class="hero">
+          <div class="hero-copy">
+            <h1>Vintage Finds</h1>
+            <p>Curated retro media, vintage technology, collectibles, antiques, and one-of-a-kind finds from Vero Beach, Florida.</p>
+            <div class="hero-actions">
+              <a class="button secondary" href="./items.html">Visit The Shop</a>
+            </div>
+          </div>
+
+          <section class="feature-carousel" aria-label="Featured Vero Flashback cards">
+            <button class="feature-arrow prev" id="featurePrev" type="button" aria-label="Previous featured card">&lt;</button>
+            <div class="feature-track" id="featureTrack">
+              <article class="feature-card is-active" aria-label="Featured archive piece">
+                <a class="feature-photo contain" href="./pokemon-yellow.html" aria-label="View Pokemon Yellow featured item">
+                  <img src="./Pictures/pokemon yellow wata graded pro pic front.jpg" alt="Pokemon Yellow WATA graded front pro photo" />
+                </a>
+                <div class="feature-copy">
+                  <span class="feature-label">Featured Archive Piece</span>
+                  <h2>Pokemon Yellow 9.8 A++</h2>
+                  <p>A true one-of-one grail from the archive.</p>
+                  <a class="small-action" href="./pokemon-yellow.html">View Featured Item</a>
+                </div>
+              </article>
+
+              <article class="feature-card" aria-label="Flashback shop card">
+                <a class="feature-photo" href="./items.html" aria-label="Shop available Vero Flashback items">
+                  <img src="./booth pics/IMG_3115.jpeg" alt="Vero Flashback shop booth preview" />
+                </a>
+                <div class="feature-copy">
+                  <span class="feature-label">The Shop</span>
+                  <h2>See Inventory</h2>
+                  <p>See items currently in shop.</p>
+                  <a class="small-action" href="./items.html">Open Shop</a>
+                </div>
+              </article>
+
+              <article class="feature-card" aria-label="Interactive retro room card">
+                <a class="feature-photo" href="./retro-room.html" aria-label="Open the interactive retro room">
+                  <img src="./Pictures/interactive museum neon card square.png" alt="Interactive retro museum neon sign and display close-up" />
+                </a>
+                <div class="feature-copy">
+                  <span class="feature-label">Retro Room</span>
+                  <h2>Interactive Museum</h2>
+                  <p>Take a glimpse into the past with the retro museum room.</p>
+                  <a class="small-action" href="./retro-room.html">Enter Room</a>
+                </div>
+              </article>
+            </div>
+            <button class="feature-arrow next" id="featureNext" type="button" aria-label="Next featured card">&gt;</button>
+
+            <div class="feature-dots" aria-label="Choose featured card">
+              <button class="feature-dot is-active" type="button" aria-label="Show featured archive card" aria-current="true"></button>
+              <button class="feature-dot" type="button" aria-label="Show shop card"></button>
+              <button class="feature-dot" type="button" aria-label="Show retro room card"></button>
+            </div>
+          </section>
+        </section>
+      </section>
+
+      <section class="content-band" id="available-items">
+        <div class="section-title">
+          <h2>Curated Finds</h2>
+          <p>Inventory and archive spaces for vintage technology, retro games, media, collectibles, antiques, and unusual finds.</p>
+        </div>
+
+        <div class="polaroid-grid">
+          <a class="polaroid" href="./items.html">
+            <img src="./booth pics/IMG_3115.jpeg" alt="Vero Flashback shop booth display" />
+            <strong>Flashback Shop</strong>
+            <small>Shop retro media, clothes, tech, and finds.</small>
+          </a>
+          <a class="polaroid" href="./retro-room.html">
+            <img class="museum-polaroid-photo" src="./Pictures/interactive museum neon card square.png" alt="Interactive retro museum neon sign and display close-up" />
+            <strong>Interactive Museum</strong>
+            <small>Open the clickable retro room.</small>
+          </a>
+          <a class="polaroid" href="./social-media.html">
+            <img class="social-logo-card" src="./Pictures/social-media-logos.svg" alt="YouTube and Instagram logos for Vero Flashback social media" />
+            <strong>Social Media</strong>
+            <small>Follow finds, videos, and booth updates.</small>
+          </a>
+          <a class="polaroid" href="./contact.html">
+            <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback contact page" />
+            <strong>Contact Me</strong>
+            <small>Buy, sell, or trade finds.</small>
+          </a>
+        </div>
+
+        <div class="lower-links">
+          <a class="info-link red-text" href="./new-arrivals.html">
+            <strong>New Arrivals</strong>
+            <span>Reserved for newly cataloged inventory and recent archive entries.</span>
+          </a>
+          <a class="info-link green-text" href="./items.html">
+            <strong>The Shop</strong>
+            <span>Browse the current booth setup, shelves, racks, and fresh finds.</span>
+          </a>
+          <a class="info-link blue-text" href="./contact.html">
+            <strong>Contact</strong>
+            <span>Ask about an item, request more photos, or discuss a find.</span>
+          </a>
+        </div>
+
+        <section class="home-contact" id="contact-card" aria-label="Contact Vero Flashback">
+          <div>
+            <h2>Contact</h2>
+            <p>
+              Buy, sell, or trade video games, Legos, toys, electronics, vintage clothing, and collectible finds.
+            </p>
+          </div>
+
+          <div class="card-zone">
+            <div class="flip-wrap" aria-label="Interactive Vero Flashback business card">
+              <div class="business-card" id="businessCard" role="button" tabindex="0" aria-label="Flip Vero Flashback business card">
+                <div class="card-face card-front">
+                  <img src="./Pictures/business-card-front.png" alt="Vero Flashback business card front" />
+                </div>
+                <div class="card-face card-back">
+                  <img src="./Pictures/business-card-back.png" alt="Vero Flashback business card back" />
+                </div>
+              </div>
+              <button class="flip-button" type="button" id="flipButton" aria-pressed="false">Click Me</button>
+            </div>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <script>
+      var shapeField = document.querySelector(".shape-field");
+      var menuButton = document.getElementById("menuButton");
+      var siteNav = document.getElementById("siteNav");
+      var flipButton = document.getElementById("flipButton");
+      var businessCard = document.getElementById("businessCard");
+      var featureTrack = document.getElementById("featureTrack");
+      var featurePrev = document.getElementById("featurePrev");
+      var featureNext = document.getElementById("featureNext");
+      var featureCards = Array.prototype.slice.call(featureTrack.querySelectorAll(".feature-card"));
+      var featureDots = Array.prototype.slice.call(document.querySelectorAll(".feature-dot"));
+      var cardRotation = 0;
+      var activeFeature = 0;
+      var featureTimer = null;
+      var ticking = false;
+
+      function moveBackground() {
+        var offset = Math.min(window.scrollY * 0.16, 180);
+        shapeField.style.transform = "translate3d(0, -" + offset + "px, 0)";
+        ticking = false;
+      }
+
+      menuButton.addEventListener("click", function () {
+        var open = siteNav.classList.toggle("open");
+        menuButton.setAttribute("aria-expanded", open ? "true" : "false");
+      });
+
+      siteNav.addEventListener("click", function () {
+        siteNav.classList.remove("open");
+        menuButton.setAttribute("aria-expanded", "false");
+      });
+
+      function showFeature(index) {
+        activeFeature = (index + featureDots.length) % featureDots.length;
+        featureCards.forEach(function (card, cardIndex) {
+          var previous = (activeFeature + featureCards.length - 1) % featureCards.length;
+          var next = (activeFeature + 1) % featureCards.length;
+          card.classList.toggle("is-active", cardIndex === activeFeature);
+          card.classList.toggle("is-prev", cardIndex === previous);
+          card.classList.toggle("is-next", cardIndex === next);
+        });
+        featureDots.forEach(function (dot, dotIndex) {
+          var active = dotIndex === activeFeature;
+          dot.classList.toggle("is-active", active);
+          dot.setAttribute("aria-current", active ? "true" : "false");
+        });
+      }
+
+      function startFeatureRotation() {
+        window.clearInterval(featureTimer);
+        featureTimer = window.setInterval(function () {
+          showFeature(activeFeature + 1);
+        }, 6400);
+      }
+
+      featurePrev.addEventListener("click", function () {
+        showFeature(activeFeature - 1);
+        startFeatureRotation();
+      });
+
+      featureNext.addEventListener("click", function () {
+        showFeature(activeFeature + 1);
+        startFeatureRotation();
+      });
+
+      featureDots.forEach(function (dot, index) {
+        dot.addEventListener("click", function () {
+          showFeature(index);
+          startFeatureRotation();
+        });
+      });
+
+      showFeature(0);
+      startFeatureRotation();
+
+      function flipCard() {
+        cardRotation += 180;
+        businessCard.style.transform = "rotate3d(1, 1, 0, " + cardRotation + "deg)";
+        flipButton.setAttribute("aria-pressed", cardRotation % 360 === 180 ? "true" : "false");
+      }
+
+      flipButton.addEventListener("click", flipCard);
+
+      businessCard.addEventListener("click", flipCard);
+
+      businessCard.addEventListener("keydown", function (event) {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          flipCard();
+        }
+      });
+
+      window.addEventListener(
+        "scroll",
+        function () {
+          if (!ticking) {
+            window.requestAnimationFrame(moveBackground);
+            ticking = true;
+          }
+        },
+        { passive: true },
+      );
+    </script>
+  </body>
+</html>

@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Interactive realistic plasma ball modal for the Vero Flashback museum."
+    />
+    <title>Interactive Plasma Ball | Vero Flashback</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        --cyan: #7ff7ff;
+        --pink: #ff4be6;
+        --violet: #8b5cff;
+        --ink: #030509;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 235, 236, 0.92)),
+          #f5f6f6;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      body {
+        display: grid;
+        place-items: center;
+        background-image: url("./Pictures/rubiks-modal-transparent-bg.png");
+      }
+
+      .plasma-backdrop {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        padding: 12px;
+        background: transparent;
+      }
+
+      .plasma-modal {
+        position: relative;
+        width: min(820px, calc(100vw - 24px));
+        height: calc(100dvh - 24px);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        border: 1px solid rgba(15, 23, 28, 0.08);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.78), rgba(218, 225, 226, 0.62)),
+          url("./Pictures/rubiks-modal-transparent-bg.png");
+        box-shadow:
+          0 24px 60px rgba(0, 0, 0, 0.18),
+          inset 0 0 42px rgba(92, 37, 140, 0.05);
+        overflow: hidden;
+      }
+
+      .plasma-head {
+        position: relative;
+        z-index: 8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(15, 23, 28, 0.14);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .plasma-head h1 {
+        margin: 0;
+        color: #1a1d20;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(24px, 4vw, 42px);
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .close-modal {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(15, 23, 28, 0.22);
+        border-radius: 6px;
+        background: #ffffff;
+        color: #111;
+        cursor: pointer;
+        font-size: 18px;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 3px 0 rgba(11, 117, 108, 0.12);
+      }
+
+      .close-modal:hover,
+      .close-modal:focus-visible {
+        border-color: #0b756c;
+        outline: none;
+        transform: translateY(-1px);
+      }
+
+      .plasma-playfield {
+        min-height: 0;
+        margin: 12px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(218, 225, 226, 0.7)),
+          url("./Pictures/rubiks-modal-transparent-bg.png");
+      }
+
+      .plasma-playfield::before {
+        content: "";
+        position: absolute;
+        inset: 14%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 0, 0, 0.12), transparent 62%);
+        filter: blur(18px);
+        transform: translateY(34%);
+        pointer-events: none;
+      }
+
+      .plasma-stage {
+        position: relative;
+        z-index: 1;
+        width: min(485px, 84vw, calc((100dvh - 116px) * 0.806));
+        aspect-ratio: 1 / 1.24;
+        display: grid;
+        place-items: start center;
+        touch-action: none;
+        user-select: none;
+        cursor: crosshair;
+      }
+
+      .ambient-haze {
+        position: absolute;
+        top: 1%;
+        width: 82%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 52%, rgba(255, 52, 225, 0.22), transparent 48%),
+          radial-gradient(circle at 50% 50%, rgba(78, 201, 255, 0.19), transparent 61%);
+        filter: blur(34px);
+        opacity: 0.9;
+        pointer-events: none;
+      }
+
+      .glass-ball {
+        position: relative;
+        width: 80%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 34% 22%, rgba(255, 255, 255, 0.42), transparent 8%),
+          radial-gradient(circle at 39% 30%, rgba(214, 253, 255, 0.18), transparent 18%),
+          radial-gradient(circle at 64% 68%, rgba(255, 34, 212, 0.18), transparent 44%),
+          radial-gradient(circle at 42% 46%, rgba(68, 13, 92, 0.86), rgba(11, 3, 23, 0.92) 62%, rgba(3, 4, 11, 0.97));
+        box-shadow:
+          inset -46px -54px 88px rgba(1, 2, 8, 0.86),
+          inset 24px 18px 58px rgba(255, 255, 255, 0.13),
+          inset 0 0 34px rgba(141, 242, 255, 0.23),
+          0 0 46px rgba(154, 75, 255, 0.36),
+          0 0 118px rgba(255, 57, 225, 0.18);
+      }
+
+      .glass-ball::before {
+        content: "";
+        position: absolute;
+        inset: 3.2%;
+        z-index: 4;
+        border-radius: 50%;
+        background:
+          radial-gradient(ellipse at 29% 18%, rgba(255, 255, 255, 0.64), rgba(255, 255, 255, 0.18) 12%, transparent 24%),
+          radial-gradient(ellipse at 70% 24%, rgba(184, 248, 255, 0.24), transparent 23%),
+          radial-gradient(ellipse at 24% 73%, rgba(255, 255, 255, 0.08), transparent 28%),
+          linear-gradient(126deg, rgba(255, 255, 255, 0.16), transparent 32%, rgba(255, 255, 255, 0.075) 58%, transparent 77%);
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .glass-ball::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 5;
+        border-radius: 50%;
+        border: 1px solid rgba(210, 250, 255, 0.24);
+        box-shadow:
+          inset 0 0 0 2px rgba(255, 255, 255, 0.04),
+          inset 0 0 46px rgba(154, 236, 255, 0.14),
+          inset -18px -28px 42px rgba(0, 0, 0, 0.22);
+        pointer-events: none;
+      }
+
+      #plasmaCanvas {
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 3;
+        width: 11.5%;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        background:
+          radial-gradient(circle, #ffffff 0 9%, #bfffff 10% 24%, #ff5bf0 32%, rgba(117, 42, 255, 0.58) 58%, transparent 72%);
+        box-shadow:
+          0 0 18px rgba(255, 255, 255, 0.8),
+          0 0 36px rgba(122, 255, 255, 0.56),
+          0 0 74px rgba(255, 62, 231, 0.42);
+        pointer-events: none;
+      }
+
+      .base-neck {
+        position: absolute;
+        top: 65.5%;
+        z-index: 2;
+        width: 30%;
+        height: 12.5%;
+        border-radius: 18% 18% 8% 8% / 28% 28% 8% 8%;
+        background:
+          radial-gradient(ellipse at 50% 2%, rgba(255, 255, 255, 0.5), transparent 36%),
+          linear-gradient(90deg, #4e5054 0%, #d4d7d9 18%, #ffffff 42%, #9da1a5 65%, #3f4247 100%),
+          linear-gradient(180deg, #f2f3f3 0%, #b8bcc0 45%, #676c72 100%);
+        box-shadow:
+          inset 0 10px 18px rgba(255, 255, 255, 0.42),
+          inset 0 -12px 16px rgba(0, 0, 0, 0.36),
+          0 8px 14px rgba(0, 0, 0, 0.38);
+      }
+
+      .base-neck::before {
+        content: "";
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: -9%;
+        height: 25%;
+        border-radius: 16% / 45%;
+        background:
+          radial-gradient(ellipse at 50% 42%, #ffffff 0%, #dfe1e2 48%, #8e9398 76%, #53585d 100%);
+        box-shadow:
+          inset 0 -5px 9px rgba(0, 0, 0, 0.22),
+          0 2px 7px rgba(0, 0, 0, 0.28);
+      }
+
+      .base {
+        position: absolute;
+        top: 74.1%;
+        z-index: 2;
+        width: 50%;
+        height: 16.5%;
+        border-radius: 12% 12% 6% 6% / 25% 25% 7% 7%;
+        background:
+          radial-gradient(ellipse at 50% 5%, rgba(255, 255, 255, 0.62), transparent 37%),
+          linear-gradient(90deg, #3f4246 0%, #bfc3c7 16%, #ffffff 40%, #c9cdd0 61%, #53575d 100%),
+          linear-gradient(180deg, #fbfbfb 0%, #c7cbd0 43%, #737980 100%);
+        box-shadow:
+          inset 0 12px 18px rgba(255, 255, 255, 0.45),
+          inset 0 -16px 20px rgba(0, 0, 0, 0.42),
+          0 20px 34px rgba(0, 0, 0, 0.54);
+      }
+
+      .base::before {
+        content: "";
+        position: absolute;
+        left: 8%;
+        right: 8%;
+        top: 8%;
+        height: 28%;
+        border-radius: 10% / 45%;
+        background:
+          radial-gradient(ellipse at 50% 39%, #ffffff 0%, #d7dadd 48%, #93989d 77%, #575d63 100%);
+        box-shadow: inset 0 -8px 12px rgba(0, 0, 0, 0.24);
+      }
+
+      .base::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 28%;
+        border-radius: 0 0 9% 9% / 0 0 28% 28%;
+        background:
+          radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.2), rgba(114, 119, 125, 0.58) 57%, rgba(52, 56, 61, 0.8) 100%);
+        box-shadow:
+          inset 0 7px 12px rgba(255, 255, 255, 0.16),
+          inset 0 -7px 10px rgba(0, 0, 0, 0.34);
+      }
+
+      .shadow {
+        position: absolute;
+        top: 86.3%;
+        width: 54%;
+        height: 8%;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.58);
+        filter: blur(18px);
+      }
+
+      @media (max-width: 620px) {
+        .plasma-modal {
+          width: calc(100vw - 16px);
+          height: calc(100dvh - 16px);
+        }
+
+        .plasma-stage {
+          width: min(92vw, calc((100dvh - 108px) * 0.806));
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="plasma-backdrop" id="plasmaModal" role="dialog" aria-modal="true" aria-labelledby="plasmaTitle">
+      <article class="plasma-modal">
+        <header class="plasma-head">
+          <h1 id="plasmaTitle">Plasma Ball</h1>
+          <button class="close-modal" id="closeModal" type="button" aria-label="Close">X</button>
+        </header>
+        <div class="plasma-playfield">
+          <section class="plasma-stage" id="plasmaStage" aria-label="Interactive plasma ball">
+            <div class="ambient-haze"></div>
+            <div class="glass-ball" id="glassBall">
+              <canvas id="plasmaCanvas"></canvas>
+              <div class="core"></div>
+            </div>
+            <div class="base-neck"></div>
+            <div class="base"></div>
+            <div class="shadow"></div>
+          </section>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      (function () {
+        var modal = document.getElementById("plasmaModal");
+        var closeModal = document.getElementById("closeModal");
+        var stage = document.getElementById("plasmaStage");
+        var ball = document.getElementById("glassBall");
+        var canvas = document.getElementById("plasmaCanvas");
+        var ctx = canvas.getContext("2d");
+        var pointer = { x: 0.62, y: 0.36, active: false, inside: false, strength: 0 };
+        var bolts = [];
+        var lastTime = 0;
+        var rafId = 0;
+        var running = false;
+        var pixelRatio = 1;
+        var size = 0;
+        var center = { x: 0, y: 0 };
+        var radius = 0;
+
+        function clamp(value, min, max) {
+          return Math.max(min, Math.min(max, value));
+        }
+
+        function resize() {
+          var rect = ball.getBoundingClientRect();
+          pixelRatio = Math.min(window.devicePixelRatio || 1, 1);
+          size = Math.max(1, rect.width);
+          canvas.width = Math.round(rect.width * pixelRatio);
+          canvas.height = Math.round(rect.height * pixelRatio);
+          canvas.style.width = rect.width + "px";
+          canvas.style.height = rect.height + "px";
+          ctx.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+          center = { x: rect.width / 2, y: rect.height / 2 };
+          radius = rect.width * 0.46;
+          seedBolts();
+        }
+
+        function randomEdgePoint(seed) {
+          var angle = seed == null ? Math.random() * Math.PI * 2 : seed;
+          var wobble = 0.94 + Math.random() * 0.05;
+          return {
+            x: center.x + Math.cos(angle) * radius * wobble,
+            y: center.y + Math.sin(angle) * radius * wobble
+          };
+        }
+
+        function makeBolt(target, attracted) {
+          return {
+            target: target,
+            attracted: attracted,
+            phase: Math.random() * Math.PI * 2,
+            life: 0.58 + Math.random() * 0.42,
+            age: Math.random() * 0.3,
+            branches: attracted ? 1 : 0,
+            width: attracted ? 1.6 + Math.random() * 0.72 : 0.78 + Math.random() * 0.65,
+            hueShift: Math.random()
+          };
+        }
+
+        function seedBolts() {
+          bolts = [];
+          for (var i = 0; i < 8; i += 1) {
+            bolts.push(makeBolt(randomEdgePoint((i / 8) * Math.PI * 2), false));
+          }
+        }
+
+        function localPointer(event) {
+          var rect = ball.getBoundingClientRect();
+          var x = event.clientX - rect.left;
+          var y = event.clientY - rect.top;
+          var dx = x - rect.width / 2;
+          var dy = y - rect.height / 2;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+          var max = rect.width * 0.486;
+          var scale = distance > max ? max / distance : 1;
+          pointer.x = (rect.width / 2 + dx * scale) / rect.width;
+          pointer.y = (rect.height / 2 + dy * scale) / rect.height;
+          pointer.inside = distance <= max;
+        }
+
+        function setPointer(event, active) {
+          localPointer(event);
+          pointer.active = active;
+          if (pointer.inside) {
+            pointer.strength = Math.max(pointer.strength, 0.82);
+          }
+        }
+
+        function getAttractionPoint(time) {
+          var px = center.x + (pointer.x - 0.5) * size;
+          var py = center.y + (pointer.y - 0.5) * size;
+          if (pointer.strength <= 0.02) {
+            var drift = time * 0.00024;
+            px = center.x + Math.cos(drift) * radius * 0.97;
+            py = center.y + Math.sin(drift * 1.22) * radius * 0.97;
+          }
+          return { x: px, y: py };
+        }
+
+        function makePathPoints(target, bolt, time) {
+          var points = [];
+          var segments = 9;
+          var angle = Math.atan2(target.y - center.y, target.x - center.x);
+          var normal = angle + Math.PI / 2;
+          var distance = Math.hypot(target.x - center.x, target.y - center.y);
+          var noise = distance * (bolt.attracted ? 0.018 : 0.036);
+          for (var i = 0; i <= segments; i += 1) {
+            var t = i / segments;
+            var ease = Math.sin(t * Math.PI);
+            var wave = Math.sin(t * 23 + bolt.phase + time * 0.012) + Math.sin(t * 13 - bolt.phase * 0.7 + time * 0.008);
+            var jitter = Math.sin((bolt.phase + i * 5.73) * 11.17) * noise * 0.16;
+            var offset = (wave * noise + jitter) * ease;
+            points.push({
+              x: center.x + (target.x - center.x) * t + Math.cos(normal) * offset,
+              y: center.y + (target.y - center.y) * t + Math.sin(normal) * offset
+            });
+          }
+          return points;
+        }
+
+        function strokePath(points, color, width, alpha, blur) {
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = color;
+          ctx.lineWidth = width;
+          ctx.lineCap = "round";
+          ctx.lineJoin = "round";
+          ctx.shadowColor = color;
+          ctx.shadowBlur = blur;
+          ctx.beginPath();
+          ctx.moveTo(points[0].x, points[0].y);
+          for (var i = 1; i < points.length - 1; i += 1) {
+            var midX = (points[i].x + points[i + 1].x) / 2;
+            var midY = (points[i].y + points[i + 1].y) / 2;
+            ctx.quadraticCurveTo(points[i].x, points[i].y, midX, midY);
+          }
+          ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+          ctx.stroke();
+          ctx.restore();
+        }
+
+        function drawBranch(points, bolt, time, branchIndex) {
+          var startIndex = 3 + (branchIndex % Math.max(1, points.length - 7));
+          var start = points[startIndex];
+          var end = points[points.length - 1];
+          var direction = branchIndex % 2 === 0 ? 1 : -1;
+          var angle = Math.atan2(end.y - center.y, end.x - center.x) + direction * (0.48 + Math.sin(time * 0.003 + bolt.phase + branchIndex) * 0.18);
+          var length = radius * (0.12 + branchIndex * 0.045);
+          var branchEnd = {
+            x: clamp(start.x + Math.cos(angle) * length, center.x - radius * 0.9, center.x + radius * 0.9),
+            y: clamp(start.y + Math.sin(angle) * length, center.y - radius * 0.9, center.y + radius * 0.9)
+          };
+          var branchPoints = makePathPoints(branchEnd, bolt, time).slice(0, 5);
+          branchPoints[0] = start;
+          strokePath(branchPoints, "rgba(126, 248, 255, 0.68)", bolt.width * 0.46, 0.38, 7);
+          strokePath(branchPoints, "rgba(255, 244, 255, 0.9)", Math.max(0.55, bolt.width * 0.14), 0.66, 2);
+        }
+
+        function drawTip(point, bolt, alpha) {
+          var tipRadius = radius * (bolt.attracted ? 0.07 : 0.045);
+          var gradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, tipRadius);
+          gradient.addColorStop(0, "rgba(255, 255, 255, " + (0.72 * alpha) + ")");
+          gradient.addColorStop(0.18, "rgba(131, 248, 255, " + (0.48 * alpha) + ")");
+          gradient.addColorStop(0.55, "rgba(255, 61, 226, " + (0.2 * alpha) + ")");
+          gradient.addColorStop(1, "rgba(255, 61, 226, 0)");
+          ctx.save();
+          ctx.globalCompositeOperation = "lighter";
+          ctx.fillStyle = gradient;
+          ctx.beginPath();
+          ctx.arc(point.x, point.y, tipRadius, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+        }
+
+        function drawBolt(bolt, time) {
+          var target = bolt.target;
+          var points = makePathPoints(target, bolt, time);
+          var lifeAlpha = 1 - Math.abs(bolt.age / bolt.life - 0.5) * 1.35;
+          var alpha = clamp(lifeAlpha, 0.18, 1);
+          var hot = bolt.attracted ? 1 : 0.62;
+
+          strokePath(points, "rgba(255, 41, 226, 0.34)", bolt.width * 3.2, 0.12 * alpha * hot, 16);
+          strokePath(points, "rgba(84, 235, 255, 0.9)", bolt.width * 0.82, 0.76 * alpha, 7);
+          strokePath(points, "rgba(255, 252, 255, 0.98)", Math.max(0.42, bolt.width * 0.17), 0.92 * alpha, 2);
+          drawTip(points[points.length - 1], bolt, alpha);
+
+          var branchLimit = bolt.attracted ? Math.min(bolt.branches, 1) : 0;
+          for (var i = 0; i < branchLimit; i += 1) {
+            drawBranch(points, bolt, time, i);
+          }
+        }
+
+        function drawGlow(time) {
+          var attract = getAttractionPoint(time);
+          var glow = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, radius);
+          glow.addColorStop(0, "rgba(255, 75, 230, 0.18)");
+          glow.addColorStop(0.34, "rgba(88, 45, 156, 0.1)");
+          glow.addColorStop(1, "rgba(0, 0, 0, 0)");
+          ctx.fillStyle = glow;
+          ctx.fillRect(0, 0, size, size);
+
+          if (pointer.strength > 0.04) {
+            var contact = ctx.createRadialGradient(attract.x, attract.y, 0, attract.x, attract.y, radius * 0.2);
+            contact.addColorStop(0, "rgba(255, 255, 255, " + (0.28 * pointer.strength) + ")");
+            contact.addColorStop(0.28, "rgba(94, 244, 255, " + (0.22 * pointer.strength) + ")");
+            contact.addColorStop(1, "rgba(255, 55, 228, 0)");
+            ctx.fillStyle = contact;
+            ctx.beginPath();
+            ctx.arc(attract.x, attract.y, radius * 0.23, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        function updateBolts(delta, time) {
+          var attractionTarget = getAttractionPoint(time);
+          var targetStrength = pointer.inside ? 1 : 0;
+          pointer.strength += (targetStrength - pointer.strength) * (targetStrength ? 0.78 : 0.36);
+          pointer.strength = clamp(pointer.strength, 0, 1);
+
+          var attractedCount = 0;
+          bolts.forEach(function (bolt, index) {
+            if (!pointer.inside && bolt.attracted) {
+              bolt.attracted = false;
+              bolt.target = randomEdgePoint();
+              bolt.life = Math.min(bolt.life, 0.56 + Math.random() * 0.24);
+              bolt.age = Math.min(bolt.age, bolt.life * 0.45);
+              bolt.width = Math.min(bolt.width, 0.82 + Math.random() * 0.58);
+              bolt.branches = 0;
+            }
+            if (pointer.strength > 0.1 && index < 14 && !bolt.attracted) {
+              bolt.attracted = true;
+              bolt.age = Math.min(bolt.age, bolt.life * 0.25);
+              bolt.target = { x: attractionTarget.x, y: attractionTarget.y };
+              bolt.width = Math.max(bolt.width, 1.45 + Math.random() * 0.62);
+              bolt.branches = 1;
+            }
+            bolt.age += delta / 1000;
+            if (bolt.age >= bolt.life) {
+              var shouldAttract = pointer.strength > 0.02 && index < 14;
+              bolts[index] = makeBolt(shouldAttract ? attractionTarget : randomEdgePoint(), shouldAttract);
+            } else if (bolt.attracted) {
+              bolt.target.x += (attractionTarget.x - bolt.target.x) * 0.92;
+              bolt.target.y += (attractionTarget.y - bolt.target.y) * 0.92;
+            }
+            if (bolt.attracted) attractedCount += 1;
+          });
+
+          if (pointer.strength > 0.03) {
+            while (attractedCount < 8) {
+              bolts.push(makeBolt({ x: attractionTarget.x, y: attractionTarget.y }, true));
+              attractedCount += 1;
+            }
+          }
+          if (bolts.length > 16) bolts.splice(0, bolts.length - 16);
+        }
+
+        function idlePointer() {
+          pointer.active = false;
+          pointer.inside = false;
+          pointer.strength = 0;
+          bolts.forEach(function (bolt) {
+            bolt.attracted = false;
+            bolt.target = randomEdgePoint();
+            bolt.life = 0.56 + Math.random() * 0.3;
+            bolt.age = Math.min(bolt.age, bolt.life * 0.5);
+            bolt.width = Math.min(bolt.width, 0.9 + Math.random() * 0.54);
+            bolt.branches = 0;
+          });
+        }
+
+        function tick(time) {
+          if (!running) return;
+          var delta = lastTime ? Math.min(40, time - lastTime) : 16;
+          lastTime = time;
+          ctx.clearRect(0, 0, size, size);
+          drawGlow(time);
+          updateBolts(delta, time);
+          bolts.forEach(function (bolt) {
+            drawBolt(bolt, time);
+          });
+          rafId = window.requestAnimationFrame(tick);
+        }
+
+        function startAnimation() {
+          if (running) return;
+          running = true;
+          lastTime = 0;
+          rafId = window.requestAnimationFrame(tick);
+        }
+
+        function stopAnimation() {
+          running = false;
+          if (rafId) window.cancelAnimationFrame(rafId);
+          rafId = 0;
+        }
+
+        stage.addEventListener("pointerdown", function (event) {
+          setPointer(event, true);
+          stage.setPointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointermove", function (event) {
+          setPointer(event, pointer.active);
+        });
+
+        stage.addEventListener("pointerup", function (event) {
+          setPointer(event, false);
+          stage.releasePointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointercancel", function () {
+          idlePointer();
+        });
+
+        stage.addEventListener("pointerleave", function () {
+          idlePointer();
+        });
+
+        closeModal.addEventListener("click", function () {
+          stopAnimation();
+          modal.style.display = "none";
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "plasma-ball-close" }, "*");
+            return;
+          }
+          if (window.history.length > 1) {
+            window.history.back();
+            return;
+          }
+          window.location.href = "./new-arrivals.html";
+        });
+
+        window.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") closeModal.click();
+        });
+
+        window.addEventListener("resize", resize);
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            stopAnimation();
+          } else if (modal.style.display !== "none") {
+            startAnimation();
+          }
+        });
+        resize();
+        startAnimation();
+      })();
+    </script>
+  </body>
+</html>

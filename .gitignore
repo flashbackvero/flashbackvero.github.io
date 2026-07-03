@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.wrangler/
+.agents/
+.codex/
+.npm-cache/
+.pnpm-store/
+flashback-tech-lab-clean/
+planet-panic/
+console.log*
+*.cmd
+*.url
+*.log
+*.tmp
+.DS_Store
+Thumbs.db

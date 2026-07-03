@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Interactive 3D Canon A-1 film camera modal for the Vero Flashback museum."
+    />
+    <title>Canon A-1 Film Camera Modal | Vero Flashback</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        min-height: 100%;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 235, 236, 0.92)),
+          #f5f6f6;
+        color: #14181b;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .camera-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 18px;
+        background-color: transparent;
+        background-image: url("./Pictures/rubiks-modal-transparent-bg.png");
+      }
+
+      .camera-modal {
+        width: min(1100px, 100%);
+        max-height: min(820px, calc(100vh - 28px));
+        overflow: auto;
+        border: 2px solid rgba(15, 23, 28, 0.72);
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(239, 243, 243, 0.9));
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      }
+
+      .camera-head {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(15, 23, 28, 0.14);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .camera-head h1 {
+        margin: 0;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(25px, 4vw, 46px);
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .window-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button {
+        width: 38px;
+        height: 38px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(15, 23, 28, 0.22);
+        border-radius: 6px;
+        background: #ffffff;
+        color: #111;
+        cursor: pointer;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 21px;
+        font-weight: 900;
+      }
+
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        border-color: #0b756c;
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(11, 117, 108, 0.18);
+      }
+
+      .camera-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 290px;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .camera-stage {
+        min-height: min(660px, calc(100vh - 158px));
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 8px;
+        background:
+          radial-gradient(ellipse at 47% 42%, rgba(255, 255, 255, 0.98), rgba(217, 223, 223, 0.8) 48%, rgba(172, 181, 181, 0.7)),
+          linear-gradient(145deg, #eef1f1, #c8d0d0);
+        perspective: 1300px;
+        user-select: none;
+        touch-action: none;
+      }
+
+      .camera-stage::after {
+        content: "";
+        position: absolute;
+        left: 16%;
+        right: 18%;
+        bottom: 74px;
+        height: 70px;
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(30, 34, 36, 0.22), transparent 68%);
+        filter: blur(8px);
+        pointer-events: none;
+      }
+
+      .camera-stage.dragging {
+        cursor: grabbing;
+      }
+
+      .camera-scale {
+        width: min(92vw, 700px);
+        aspect-ratio: 1.45;
+        display: grid;
+        place-items: center;
+        transform: scale(0.82);
+        transform-style: preserve-3d;
+        z-index: 1;
+      }
+
+      .camera-model {
+        --rx: -10deg;
+        --ry: -22deg;
+        --w: 564px;
+        --h: 368px;
+        --d: 192px;
+        --z: 96px;
+        --clay: #cdd2d1;
+        --clay-hi: #edf0ef;
+        --clay-mid: #b7bebd;
+        --clay-low: #8e9897;
+        --line: rgba(83, 91, 91, 0.28);
+        position: relative;
+        width: var(--w);
+        height: var(--h);
+        transform-style: preserve-3d;
+        transform: rotateX(var(--rx)) rotateY(var(--ry));
+        transition: transform 90ms linear;
+      }
+
+      .camera-model.animating {
+        transition: transform 240ms ease;
+      }
+
+      .body-face {
+        position: absolute;
+        left: 0;
+        top: 0;
+        border: 1px solid rgba(70, 78, 78, 0.18);
+        background: var(--clay);
+        box-shadow:
+          inset 14px 18px 28px rgba(255, 255, 255, 0.38),
+          inset -18px -18px 34px rgba(65, 72, 72, 0.28);
+        backface-visibility: hidden;
+      }
+
+      .front,
+      .back {
+        width: var(--w);
+        height: var(--h);
+        border-radius: 14px;
+      }
+
+      .front {
+        transform: translateZ(var(--z));
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 29%),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 22%, transparent 76%, rgba(50, 55, 55, 0.12)),
+          var(--clay);
+      }
+
+      .back {
+        transform: rotateY(180deg) translateZ(var(--z));
+        background:
+          linear-gradient(90deg, var(--clay-mid), var(--clay) 58%, #aeb6b5);
+      }
+
+      .top,
+      .bottom {
+        width: var(--w);
+        height: var(--d);
+        transform-origin: center;
+        border-radius: 12px;
+      }
+
+      .top {
+        transform: rotateX(90deg) translateZ(var(--z));
+        background: linear-gradient(180deg, var(--clay-hi), var(--clay-mid));
+      }
+
+      .bottom {
+        top: calc(var(--h) - var(--d));
+        transform: rotateX(-90deg) translateZ(var(--z));
+        background: var(--clay-low);
+      }
+
+      .left,
+      .right {
+        width: var(--d);
+        height: var(--h);
+        border-radius: 12px;
+      }
+
+      .left {
+        transform: rotateY(-90deg) translateZ(var(--z));
+        background: linear-gradient(90deg, #8d9897, var(--clay-mid));
+      }
+
+      .right {
+        left: calc(var(--w) - var(--d));
+        transform: rotateY(90deg) translateZ(var(--z));
+        background: linear-gradient(90deg, var(--clay-mid), #f1f3f2);
+      }
+
+      .leather {
+        position: absolute;
+        inset: 111px 32px 46px;
+        border-radius: 10px;
+        background:
+          radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.38) 0 1px, transparent 1.6px),
+          radial-gradient(circle at 72% 62%, rgba(95, 104, 104, 0.22) 0 1px, transparent 1.7px),
+          #b5bcbb;
+        background-size: 9px 9px, 11px 11px, auto;
+        box-shadow:
+          inset 0 0 0 1px rgba(72, 82, 82, 0.22),
+          inset 0 0 16px rgba(255, 255, 255, 0.26),
+          inset 0 0 26px rgba(65, 75, 75, 0.18);
+        transform: translateZ(2px);
+      }
+
+      .front::before,
+      .front::after {
+        content: "";
+        position: absolute;
+        top: 93px;
+        width: 82px;
+        height: 228px;
+        border-radius: 18px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.34), transparent 38%),
+          var(--clay-mid);
+        box-shadow:
+          inset 0 0 0 1px rgba(75, 84, 84, 0.22),
+          inset -12px -12px 22px rgba(73, 80, 80, 0.16),
+          inset 8px 8px 18px rgba(255, 255, 255, 0.32);
+      }
+
+      .front::before {
+        left: 0;
+        border-radius: 16px 8px 8px 16px;
+      }
+
+      .front::after {
+        right: 0;
+        border-radius: 8px 16px 16px 8px;
+      }
+
+      .prism {
+        position: absolute;
+        left: 201px;
+        top: -74px;
+        width: 180px;
+        height: 132px;
+        transform-style: preserve-3d;
+        transform: translateZ(98px);
+      }
+
+      .prism::before {
+        content: "";
+        position: absolute;
+        inset: 22px 0 0;
+        clip-path: polygon(0 100%, 20% 24%, 50% 0, 80% 24%, 100% 100%);
+        border: 1px solid rgba(72, 82, 82, 0.18);
+        border-radius: 6px 6px 2px 2px;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.48), transparent 30%),
+          linear-gradient(180deg, var(--clay-hi), var(--clay-mid));
+        box-shadow:
+          inset 0 0 0 1px rgba(255, 255, 255, 0.24),
+          inset -12px -16px 24px rgba(70, 78, 78, 0.18),
+          0 9px 14px rgba(0, 0, 0, 0.16);
+      }
+
+      .canon-logo,
+      .model-logo {
+        position: absolute;
+        transform: translateZ(104px);
+        color: #c9cfce;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-shadow:
+          1px 1px 1px rgba(255, 255, 255, 0.5),
+          -1px -1px 1px rgba(79, 88, 88, 0.34);
+      }
+
+      .canon-logo {
+        left: 235px;
+        top: 30px;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 34px;
+        font-weight: 500;
+      }
+
+      .model-logo {
+        left: 52px;
+        top: 90px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 36px;
+      }
+
+      .viewfinder-window {
+        position: absolute;
+        left: 245px;
+        top: 58px;
+        width: 86px;
+        height: 36px;
+        border-radius: 4px;
+        background: linear-gradient(180deg, #c7cdcc, #929c9b);
+        box-shadow:
+          inset 0 0 8px rgba(44, 52, 52, 0.34),
+          0 0 0 2px rgba(255, 255, 255, 0.18);
+        transform: translateZ(106px);
+      }
+
+      .lens {
+        position: absolute;
+        left: 155px;
+        top: 98px;
+        width: 270px;
+        height: 270px;
+        border-radius: 50%;
+        transform-style: preserve-3d;
+        transform: translateZ(136px);
+      }
+
+      .lens::before,
+      .lens::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+      }
+
+      .lens::before {
+        background:
+          repeating-conic-gradient(from 0deg, #aab2b1 0 1.6deg, #d5dad9 1.6deg 3.6deg),
+          radial-gradient(circle at 50% 50%, #cfd4d3 0 31%, #a5afae 32% 40%, #dfe2e1 41% 48%, #9aa4a3 49% 54%, #d6dbda 55%);
+        box-shadow:
+          0 18px 24px rgba(0, 0, 0, 0.26),
+          inset 0 0 0 12px rgba(255, 255, 255, 0.32),
+          inset -18px -18px 24px rgba(60, 70, 70, 0.18);
+      }
+
+      .lens::after {
+        inset: 46px;
+        background:
+          radial-gradient(circle at 40% 36%, rgba(255, 255, 255, 0.6), transparent 13%),
+          radial-gradient(circle, #c7cecd 0 58%, #a1aaa9 59% 64%, #dce0df 66%);
+        box-shadow:
+          inset 0 0 0 2px rgba(88, 96, 96, 0.26),
+          inset -12px -12px 20px rgba(88, 98, 98, 0.2);
+      }
+
+      .lens-cap-logo {
+        position: absolute;
+        left: 218px;
+        top: 205px;
+        z-index: 2;
+        transform: translateZ(172px);
+        color: #b6bdbc;
+        font-family: Georgia, "Times New Roman", serif;
+        font-size: 38px;
+        text-shadow:
+          1px 1px 1px rgba(255, 255, 255, 0.58),
+          -1px -1px 1px rgba(67, 76, 76, 0.35);
+        pointer-events: none;
+      }
+
+      .ring {
+        position: absolute;
+        border: 0;
+        border-radius: 50%;
+        background: transparent;
+        color: #f6f6f6;
+        cursor: pointer;
+        transform: translateZ(150px);
+      }
+
+      .focus-ring {
+        left: 142px;
+        top: 85px;
+        width: 292px;
+        height: 292px;
+      }
+
+      .aperture-ring {
+        left: 174px;
+        top: 117px;
+        width: 228px;
+        height: 228px;
+      }
+
+      .fd-ring {
+        left: 202px;
+        top: 145px;
+        width: 172px;
+        height: 172px;
+      }
+
+      .ring::before {
+        content: attr(data-readout);
+        position: absolute;
+        left: 50%;
+        bottom: -7px;
+        min-width: 76px;
+        padding: 3px 6px;
+        border-radius: 4px;
+        background: rgba(210, 216, 215, 0.88);
+        color: #65706f;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        text-align: center;
+        transform: translateX(-50%);
+      }
+
+      .control {
+        position: absolute;
+        border: 1px solid rgba(85, 94, 94, 0.18);
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 38%),
+          linear-gradient(180deg, #d7dcdb, #9fa9a8);
+        color: #687271;
+        cursor: pointer;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-weight: 900;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.48),
+          inset -6px -7px 12px rgba(75, 84, 84, 0.14),
+          0 7px 12px rgba(0, 0, 0, 0.16);
+      }
+
+      .control:hover,
+      .control:focus-visible,
+      .ring:hover,
+      .ring:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(40, 170, 255, 0.28), 0 0 22px rgba(40, 170, 255, 0.28);
+      }
+
+      .top-control {
+        transform: translateZ(112px);
+      }
+
+      .front-control {
+        transform: translateZ(108px);
+      }
+
+      .back-control {
+        transform: rotateY(180deg) translateZ(108px);
+      }
+
+      .shutter {
+        left: 431px;
+        top: 18px;
+        width: 54px;
+        height: 54px;
+        border-radius: 50%;
+        font-size: 0;
+      }
+
+      .shutter::before {
+        content: "";
+        position: absolute;
+        inset: 13px;
+        border-radius: 50%;
+        background: #d9dedf;
+      }
+
+      .advance {
+        left: 470px;
+        top: 30px;
+        width: 94px;
+        height: 18px;
+        border-radius: 999px;
+        transform-origin: 13px 50%;
+      }
+
+      .advance.armed {
+        transform: translateZ(112px) rotateZ(22deg);
+      }
+
+      .speed-dial,
+      .iso-dial,
+      .rewind,
+      .mode-dial {
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+      }
+
+      .speed-dial {
+        left: 376px;
+        top: 14px;
+        width: 66px;
+        height: 66px;
+      }
+
+      .iso-dial {
+        left: 82px;
+        top: 14px;
+        width: 72px;
+        height: 72px;
+      }
+
+      .rewind {
+        left: 8px;
+        top: 25px;
+        width: 74px;
+        height: 34px;
+        border-radius: 12px;
+      }
+
+      .mode-dial {
+        left: 156px;
+        top: 24px;
+        width: 68px;
+        height: 42px;
+        border-radius: 12px;
+      }
+
+      .hot-shoe {
+        left: 243px;
+        top: 20px;
+        width: 96px;
+        height: 32px;
+        border-radius: 5px;
+      }
+
+      .speed-dial::before,
+      .iso-dial::before {
+        content: "";
+        position: absolute;
+        inset: -8px;
+        border-radius: 50%;
+        background: repeating-conic-gradient(#8f9998 0 3deg, #d9dddd 3deg 6deg);
+        z-index: -1;
+        box-shadow: inset 0 0 0 5px #c5cccb;
+      }
+
+      .rewind::before,
+      .hot-shoe::before {
+        content: "";
+        position: absolute;
+        inset: 6px 12px;
+        border-radius: 4px;
+        border: 1px solid rgba(78, 88, 88, 0.22);
+        background: rgba(255, 255, 255, 0.18);
+      }
+
+      .self-timer {
+        left: 100px;
+        top: 145px;
+        width: 16px;
+        height: 78px;
+        border-radius: 999px;
+        transform-origin: 50% 18%;
+      }
+
+      .self-timer.active {
+        transform: translateZ(108px) rotateZ(-28deg);
+      }
+
+      .battery-check {
+        left: 417px;
+        top: 140px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        font-size: 0;
+      }
+
+      .ae-lock {
+        left: 462px;
+        top: 196px;
+        width: 58px;
+        height: 30px;
+        border-radius: 5px;
+        font-size: 11px;
+      }
+
+      .lens-release {
+        left: 162px;
+        top: 205px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        font-size: 0;
+      }
+
+      .dof-preview {
+        left: 133px;
+        top: 246px;
+        width: 58px;
+        height: 30px;
+        border-radius: 5px;
+        font-size: 10px;
+      }
+
+      .back-latch {
+        left: 452px;
+        top: 142px;
+        width: 42px;
+        height: 100px;
+        border-radius: 8px;
+        font-size: 10px;
+      }
+
+      .back-door-line {
+        position: absolute;
+        inset: 50px 34px 48px;
+        border: 1px solid rgba(255, 255, 255, 0.09);
+        border-radius: 8px;
+      }
+
+      .strap-lug {
+        position: absolute;
+        width: 60px;
+        height: 60px;
+        border: 8px solid #cbd1d0;
+        border-radius: 14px;
+        box-shadow:
+          inset 0 0 0 2px rgba(91, 101, 101, 0.18),
+          0 6px 12px rgba(0, 0, 0, 0.16);
+        transform: translateZ(132px) rotate(35deg);
+        pointer-events: none;
+      }
+
+      .strap-lug.left-lug {
+        left: 5px;
+        top: 88px;
+      }
+
+      .strap-lug.right-lug {
+        right: -2px;
+        top: 102px;
+      }
+
+      .strap-lug::before {
+        content: "";
+        position: absolute;
+        inset: 13px;
+        border-radius: 7px;
+        background: rgba(225, 229, 228, 0.84);
+      }
+
+      .cap-tab {
+        position: absolute;
+        width: 28px;
+        height: 86px;
+        border-radius: 14px;
+        background:
+          linear-gradient(90deg, rgba(255, 255, 255, 0.4), transparent 48%),
+          #b6bfbe;
+        box-shadow:
+          inset -5px -5px 10px rgba(75, 85, 85, 0.16),
+          0 6px 12px rgba(0, 0, 0, 0.14);
+        transform: translateZ(176px);
+        pointer-events: none;
+      }
+
+      .cap-tab.left-tab {
+        left: 155px;
+        top: 188px;
+      }
+
+      .cap-tab.right-tab {
+        left: 397px;
+        top: 188px;
+      }
+
+      .body-seam {
+        position: absolute;
+        height: 2px;
+        border-radius: 999px;
+        background: rgba(87, 96, 96, 0.18);
+        box-shadow: 0 1px 0 rgba(255, 255, 255, 0.32);
+        transform: translateZ(113px);
+        pointer-events: none;
+      }
+
+      .body-seam.top-seam {
+        left: 44px;
+        top: 113px;
+        width: 472px;
+      }
+
+      .body-seam.bottom-seam {
+        left: 38px;
+        bottom: 42px;
+        width: 480px;
+      }
+
+      .film-window {
+        position: absolute;
+        left: 204px;
+        top: 122px;
+        width: 122px;
+        height: 60px;
+        display: grid;
+        place-items: center;
+        border-radius: 7px;
+        background: linear-gradient(180deg, #111, #030303);
+        color: #d9f4ff;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        font-weight: 900;
+        box-shadow: inset 0 0 12px #000;
+      }
+
+      .readout {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        min-height: min(660px, calc(100vh - 158px));
+        padding: 14px;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.8);
+      }
+
+      .readout h2 {
+        margin: 0;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 26px;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .lcd {
+        min-height: 74px;
+        display: grid;
+        align-content: center;
+        gap: 5px;
+        padding: 10px;
+        border: 2px solid #111;
+        border-radius: 7px;
+        background: #0a1011;
+        color: #ff3636;
+        font-family: "Courier New", monospace;
+        font-size: 15px;
+        font-weight: 900;
+        text-shadow: 0 0 8px rgba(255, 54, 54, 0.72);
+      }
+
+      .state-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .state-card {
+        min-height: 58px;
+        padding: 8px;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 7px;
+        background: #f7f9f9;
+      }
+
+      .state-card span {
+        display: block;
+        color: #536065;
+        font-size: 11px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .state-card strong {
+        display: block;
+        margin-top: 4px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 20px;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .film-strip {
+        height: 64px;
+        position: relative;
+        overflow: hidden;
+        border-radius: 7px;
+        background:
+          linear-gradient(90deg, #080808 0 8px, transparent 8px 18px) 0 6px / 34px 10px repeat-x,
+          linear-gradient(90deg, #080808 0 8px, transparent 8px 18px) 0 calc(100% - 16px) / 34px 10px repeat-x,
+          #3b2317;
+        box-shadow: inset 0 0 18px #000;
+      }
+
+      .film-strip::before {
+        content: "";
+        position: absolute;
+        left: calc(var(--film, 0) * -18px);
+        top: 19px;
+        width: 880px;
+        height: 26px;
+        background: repeating-linear-gradient(90deg, #7a4d28 0 28px, #28130c 28px 34px);
+        transition: left 260ms ease;
+      }
+
+      .note {
+        margin: 0;
+        color: #536065;
+        font-size: 12px;
+        font-weight: 800;
+        line-height: 1.4;
+      }
+
+      .camera-model.fired .lens::after {
+        animation: blink 180ms ease;
+      }
+
+      @keyframes blink {
+        0% { filter: brightness(1); }
+        45% { filter: brightness(2.4); }
+        100% { filter: brightness(1); }
+      }
+
+      @media (max-width: 880px) {
+        .camera-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .camera-stage,
+        .readout {
+          min-height: 440px;
+        }
+
+        .camera-scale {
+          transform: scale(0.72);
+        }
+      }
+
+      @media (max-width: 560px) {
+        .camera-scale {
+          transform: scale(0.55);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="camera-modal-backdrop" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraTitle">
+      <article class="camera-modal">
+        <header class="camera-head">
+          <h1 id="cameraTitle">Canon A-1</h1>
+          <div class="window-tools">
+            <button class="icon-button" type="button" id="resetCamera" aria-label="Reset camera">R</button>
+            <button class="icon-button" type="button" id="closeCamera" aria-label="Exit camera">X</button>
+          </div>
+        </header>
+
+        <div class="camera-layout">
+          <section class="camera-stage" id="cameraStage" aria-label="Rotatable Canon A-1 film camera model">
+            <div class="camera-scale">
+              <div class="camera-model" id="cameraModel">
+                <div class="body-face front">
+                  <div class="leather"></div>
+                </div>
+                <div class="body-face back">
+                  <div class="back-door-line"></div>
+                  <div class="film-window" id="backWindow">36 EXP</div>
+                </div>
+                <div class="body-face top"></div>
+                <div class="body-face bottom"></div>
+                <div class="body-face left"></div>
+                <div class="body-face right"></div>
+
+                <div class="prism"></div>
+                <div class="canon-logo">Canon</div>
+                <div class="model-logo">A-1</div>
+                <div class="viewfinder-window"></div>
+                <div class="lens" id="lensGlass"></div>
+                <div class="lens-cap-logo">Canon</div>
+                <div class="cap-tab left-tab"></div>
+                <div class="cap-tab right-tab"></div>
+                <div class="strap-lug left-lug"></div>
+                <div class="strap-lug right-lug"></div>
+                <div class="body-seam top-seam"></div>
+                <div class="body-seam bottom-seam"></div>
+
+                <button class="ring focus-ring" type="button" data-control="focus" data-readout="1.5m" aria-label="Focus ring"></button>
+                <button class="ring aperture-ring" type="button" data-control="aperture" data-readout="f/5.6" aria-label="Aperture ring"></button>
+                <button class="ring fd-ring" type="button" data-control="fdRing" data-readout="FD LOCK" aria-label="FD breech lock ring"></button>
+
+                <button class="control top-control shutter" type="button" data-control="shutter" aria-label="Shutter release"></button>
+                <button class="control top-control advance armed" type="button" id="advanceLever" data-control="advance" aria-label="Film advance lever"></button>
+                <button class="control top-control speed-dial" type="button" data-control="speed" aria-label="Shutter speed dial">1/125</button>
+                <button class="control top-control iso-dial" type="button" data-control="iso" aria-label="ASA and exposure compensation dial">ASA</button>
+                <button class="control top-control rewind" type="button" data-control="rewind" aria-label="Film rewind crank">REW</button>
+                <button class="control top-control mode-dial" type="button" data-control="mode" aria-label="AE mode selector">P</button>
+                <button class="control top-control hot-shoe" type="button" data-control="flash" aria-label="Hot shoe">HOT SHOE</button>
+
+                <button class="control front-control self-timer" type="button" id="selfTimer" data-control="selfTimer" aria-label="Self timer lever"></button>
+                <button class="control front-control battery-check" type="button" data-control="battery" aria-label="Battery check"></button>
+                <button class="control front-control ae-lock" type="button" data-control="aeLock" aria-label="AE lock">AE</button>
+                <button class="control front-control lens-release" type="button" data-control="lensRelease" aria-label="Lens release"></button>
+                <button class="control front-control dof-preview" type="button" data-control="dof" aria-label="Depth of field preview">DOF</button>
+                <button class="control back-control back-latch" type="button" data-control="backLatch" aria-label="Film back latch">OPEN</button>
+              </div>
+            </div>
+          </section>
+
+          <aside class="readout" aria-label="Canon A-1 camera state">
+            <h2>Camera State</h2>
+            <div class="lcd" id="viewfinderReadout">
+              <span>PROGRAM AE</span>
+              <span>1/125  f/5.6</span>
+            </div>
+            <div class="state-grid">
+              <div class="state-card"><span>Frame</span><strong id="frameState">01</strong></div>
+              <div class="state-card"><span>Shutter</span><strong id="woundState">Ready</strong></div>
+              <div class="state-card"><span>Mode</span><strong id="modeState">Program</strong></div>
+              <div class="state-card"><span>Speed</span><strong id="speedState">1/125</strong></div>
+              <div class="state-card"><span>Aperture</span><strong id="apertureState">f/5.6</strong></div>
+              <div class="state-card"><span>Focus</span><strong id="focusState">1.5m</strong></div>
+              <div class="state-card"><span>ASA</span><strong id="isoState">400</strong></div>
+              <div class="state-card"><span>Comp</span><strong id="compState">0</strong></div>
+            </div>
+            <div class="film-strip" id="filmStrip"></div>
+            <p class="note" id="cameraMessage">FD 50mm lens mounted. Film loaded.</p>
+          </aside>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      (function () {
+        var model = document.getElementById("cameraModel");
+        var stage = document.getElementById("cameraStage");
+        var closeCamera = document.getElementById("closeCamera");
+        var resetCamera = document.getElementById("resetCamera");
+        var readout = document.getElementById("viewfinderReadout");
+        var message = document.getElementById("cameraMessage");
+        var filmStrip = document.getElementById("filmStrip");
+        var advanceLever = document.getElementById("advanceLever");
+        var selfTimer = document.getElementById("selfTimer");
+        var backWindow = document.getElementById("backWindow");
+        var frameState = document.getElementById("frameState");
+        var woundState = document.getElementById("woundState");
+        var modeState = document.getElementById("modeState");
+        var speedState = document.getElementById("speedState");
+        var apertureState = document.getElementById("apertureState");
+        var focusState = document.getElementById("focusState");
+        var isoState = document.getElementById("isoState");
+        var compState = document.getElementById("compState");
+        var focusRing = document.querySelector("[data-control='focus']");
+        var apertureRing = document.querySelector("[data-control='aperture']");
+        var fdRing = document.querySelector("[data-control='fdRing']");
+        var speedDial = document.querySelector("[data-control='speed']");
+        var modeDial = document.querySelector("[data-control='mode']");
+        var isoDial = document.querySelector("[data-control='iso']");
+
+        var speeds = ["B", "30", "15", "8", "4", "2", "1", "1/2", "1/4", "1/8", "1/15", "1/30", "1/60", "1/125", "1/250", "1/500", "1/1000"];
+        var apertures = ["f/1.4", "f/2", "f/2.8", "f/4", "f/5.6", "f/8", "f/11", "f/16"];
+        var focusMarks = ["0.45m", "0.7m", "1m", "1.5m", "3m", "5m", "INF"];
+        var isoValues = ["25", "50", "100", "200", "400", "800", "1600", "3200"];
+        var comps = ["-2", "-1", "0", "+1", "+2"];
+        var modes = ["Program", "Tv", "Av", "Manual", "Stopped-down", "Flash"];
+
+        var state = {};
+        var view = { x: -12, y: -25 };
+        var drag = null;
+
+        function resetState() {
+          state = {
+            frame: 1,
+            exposedFrames: 0,
+            wound: true,
+            speed: 13,
+            aperture: 4,
+            focus: 3,
+            iso: 4,
+            comp: 2,
+            mode: 0,
+            flash: false,
+            aeLock: false,
+            dof: false,
+            selfTimer: false,
+            fdLocked: true,
+            lensMounted: true,
+            backOpen: false,
+            battery: "OK"
+          };
+          setMessage("FD 50mm lens mounted. Film loaded.");
+          updateCamera();
+        }
+
+        function setMessage(text) {
+          message.textContent = text;
+        }
+
+        function padFrame(frame) {
+          return String(frame).padStart(2, "0");
+        }
+
+        function renderView() {
+          model.style.setProperty("--rx", view.x + "deg");
+          model.style.setProperty("--ry", view.y + "deg");
+        }
+
+        function updateCamera() {
+          var speed = speeds[state.speed];
+          var aperture = apertures[state.aperture];
+          var focus = focusMarks[state.focus];
+          var iso = isoValues[state.iso];
+          var comp = comps[state.comp];
+          var mode = modes[state.mode];
+          var lineOne = mode.toUpperCase() + (state.aeLock ? "  AE-L" : "") + (state.flash ? "  FLASH" : "");
+          var lineTwo = speed + "  " + aperture + "  ASA " + iso;
+
+          readout.innerHTML = "<span>" + lineOne + "</span><span>" + lineTwo + "</span>";
+          frameState.textContent = state.backOpen ? "--" : padFrame(state.frame);
+          woundState.textContent = state.wound ? "Ready" : "Advance";
+          modeState.textContent = mode;
+          speedState.textContent = speed;
+          apertureState.textContent = aperture;
+          focusState.textContent = focus;
+          isoState.textContent = iso;
+          compState.textContent = comp;
+          speedDial.textContent = speed;
+          modeDial.textContent = mode === "Stopped-down" ? "SD" : mode.charAt(0);
+          isoDial.textContent = iso;
+          focusRing.setAttribute("data-readout", focus);
+          apertureRing.setAttribute("data-readout", aperture);
+          fdRing.setAttribute("data-readout", state.lensMounted ? (state.fdLocked ? "FD LOCK" : "FD OPEN") : "NO LENS");
+          filmStrip.style.setProperty("--film", state.exposedFrames);
+          advanceLever.classList.toggle("armed", state.wound);
+          selfTimer.classList.toggle("active", state.selfTimer);
+          backWindow.textContent = state.backOpen ? "BACK OPEN" : "36 EXP";
+        }
+
+        function cycle(key, list, direction) {
+          state[key] = (state[key] + direction + list.length) % list.length;
+          updateCamera();
+        }
+
+        function fireShutter() {
+          if (state.backOpen) {
+            setMessage("Close the film back before firing.");
+            return;
+          }
+          if (!state.lensMounted) {
+            setMessage("Lens is off. Mount and lock the FD lens first.");
+            return;
+          }
+          if (!state.wound) {
+            setMessage("Film advance lever must be wound before the next shot.");
+            return;
+          }
+          state.wound = false;
+          state.exposedFrames = Math.min(36, state.exposedFrames + 1);
+          model.classList.add("fired");
+          window.setTimeout(function () {
+            model.classList.remove("fired");
+          }, 220);
+          setMessage("Shutter fired. Advance film to cock the next frame.");
+          updateCamera();
+        }
+
+        function advanceFilm() {
+          if (state.backOpen) {
+            setMessage("Close the film back before advancing.");
+            return;
+          }
+          if (state.wound) {
+            setMessage("Shutter is already cocked.");
+            return;
+          }
+          state.frame = Math.min(36, state.frame + 1);
+          state.wound = true;
+          setMessage("Film advanced and shutter cocked.");
+          updateCamera();
+        }
+
+        function rewindFilm() {
+          state.frame = 1;
+          state.exposedFrames = 0;
+          state.wound = true;
+          setMessage("Film rewound to the canister.");
+          updateCamera();
+        }
+
+        function toggleBack() {
+          state.backOpen = !state.backOpen;
+          if (state.backOpen) {
+            state.wound = false;
+            setMessage("Film back open. Loaded film would be exposed.");
+          } else {
+            state.frame = Math.max(1, state.frame);
+            setMessage("Film back closed.");
+          }
+          updateCamera();
+        }
+
+        function toggleLensRelease() {
+          if (state.fdLocked) {
+            state.fdLocked = false;
+            setMessage("Lens release pressed. Breech lock is now open.");
+          } else {
+            state.lensMounted = !state.lensMounted;
+            state.fdLocked = state.lensMounted;
+            setMessage(state.lensMounted ? "FD lens mounted and locked." : "FD lens removed.");
+          }
+          updateCamera();
+        }
+
+        function handleControl(control) {
+          if (control === "shutter") {
+            if (state.selfTimer) {
+              setMessage("Self-timer running.");
+              window.setTimeout(function () {
+                state.selfTimer = false;
+                fireShutter();
+              }, 900);
+              updateCamera();
+            } else {
+              fireShutter();
+            }
+            return;
+          }
+          if (control === "advance") advanceFilm();
+          if (control === "rewind") rewindFilm();
+          if (control === "speed") { cycle("speed", speeds, 1); setMessage("Shutter speed changed."); }
+          if (control === "iso") {
+            cycle("iso", isoValues, 1);
+            if (state.iso === 0) cycle("comp", comps, 1);
+            setMessage("ASA dial adjusted.");
+          }
+          if (control === "mode") { cycle("mode", modes, 1); setMessage("AE mode selector changed."); }
+          if (control === "aperture") { cycle("aperture", apertures, 1); setMessage("Aperture ring clicked."); }
+          if (control === "focus") { cycle("focus", focusMarks, 1); setMessage("Focus ring turned."); }
+          if (control === "fdRing") {
+            if (state.lensMounted) state.fdLocked = !state.fdLocked;
+            setMessage(state.fdLocked ? "FD breech lock secured." : "FD breech lock loosened.");
+            updateCamera();
+          }
+          if (control === "selfTimer") { state.selfTimer = !state.selfTimer; setMessage(state.selfTimer ? "Self-timer lever set." : "Self-timer cancelled."); updateCamera(); }
+          if (control === "battery") { state.battery = "OK"; setMessage("Battery check: LED display active."); updateCamera(); }
+          if (control === "aeLock") { state.aeLock = !state.aeLock; setMessage(state.aeLock ? "Exposure locked." : "Exposure lock released."); updateCamera(); }
+          if (control === "dof") { state.dof = !state.dof; setMessage(state.dof ? "Depth-of-field preview stopped the lens down." : "Depth-of-field preview released."); updateCamera(); }
+          if (control === "lensRelease") toggleLensRelease();
+          if (control === "flash") { state.flash = !state.flash; setMessage(state.flash ? "Speedlite seated in hot shoe." : "Hot shoe is empty."); updateCamera(); }
+          if (control === "backLatch") toggleBack();
+        }
+
+        document.querySelectorAll("[data-control]").forEach(function (button) {
+          button.addEventListener("click", function (event) {
+            event.stopPropagation();
+            handleControl(button.getAttribute("data-control"));
+          });
+        });
+
+        stage.addEventListener("pointerdown", function (event) {
+          if (event.target.closest("[data-control]") || event.target.closest("button")) return;
+          drag = { x: event.clientX, y: event.clientY, startX: view.x, startY: view.y };
+          stage.classList.add("dragging");
+          stage.setPointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointermove", function (event) {
+          if (!drag) return;
+          view.x = Math.max(-55, Math.min(35, drag.startX - (event.clientY - drag.y) * 0.42));
+          view.y = drag.startY + (event.clientX - drag.x) * 0.42;
+          renderView();
+        });
+
+        stage.addEventListener("pointerup", function (event) {
+          drag = null;
+          stage.classList.remove("dragging");
+          stage.releasePointerCapture(event.pointerId);
+        });
+
+        resetCamera.addEventListener("click", resetState);
+        closeCamera.addEventListener("click", function () {
+          document.getElementById("cameraModal").style.display = "none";
+          if (window.parent && window.parent !== window) {
+            window.parent.postMessage({ type: "canon-a1-close" }, "*");
+          }
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") closeCamera.click();
+        });
+
+        renderView();
+        resetState();
+      })();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,1450 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Playable 3D Rubik's Cube modal for the Vero Flashback interactive museum."
+    />
+    <title>Playable Rubik's Cube Modal | Vero Flashback</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-width: 320px;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 235, 236, 0.92)),
+          #f5f6f6;
+        color: #1a1d20;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      .cube-modal-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        place-items: center;
+        padding: 12px;
+        background-color: transparent;
+        background-image: url("./Pictures/rubiks-modal-transparent-bg.png");
+      }
+
+      .cube-modal-backdrop.open {
+        display: grid;
+      }
+
+      .cube-modal {
+        --modal-surface: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(241, 244, 244, 0.9));
+        --modal-border: rgba(15, 23, 28, 0.7);
+        width: min(820px, calc(100vw - 24px));
+        height: calc(100dvh - 24px);
+        max-height: none;
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+        border: 2px solid var(--modal-border);
+        border-radius: 8px;
+        background: var(--modal-surface);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      }
+
+      .cube-modal-backdrop.museum-ready .cube-modal {
+        --modal-surface: url("./Pictures/rubiks-modal-transparent-bg.png");
+        --modal-border: transparent;
+        box-shadow: none;
+      }
+
+      .cube-head {
+        position: sticky;
+        top: 0;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(15, 23, 28, 0.14);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .screen-reader-title {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      .cube-head h1 {
+        margin: 0;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(24px, 4vw, 42px);
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .window-tools {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(15, 23, 28, 0.22);
+        border-radius: 6px;
+        background: #ffffff;
+        color: #111;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(11, 117, 108, 0.12);
+        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+      }
+
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        border-color: #0b756c;
+        outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 0 rgba(11, 117, 108, 0.18);
+      }
+
+      .icon-button svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .settings-panel {
+        position: absolute;
+        top: calc(100% + 10px);
+        right: 0;
+        z-index: 20;
+        width: min(310px, calc(100vw - 36px));
+        display: none;
+        padding: 12px;
+        border: 1px solid rgba(15, 23, 28, 0.18);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.98);
+        box-shadow: 0 18px 38px rgba(0, 0, 0, 0.18);
+      }
+
+      .settings-panel.open {
+        display: grid;
+        gap: 12px;
+      }
+
+      .setting-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 12px;
+        align-items: center;
+        color: #111;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .setting-row span {
+        min-width: 0;
+      }
+
+      .switch {
+        position: relative;
+        width: 46px;
+        height: 26px;
+        display: inline-block;
+      }
+
+      .switch input {
+        position: absolute;
+        opacity: 0;
+      }
+
+      .switch i {
+        position: absolute;
+        inset: 0;
+        border: 1px solid rgba(15, 23, 28, 0.24);
+        border-radius: 999px;
+        background: #d7dddd;
+        cursor: pointer;
+        transition: background 150ms ease, border-color 150ms ease;
+      }
+
+      .switch i::after {
+        content: "";
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #ffffff;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.24);
+        transition: transform 150ms ease;
+      }
+
+      .switch input:checked + i {
+        border-color: #0b756c;
+        background: #0b756c;
+      }
+
+      .switch input:checked + i::after {
+        transform: translateX(20px);
+      }
+
+      .speed-setting {
+        display: grid;
+        gap: 7px;
+        color: #111;
+        font-size: 14px;
+        font-weight: 800;
+      }
+
+      .speed-setting input {
+        width: 100%;
+        accent-color: #0b756c;
+      }
+
+      .segmented {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 4px;
+        padding: 4px;
+        border: 1px solid rgba(15, 23, 28, 0.16);
+        border-radius: 7px;
+        background: #edf1f1;
+      }
+
+      .segmented label {
+        display: grid;
+      }
+
+      .segmented input {
+        position: absolute;
+        opacity: 0;
+      }
+
+      .segmented span {
+        min-height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 5px;
+        color: #1a1d20;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+      }
+
+      .segmented input:checked + span {
+        background: #ffffff;
+        color: #0b756c;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+      }
+
+      .cube-layout {
+        display: grid;
+        grid-template-columns: minmax(310px, 1fr);
+        min-height: 0;
+        padding: 12px;
+      }
+
+      .cube-panel {
+        --panel-surface:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.82), rgba(218, 225, 226, 0.7)),
+          url("./Pictures/rubiks-modal-transparent-bg.png");
+        min-height: 0;
+        height: 100%;
+        position: relative;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 8px;
+        background: var(--panel-surface);
+        touch-action: none;
+        user-select: none;
+        cursor: grab;
+      }
+
+      .cube-modal-backdrop.museum-ready .cube-panel {
+        --panel-surface: url("./Pictures/rubiks-modal-transparent-bg.png");
+        border-color: transparent;
+      }
+
+      .cube-panel::before {
+        content: "";
+        position: absolute;
+        inset: 14%;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(0, 0, 0, 0.12), transparent 62%);
+        filter: blur(18px);
+        transform: translateY(34%);
+      }
+
+      .scene {
+        width: min(70vw, 470px, calc(100dvh - 220px));
+        max-width: calc(100vw - 72px);
+        aspect-ratio: 1;
+        display: grid;
+        place-items: center;
+        perspective: 980px;
+        pointer-events: none;
+      }
+
+      .cube-panel.dragging {
+        cursor: grabbing;
+      }
+
+      .cube {
+        --rx: -27deg;
+        --ry: -34deg;
+        position: relative;
+        width: 0;
+        height: 0;
+        transform-style: preserve-3d;
+        transform: rotateX(var(--rx)) rotateY(var(--ry));
+        transition: transform 120ms ease;
+        pointer-events: auto;
+        cursor: grab;
+      }
+
+      .cube.turning {
+        cursor: grabbing;
+      }
+
+      .cube.animating {
+        pointer-events: none;
+      }
+
+      .turn-layer {
+        position: absolute;
+        width: 0;
+        height: 0;
+        transform-style: preserve-3d;
+        transition: transform var(--turn-ms, 560ms) cubic-bezier(0.14, 0.78, 0.22, 1);
+      }
+
+      .cubie {
+        --size: 64px;
+        --gap: 64px;
+        position: absolute;
+        width: var(--size);
+        height: var(--size);
+        margin: calc(var(--size) / -2);
+        transform-style: preserve-3d;
+        transform: translate3d(
+          calc(var(--x) * var(--gap)),
+          calc(var(--y) * -1 * var(--gap)),
+          calc(var(--z) * var(--gap))
+        );
+        transition: transform 240ms cubic-bezier(0.2, 0.8, 0.25, 1);
+      }
+
+      .sticker {
+        --half: 32px;
+        --sticker-inset: 7px;
+        --sticker-radius: 4px;
+        position: absolute;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        border: 0;
+        border-radius: 0;
+        background: #050505;
+        box-shadow: none;
+        backface-visibility: hidden;
+        overflow: hidden;
+      }
+
+      .sticker::before {
+        content: "";
+        position: absolute;
+        inset: var(--sticker-inset);
+        border-radius: var(--sticker-radius);
+        background: var(--c, #050505);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+      }
+
+      .sticker[data-active="0"] {
+        background: #050505;
+        box-shadow: none;
+        pointer-events: none;
+      }
+
+      .sticker[data-active="0"]::before {
+        content: none;
+      }
+
+      .face-F {
+        transform: translateZ(var(--half));
+      }
+
+      .face-B {
+        transform: rotateY(180deg) translateZ(var(--half));
+      }
+
+      .face-R {
+        transform: rotateY(90deg) translateZ(var(--half));
+      }
+
+      .face-L {
+        transform: rotateY(-90deg) translateZ(var(--half));
+      }
+
+      .face-U {
+        transform: rotateX(90deg) translateZ(var(--half));
+      }
+
+      .face-D {
+        transform: rotateX(-90deg) translateZ(var(--half));
+      }
+
+      .action-row {
+        position: absolute;
+        left: 50%;
+        bottom: 18px;
+        z-index: 5;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        width: min(320px, calc(100% - 36px));
+        transform: translateX(-50%);
+      }
+
+      .action-row.hidden {
+        display: none;
+      }
+
+      .action-row button {
+        min-height: 42px;
+        border: 1px solid rgba(15, 23, 28, 0.28);
+        border-radius: 6px;
+        background: #ffffff;
+        color: #111;
+        cursor: pointer;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-weight: 900;
+        text-transform: uppercase;
+        box-shadow: 0 5px 0 rgba(11, 117, 108, 0.12);
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+      }
+
+      .action-row button:hover,
+      .action-row button:focus-visible {
+        border-color: #0b756c;
+        outline: none;
+        transform: translateY(-2px);
+        box-shadow: 0 7px 0 rgba(11, 117, 108, 0.18);
+      }
+
+      .action-row button:disabled {
+        cursor: wait;
+        opacity: 0.55;
+        transform: none;
+      }
+
+      .solve-phase {
+        position: absolute;
+        top: 14px;
+        left: 50%;
+        z-index: 6;
+        width: min(360px, calc(100% - 36px));
+        padding: 8px 12px;
+        border: 1px solid rgba(5, 5, 5, 0.22);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #050505;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 15px;
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 1.16;
+        text-align: center;
+        text-transform: uppercase;
+        transform: translate(-50%, -8px);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 180ms ease, transform 180ms ease;
+      }
+
+      .solve-phase.active {
+        opacity: 1;
+        transform: translate(-50%, 0);
+      }
+
+      .solve-phase small {
+        display: block;
+        margin-top: 2px;
+        font-family: Arial, sans-serif;
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: none;
+      }
+
+      .status-row {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        z-index: 5;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        pointer-events: none;
+      }
+
+      .status-chip {
+        min-width: 64px;
+        padding: 7px 9px;
+        border: 1px solid rgba(5, 5, 5, 0.16);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.86);
+        color: #111;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 14px;
+        font-weight: 900;
+        line-height: 1;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .status-chip.hidden {
+        display: none;
+      }
+
+      @media (max-width: 820px) {
+        .cube-layout {
+          grid-template-columns: 1fr;
+        }
+
+        .cube-panel {
+          min-height: 0;
+        }
+
+        .scene {
+          width: min(86vw, 360px, calc(100dvh - 205px));
+        }
+
+        .cubie {
+          --size: 52px;
+          --gap: 52px;
+        }
+
+        .sticker {
+          --half: 26px;
+          --sticker-inset: 5px;
+          --sticker-radius: 3px;
+        }
+
+        .settings-panel {
+          right: -44px;
+        }
+
+        .status-row {
+          top: auto;
+          bottom: 72px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="cube-modal-backdrop open" id="rubiksModal" role="dialog" aria-modal="true" aria-labelledby="cubeTitle">
+      <article class="cube-modal">
+        <header class="cube-head">
+          <h1 id="cubeTitle">Rubik's Cube</h1>
+          <div class="window-tools">
+            <button class="icon-button" type="button" id="closeModal" aria-label="Exit cube">X</button>
+          </div>
+        </header>
+
+        <div class="cube-layout">
+          <section class="cube-panel" id="cubePanel" aria-label="Playable 3D Rubik's Cube">
+            <div class="scene" id="cubeScene" aria-label="Drag to rotate cube view">
+              <div class="cube" id="cube"></div>
+            </div>
+          </section>
+        </div>
+      </article>
+    </div>
+
+    <script>
+      (function () {
+        var directions = {
+          U: { axis: "y", layer: 1, sign: 1 },
+          E: { axis: "y", layer: 0, sign: -1 },
+          D: { axis: "y", layer: -1, sign: -1 },
+          R: { axis: "x", layer: 1, sign: 1 },
+          M: { axis: "x", layer: 0, sign: -1 },
+          L: { axis: "x", layer: -1, sign: -1 },
+          F: { axis: "z", layer: 1, sign: 1 },
+          S: { axis: "z", layer: 0, sign: 1 },
+          B: { axis: "z", layer: -1, sign: -1 }
+        };
+        var colors = {
+          U: "#ffffff",
+          D: "#ffd500",
+          F: "#009e60",
+          B: "#0051ba",
+          R: "#c41e3a",
+          L: "#ff5800"
+        };
+        var colorNames = Object.keys(colors);
+        var moveByAxisLayer = {
+          x: { "-1": "L", 0: "M", 1: "R" },
+          y: { "-1": "D", 0: "E", 1: "U" },
+          z: { "-1": "B", 0: "S", 1: "F" }
+        };
+        var faceTransforms = ["F", "B", "R", "L", "U", "D"];
+        var cube = document.getElementById("cube");
+        var scene = document.getElementById("cubeScene");
+        var panel = document.getElementById("cubePanel");
+        var modal = document.getElementById("rubiksModal");
+        var moveCount = document.getElementById("moveChip");
+        var timer = document.getElementById("timerChip");
+        var stateText = document.getElementById("stateText");
+        var winMessage = document.getElementById("winMessage");
+        var solvePhase = document.getElementById("solvePhase");
+        var settingsToggle = document.getElementById("settingsToggle");
+        var settingsPanel = document.getElementById("settingsPanel");
+        var closeModal = document.getElementById("closeModal");
+        var algorithmToggle = document.getElementById("algorithmToggle");
+        var speedControl = document.getElementById("speedControl");
+        var speedValue = document.getElementById("speedValue");
+        var timerToggle = document.getElementById("timerToggle");
+        var buttonsToggle = document.getElementById("buttonsToggle");
+        var actionRow = document.querySelector(".action-row");
+        var actionButtons = Array.from(document.querySelectorAll("[data-action]"));
+        var pieces = [];
+        var history = [];
+        var turns = 0;
+        var startedAt = 0;
+        var elapsed = 0;
+        var timerId = null;
+        var view = { x: -27, y: -34 };
+        var drag = null;
+        var layerDrag = null;
+        var solving = false;
+        var animatingMove = false;
+        var activeSolveStep = null;
+        var settings = {
+          showAlgorithms: true,
+          turnMs: 560,
+          showTimer: false,
+          solveMode: "beginner",
+          showButtons: false
+        };
+        var beginnerSolveSteps = [
+          { label: "White cross", algorithm: "edge setup, then F2 / R2 / B2 / L2" },
+          { label: "White corners", algorithm: "R U R' / L' U' L" },
+          { label: "Middle layer", algorithm: "U R U' R' U' F' U F" },
+          { label: "Yellow cross", algorithm: "F R U R' U' F'" },
+          { label: "Yellow face", algorithm: "R U R' U R U2 R'" },
+          { label: "Position corners", algorithm: "U R U' L' U R' U' L" },
+          { label: "Position edges", algorithm: "F2 U R' L F2 R L' U F2" }
+        ];
+
+        function buildSolvedPieces() {
+          var nextPieces = [];
+          for (var x = -1; x <= 1; x += 1) {
+            for (var y = -1; y <= 1; y += 1) {
+              for (var z = -1; z <= 1; z += 1) {
+                var stickers = {};
+                if (x === 1) stickers.R = colors.R;
+                if (x === -1) stickers.L = colors.L;
+                if (y === 1) stickers.U = colors.U;
+                if (y === -1) stickers.D = colors.D;
+                if (z === 1) stickers.F = colors.F;
+                if (z === -1) stickers.B = colors.B;
+                nextPieces.push({ id: [x, y, z].join(","), x: x, y: y, z: z, stickers: stickers });
+              }
+            }
+          }
+          return nextPieces;
+        }
+
+        function clonePieceState(source) {
+          return source.map(function (piece) {
+            return {
+              id: piece.id,
+              x: piece.x,
+              y: piece.y,
+              z: piece.z,
+              stickers: Object.assign({}, piece.stickers)
+            };
+          });
+        }
+
+        function rotateVector(vector, axis, amount) {
+          var x = vector.x;
+          var y = vector.y;
+          var z = vector.z;
+          if (axis === "x") {
+            return amount === 1 ? { x: x, y: -z, z: y } : { x: x, y: z, z: -y };
+          }
+          if (axis === "y") {
+            return amount === 1 ? { x: z, y: y, z: -x } : { x: -z, y: y, z: x };
+          }
+          return amount === 1 ? { x: -y, y: x, z: z } : { x: y, y: -x, z: z };
+        }
+
+        function directionToVector(face) {
+          if (face === "U") return { x: 0, y: 1, z: 0 };
+          if (face === "D") return { x: 0, y: -1, z: 0 };
+          if (face === "R") return { x: 1, y: 0, z: 0 };
+          if (face === "L") return { x: -1, y: 0, z: 0 };
+          if (face === "F") return { x: 0, y: 0, z: 1 };
+          return { x: 0, y: 0, z: -1 };
+        }
+
+        function vectorToDirection(vector) {
+          if (vector.y === 1) return "U";
+          if (vector.y === -1) return "D";
+          if (vector.x === 1) return "R";
+          if (vector.x === -1) return "L";
+          if (vector.z === 1) return "F";
+          return "B";
+        }
+
+        function turnAmount(face, prime) {
+          var base = directions[face].sign;
+          return prime ? -base : base;
+        }
+
+        function rotatePieceState(piece, face, prime) {
+          var info = directions[face];
+          var amount = turnAmount(face, prime);
+          var position = rotateVector({ x: piece.x, y: piece.y, z: piece.z }, info.axis, amount);
+          var stickers = {};
+          Object.keys(piece.stickers).forEach(function (key) {
+            var rotated = rotateVector(directionToVector(key), info.axis, amount);
+            stickers[vectorToDirection(rotated)] = piece.stickers[key];
+          });
+          piece.x = position.x;
+          piece.y = position.y;
+          piece.z = position.z;
+          piece.stickers = stickers;
+        }
+
+        function rotatePiece(piece, face, prime) {
+          rotatePieceState(piece, face, prime);
+        }
+
+        function applyMoveToState(state, move) {
+          var face = move.charAt(0);
+          var prime = move.indexOf("'") > -1;
+          var double = move.indexOf("2") > -1;
+          var times = double ? 2 : 1;
+          for (var i = 0; i < times; i += 1) {
+            state.forEach(function (piece) {
+              if (piece[directions[face].axis] === directions[face].layer) {
+                rotatePieceState(piece, face, prime);
+              }
+            });
+          }
+        }
+
+        function applyMoveToPieces(move) {
+          applyMoveToState(pieces, move);
+        }
+
+        function recordMove(move, record) {
+          if (record) {
+            history.push(move);
+            turns += 1;
+            startTimer();
+          }
+        }
+
+        function rotateStyle(axis, degrees) {
+          if (axis === "x") return "rotateX(" + degrees + "deg)";
+          if (axis === "y") return "rotateY(" + degrees + "deg)";
+          return "rotateZ(" + degrees + "deg)";
+        }
+
+        function visualTurnDegrees(axis, amount) {
+          return amount * (axis === "y" ? 90 : -90);
+        }
+
+        function turnFinishDelay() {
+          return settings.turnMs + 90;
+        }
+
+        function animateMove(move, record, onDone) {
+          if (animatingMove) return false;
+          var face = move.charAt(0);
+          var prime = move.indexOf("'") > -1;
+          var double = move.indexOf("2") > -1;
+          var info = directions[face];
+          var amount = turnAmount(face, prime);
+          var layer = document.createElement("div");
+          var affected = Array.from(cube.querySelectorAll(".cubie")).filter(function (cubie) {
+            return Number(cubie.getAttribute("data-" + info.axis)) === info.layer;
+          });
+
+          if (!affected.length) {
+            applyMoveToPieces(move);
+            recordMove(move, record);
+            renderCube();
+            updateStatus();
+            if (typeof onDone === "function") onDone();
+            return true;
+          }
+
+          animatingMove = true;
+          cube.classList.add("animating");
+          setActionState();
+          layer.className = "turn-layer";
+          cube.appendChild(layer);
+          affected.forEach(function (cubie) {
+            layer.appendChild(cubie);
+          });
+
+          window.requestAnimationFrame(function () {
+            window.requestAnimationFrame(function () {
+              layer.style.transform = rotateStyle(info.axis, visualTurnDegrees(info.axis, amount) * (double ? 2 : 1));
+            });
+          });
+
+          var finished = false;
+          function finishTurn() {
+            if (finished) return;
+            finished = true;
+            applyMoveToPieces(move);
+            recordMove(move, record);
+            animatingMove = false;
+            cube.classList.remove("animating");
+            renderCube();
+            updateStatus();
+            if (typeof onDone === "function") onDone();
+          }
+
+          layer.addEventListener("transitionend", finishTurn, { once: true });
+          window.setTimeout(finishTurn, turnFinishDelay());
+          return true;
+        }
+
+        function applyMove(move, record, animate, onDone) {
+          if (animate) {
+            return animateMove(move, record, onDone);
+          }
+          applyMoveToPieces(move);
+          recordMove(move, record);
+          renderCube();
+          updateStatus();
+          if (typeof onDone === "function") onDone();
+          return true;
+        }
+
+        function inverseMove(move) {
+          if (move.indexOf("2") > -1) return move;
+          return move.indexOf("'") > -1 ? move.charAt(0) : move + "'";
+        }
+
+        function movePower(move) {
+          if (move.indexOf("2") > -1) return 2;
+          return move.indexOf("'") > -1 ? 3 : 1;
+        }
+
+        function moveFromPower(face, power) {
+          if (power === 1) return face;
+          if (power === 2) return face + "2";
+          if (power === 3) return face + "'";
+          return "";
+        }
+
+        function simplifyMoves(moves) {
+          return moves.reduce(function (stack, move) {
+            var face = move.charAt(0);
+            var previous = stack[stack.length - 1];
+            if (previous && previous.charAt(0) === face) {
+              var combined = (movePower(previous) + movePower(move)) % 4;
+              stack.pop();
+              var simplified = moveFromPower(face, combined);
+              if (simplified) stack.push(simplified);
+            } else {
+              stack.push(move);
+            }
+            return stack;
+          }, []);
+        }
+
+        function setSolvePhase(step) {
+          if (!solvePhase) return;
+          activeSolveStep = step || null;
+          if (!step) {
+            solvePhase.textContent = "";
+            solvePhase.classList.remove("active");
+            return;
+          }
+          solvePhase.innerHTML = settings.showAlgorithms
+            ? step.label + "<small>" + step.algorithm + "</small>"
+            : step.label;
+          solvePhase.classList.add("active");
+        }
+
+        function applySettings() {
+          cube.style.setProperty("--turn-ms", settings.turnMs + "ms");
+          if (speedValue) speedValue.textContent = settings.turnMs + "ms";
+          if (timer) timer.classList.toggle("hidden", !settings.showTimer);
+          if (actionRow) actionRow.classList.toggle("hidden", !settings.showButtons);
+          if (!settings.showTimer) stopTimer();
+          if (activeSolveStep) setSolvePhase(activeSolveStep);
+        }
+
+        function isSolvedState(state) {
+          return colorNames.every(function (face) {
+            var faceColors = state
+              .filter(function (piece) {
+                return piece.stickers[face];
+              })
+              .map(function (piece) {
+                return piece.stickers[face];
+              });
+            return faceColors.length === 9 && faceColors.every(function (color) { return color === colors[face]; });
+          });
+        }
+
+        function isSolved() {
+          return isSolvedState(pieces);
+        }
+
+        function pieceAtIn(state, x, y, z) {
+          return state.find(function (piece) {
+            return piece.x === x && piece.y === y && piece.z === z;
+          });
+        }
+
+        function pieceAt(x, y, z) {
+          return pieceAtIn(pieces, x, y, z);
+        }
+
+        function solvedAtIn(state, x, y, z) {
+          var piece = pieceAtIn(state, x, y, z);
+          var expected = {};
+          if (x === 1) expected.R = colors.R;
+          if (x === -1) expected.L = colors.L;
+          if (y === 1) expected.U = colors.U;
+          if (y === -1) expected.D = colors.D;
+          if (z === 1) expected.F = colors.F;
+          if (z === -1) expected.B = colors.B;
+          return Boolean(piece) && Object.keys(expected).every(function (face) {
+            return piece.stickers[face] === expected[face];
+          });
+        }
+
+        function solvedAt(x, y, z) {
+          return solvedAtIn(pieces, x, y, z);
+        }
+
+        function allSolvedAtIn(state, coords) {
+          return coords.every(function (coord) {
+            return solvedAtIn(state, coord[0], coord[1], coord[2]);
+          });
+        }
+
+        function allSolvedAt(coords) {
+          return allSolvedAtIn(pieces, coords);
+        }
+
+        function whiteCrossSolvedIn(state) {
+          return allSolvedAtIn(state, [[0, 1, 1], [1, 1, 0], [0, 1, -1], [-1, 1, 0]]);
+        }
+
+        function whiteCrossSolved() {
+          return whiteCrossSolvedIn(pieces);
+        }
+
+        function whiteCornersSolvedIn(state) {
+          return whiteCrossSolvedIn(state) && allSolvedAtIn(state, [[1, 1, 1], [1, 1, -1], [-1, 1, -1], [-1, 1, 1]]);
+        }
+
+        function whiteCornersSolved() {
+          return whiteCornersSolvedIn(pieces);
+        }
+
+        function middleLayerSolvedIn(state) {
+          return whiteCornersSolvedIn(state) && allSolvedAtIn(state, [[1, 0, 1], [1, 0, -1], [-1, 0, -1], [-1, 0, 1]]);
+        }
+
+        function middleLayerSolved() {
+          return middleLayerSolvedIn(pieces);
+        }
+
+        function yellowCrossSolvedIn(state) {
+          return middleLayerSolvedIn(state) && [[0, -1, 1], [1, -1, 0], [0, -1, -1], [-1, -1, 0]].every(function (coord) {
+            var piece = pieceAtIn(state, coord[0], coord[1], coord[2]);
+            return piece && piece.stickers.D === colors.D;
+          });
+        }
+
+        function yellowCrossSolved() {
+          return yellowCrossSolvedIn(pieces);
+        }
+
+        function yellowFaceSolvedIn(state) {
+          return yellowCrossSolvedIn(state) && state
+            .filter(function (piece) { return piece.y === -1; })
+            .every(function (piece) { return piece.stickers.D === colors.D; });
+        }
+
+        function yellowFaceSolved() {
+          return yellowFaceSolvedIn(pieces);
+        }
+
+        function bottomCornersPositionedIn(state) {
+          return yellowFaceSolvedIn(state) && allSolvedAtIn(state, [[1, -1, 1], [1, -1, -1], [-1, -1, -1], [-1, -1, 1]]);
+        }
+
+        function bottomCornersPositioned() {
+          return bottomCornersPositionedIn(pieces);
+        }
+
+        function beginnerProgressFor(state) {
+          if (!whiteCrossSolvedIn(state)) return 0;
+          if (!whiteCornersSolvedIn(state)) return 1;
+          if (!middleLayerSolvedIn(state)) return 2;
+          if (!yellowCrossSolvedIn(state)) return 3;
+          if (!yellowFaceSolvedIn(state)) return 4;
+          if (!bottomCornersPositionedIn(state)) return 5;
+          if (!isSolvedState(state)) return 6;
+          return 7;
+        }
+
+        function beginnerPhaseIndex() {
+          var progress = beginnerProgressFor(pieces);
+          return progress >= beginnerSolveSteps.length ? -1 : progress;
+        }
+
+        function buildStableBeginnerPhasePlan(solution) {
+          if (!solution.length) return [];
+          var state = clonePieceState(pieces);
+          var progressByIndex = [beginnerProgressFor(state)];
+          solution.forEach(function (move) {
+            applyMoveToState(state, move);
+            progressByIndex.push(beginnerProgressFor(state));
+          });
+
+          var suffixMinimums = [];
+          for (var i = progressByIndex.length - 1; i >= 0; i -= 1) {
+            suffixMinimums[i] = i === progressByIndex.length - 1
+              ? progressByIndex[i]
+              : Math.min(progressByIndex[i], suffixMinimums[i + 1]);
+          }
+
+          var plan = [];
+          var shownPhase = -1;
+          for (var index = 0; index < solution.length; index += 1) {
+            var stablePhase = Math.min(suffixMinimums[index], beginnerSolveSteps.length - 1);
+            if (shownPhase === -1) {
+              shownPhase = stablePhase;
+              plan.push({ index: index, step: beginnerSolveSteps[shownPhase] });
+            }
+            while (shownPhase < stablePhase) {
+              shownPhase += 1;
+              plan.push({ index: index, step: beginnerSolveSteps[shownPhase] });
+            }
+          }
+          return plan;
+        }
+
+        function renderCube() {
+          cube.innerHTML = "";
+          cube.style.setProperty("--rx", view.x + "deg");
+          cube.style.setProperty("--ry", view.y + "deg");
+          pieces.forEach(function (piece) {
+            var cubie = document.createElement("div");
+            cubie.className = "cubie";
+            cubie.setAttribute("data-id", piece.id);
+            cubie.setAttribute("data-x", piece.x);
+            cubie.setAttribute("data-y", piece.y);
+            cubie.setAttribute("data-z", piece.z);
+            cubie.style.setProperty("--x", piece.x);
+            cubie.style.setProperty("--y", piece.y);
+            cubie.style.setProperty("--z", piece.z);
+            faceTransforms.forEach(function (face) {
+              var sticker = document.createElement("span");
+              sticker.className = "sticker face-" + face;
+              sticker.style.setProperty("--c", piece.stickers[face] || "#151515");
+              sticker.setAttribute("data-face", face);
+              sticker.setAttribute("data-active", piece.stickers[face] ? "1" : "0");
+              sticker.setAttribute("data-x", piece.x);
+              sticker.setAttribute("data-y", piece.y);
+              sticker.setAttribute("data-z", piece.z);
+              cubie.appendChild(sticker);
+            });
+            cube.appendChild(cubie);
+          });
+        }
+
+        function setView(x, y) {
+          view.x = Math.max(-80, Math.min(80, x));
+          view.y = y;
+          cube.style.setProperty("--rx", view.x + "deg");
+          cube.style.setProperty("--ry", view.y + "deg");
+        }
+
+        function resetTimer() {
+          window.clearInterval(timerId);
+          timerId = null;
+          startedAt = 0;
+          elapsed = 0;
+          if (timer) timer.textContent = "0:00";
+        }
+
+        function startTimer() {
+          if (!settings.showTimer || timerId || isSolved()) return;
+          startedAt = Date.now() - elapsed;
+          timerId = window.setInterval(function () {
+            elapsed = Date.now() - startedAt;
+            updateTimer();
+          }, 250);
+        }
+
+        function stopTimer() {
+          if (timerId) {
+            window.clearInterval(timerId);
+            timerId = null;
+          }
+        }
+
+        function updateTimer() {
+          var total = Math.floor(elapsed / 1000);
+          var minutes = Math.floor(total / 60);
+          var seconds = total % 60;
+          if (timer) timer.textContent = minutes + ":" + String(seconds).padStart(2, "0");
+        }
+
+        function setActionState() {
+          actionButtons.forEach(function (button) {
+            button.disabled = solving || animatingMove;
+          });
+        }
+
+        function updateStatus() {
+          setActionState();
+          if (moveCount) moveCount.textContent = turns + (turns === 1 ? " move" : " moves");
+          if (isSolved()) {
+            if (!solving) history = [];
+            stopTimer();
+            if (stateText) stateText.textContent = "Solved";
+            if (winMessage) winMessage.textContent = turns ? "Solved. Nice work." : "";
+          } else {
+            if (stateText) stateText.textContent = "Mixed";
+            if (winMessage) winMessage.textContent = "";
+          }
+        }
+
+        function resetCube() {
+          pieces = buildSolvedPieces();
+          history = [];
+          turns = 0;
+          solving = false;
+          setSolvePhase("");
+          view.x = -27;
+          view.y = -34;
+          resetTimer();
+          renderCube();
+          updateStatus();
+        }
+
+        function scrambleCube() {
+          var faces = ["U", "D", "L", "R", "F", "B"];
+          var suffixes = ["", "'", "2"];
+          var lastFace = "";
+          resetCube();
+          for (var i = 0; i < 22; i += 1) {
+            var face = faces[Math.floor(Math.random() * faces.length)];
+            while (face === lastFace) {
+              face = faces[Math.floor(Math.random() * faces.length)];
+            }
+            lastFace = face;
+            applyMove(face + suffixes[Math.floor(Math.random() * suffixes.length)], true);
+          }
+          resetTimer();
+          updateStatus();
+        }
+
+        function undoMove() {
+          if (!history.length || solving) return;
+          var move = history.pop();
+          applyMove(inverseMove(move), false);
+          turns += 1;
+          startTimer();
+          updateStatus();
+        }
+
+        function solveCube() {
+          if (!history.length || solving) return;
+          if (isSolved()) {
+            history = [];
+            updateStatus();
+            return;
+          }
+          solving = true;
+          setActionState();
+          var solution = simplifyMoves(history.slice().reverse().map(inverseMove));
+          history = [];
+          var index = 0;
+          var phasePlan = settings.solveMode === "beginner"
+            ? buildStableBeginnerPhasePlan(solution)
+            : [];
+          function nextSolveMove() {
+            if (index >= solution.length) {
+              turns += solution.length;
+              solving = false;
+              setSolvePhase("");
+              updateStatus();
+              return;
+            }
+            if (phasePlan.length && phasePlan[0].index === index) {
+              setSolvePhase(phasePlan.shift().step);
+              window.setTimeout(nextSolveMove, 260);
+              return;
+            }
+            if (settings.solveMode === "quick" && activeSolveStep) {
+              setSolvePhase("");
+            }
+            var move = solution[index];
+            index += 1;
+            applyMove(move, false, true, nextSolveMove);
+          }
+          nextSolveMove();
+        }
+
+        function rotateScreenPoint(point, axis, degrees) {
+          var radians = degrees * Math.PI / 180;
+          var sin = Math.sin(radians);
+          var cos = Math.cos(radians);
+          if (axis === "x") {
+            return { x: point.x, y: point.y * cos - point.z * sin, z: point.y * sin + point.z * cos };
+          }
+          if (axis === "y") {
+            return { x: point.x * cos + point.z * sin, y: point.y, z: -point.x * sin + point.z * cos };
+          }
+          return { x: point.x * cos - point.y * sin, y: point.x * sin + point.y * cos, z: point.z };
+        }
+
+        function projectPoint(point) {
+          var cssPoint = { x: point.x, y: point.y * -1, z: point.z };
+          var yawed = rotateScreenPoint(cssPoint, "y", view.y);
+          return rotateScreenPoint(yawed, "x", view.x);
+        }
+
+        function cubieCenterForCoords(coords) {
+          var selector = '.cubie[data-x="' + coords.x + '"][data-y="' + coords.y + '"][data-z="' + coords.z + '"]';
+          var cubie = cube.querySelector(selector);
+          if (!cubie) return null;
+          var stickers = Array.from(cubie.querySelectorAll('.sticker[data-active="1"]'));
+          if (!stickers.length) return null;
+          var center = stickers.reduce(function (total, sticker) {
+            var rect = sticker.getBoundingClientRect();
+            total.x += rect.left + rect.width / 2;
+            total.y += rect.top + rect.height / 2;
+            return total;
+          }, { x: 0, y: 0 });
+          return { x: center.x / stickers.length, y: center.y / stickers.length };
+        }
+
+        function moveCandidateScore(coords, axis, move, prime, dx, dy) {
+          var amount = turnAmount(move, prime);
+          var afterCoords = rotateVector(coords, axis, amount);
+          var before = cubieCenterForCoords(coords) || projectPoint(coords);
+          var after = cubieCenterForCoords(afterCoords) || projectPoint(afterCoords);
+          var moveX = after.x - before.x;
+          var moveY = after.y - before.y;
+          return moveX * dx + moveY * dy;
+        }
+
+        function moveFromLayerDrag(face, coords, dx, dy) {
+          if (Math.hypot(dx, dy) < 22) return "";
+          var normal = directionToVector(face);
+          var candidates = ["x", "y", "z"]
+            .filter(function (axis) {
+              return normal[axis] === 0;
+            })
+            .map(function (axis) {
+              var move = moveByAxisLayer[axis][String(coords[axis])];
+              var normalScore = moveCandidateScore(coords, axis, move, false, dx, dy);
+              var primeScore = moveCandidateScore(coords, axis, move, true, dx, dy);
+              return {
+                move: move + (primeScore > normalScore ? "'" : ""),
+                score: Math.max(normalScore, primeScore)
+              };
+            })
+            .sort(function (a, b) {
+              return b.score - a.score;
+            });
+          return candidates.length && candidates[0].score > 0 ? candidates[0].move : "";
+        }
+
+        cube.addEventListener("pointerdown", function (event) {
+          var hit = document.elementFromPoint(event.clientX, event.clientY);
+          var sticker = hit ? hit.closest(".sticker[data-active='1']") : null;
+          if (!sticker || solving || animatingMove) return;
+          layerDrag = {
+            x: event.clientX,
+            y: event.clientY,
+            face: sticker.getAttribute("data-face"),
+            coords: {
+              x: Number(sticker.getAttribute("data-x")),
+              y: Number(sticker.getAttribute("data-y")),
+              z: Number(sticker.getAttribute("data-z"))
+            },
+            turned: false
+          };
+          cube.classList.add("turning");
+          cube.setPointerCapture(event.pointerId);
+          event.stopPropagation();
+        });
+
+        cube.addEventListener("pointermove", function (event) {
+          if (!layerDrag || layerDrag.turned || solving) return;
+          var move = moveFromLayerDrag(layerDrag.face, layerDrag.coords, event.clientX - layerDrag.x, event.clientY - layerDrag.y);
+          if (!move) return;
+          layerDrag.turned = true;
+          applyMove(move, true, true);
+        });
+
+        cube.addEventListener("pointerup", function (event) {
+          if (!layerDrag) return;
+          var move = layerDrag.turned ? "" : moveFromLayerDrag(layerDrag.face, layerDrag.coords, event.clientX - layerDrag.x, event.clientY - layerDrag.y);
+          layerDrag = null;
+          cube.classList.remove("turning");
+          cube.releasePointerCapture(event.pointerId);
+          event.stopPropagation();
+          if (move && !solving) applyMove(move, true, true);
+        });
+
+        cube.addEventListener("pointercancel", function () {
+          layerDrag = null;
+          cube.classList.remove("turning");
+        });
+
+        panel.addEventListener("pointerdown", function (event) {
+          if (event.target.closest(".cube") || event.target.closest("button") || event.target.closest(".settings-panel")) return;
+          drag = { x: event.clientX, y: event.clientY, startX: view.x, startY: view.y };
+          panel.classList.add("dragging");
+          panel.setPointerCapture(event.pointerId);
+        });
+
+        panel.addEventListener("pointermove", function (event) {
+          if (!drag) return;
+          setView(drag.startX - (event.clientY - drag.y) * 0.45, drag.startY + (event.clientX - drag.x) * 0.45);
+        });
+
+        panel.addEventListener("pointerup", function (event) {
+          drag = null;
+          panel.classList.remove("dragging");
+          panel.releasePointerCapture(event.pointerId);
+        });
+
+        document.querySelectorAll("[data-action]").forEach(function (button) {
+          button.addEventListener("click", function () {
+            var action = button.getAttribute("data-action");
+            if (action === "scramble") scrambleCube();
+            if (action === "solve") solveCube();
+          });
+        });
+
+        if (settingsToggle && settingsPanel) {
+          settingsToggle.addEventListener("click", function () {
+            var open = !settingsPanel.classList.contains("open");
+            settingsPanel.classList.toggle("open", open);
+            settingsToggle.setAttribute("aria-expanded", String(open));
+          });
+        }
+
+        if (closeModal) {
+          closeModal.addEventListener("click", function () {
+            modal.classList.remove("open");
+            stopTimer();
+            if (window.parent && window.parent !== window) {
+              window.parent.postMessage({ type: "rubiks-cube-close" }, "*");
+              return;
+            }
+            if (window.history.length > 1) {
+              window.history.back();
+              return;
+            }
+            window.location.href = "./new-arrivals.html";
+          });
+        }
+
+        if (algorithmToggle) {
+          algorithmToggle.addEventListener("change", function () {
+            settings.showAlgorithms = algorithmToggle.checked;
+            applySettings();
+          });
+        }
+
+        if (speedControl) {
+          speedControl.addEventListener("input", function () {
+            settings.turnMs = Number(speedControl.value);
+            applySettings();
+          });
+        }
+
+        if (timerToggle) {
+          timerToggle.addEventListener("change", function () {
+            settings.showTimer = timerToggle.checked;
+            if (settings.showTimer && elapsed && !isSolved()) startTimer();
+            applySettings();
+          });
+        }
+
+        document.querySelectorAll("input[name='solveMode']").forEach(function (input) {
+          input.addEventListener("change", function () {
+            if (input.checked) {
+              settings.solveMode = input.value;
+              if (settings.solveMode === "quick") setSolvePhase("");
+            }
+          });
+        });
+
+        if (buttonsToggle) {
+          buttonsToggle.addEventListener("change", function () {
+            settings.showButtons = buttonsToggle.checked;
+            applySettings();
+          });
+        }
+
+        document.addEventListener("keydown", function (event) {
+          var key = event.key.toUpperCase();
+          if (directions[key] && modal.classList.contains("open") && !solving) {
+            applyMove(key + (event.shiftKey ? "'" : ""), true, true);
+          }
+        });
+
+        applySettings();
+        resetCube();
+      })();
+    </script>
+  </body>
+</html>

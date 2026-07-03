@@ -1,0 +1,1816 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Actual-size interactive 3D first-generation iPod model for the Vero Flashback museum."
+    />
+    <title>Original iPod 3D Model | Vero Flashback</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        min-width: 320px;
+        margin: 0;
+        overflow: hidden;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 235, 236, 0.92)),
+          #f5f6f6;
+        color: #1a1d20;
+        font-family: Arial, Helvetica, sans-serif;
+      }
+
+      button {
+        font: inherit;
+      }
+
+      .ipod-backdrop {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-items: center;
+        padding: 12px;
+        background-color: transparent;
+        background-image: url("./Pictures/rubiks-modal-transparent-bg.png");
+      }
+
+      .ipod-modal {
+        width: min(820px, calc(100vw - 24px));
+        height: calc(100dvh - 24px);
+        display: grid;
+        grid-template-rows: auto minmax(0, 1fr);
+        overflow: hidden;
+        border: 2px solid rgba(15, 23, 28, 0.7);
+        border-radius: 8px;
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(239, 243, 243, 0.9));
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.24);
+      }
+
+      .ipod-head {
+        position: relative;
+        z-index: 8;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(15, 23, 28, 0.14);
+        background: rgba(255, 255, 255, 0.94);
+        backdrop-filter: blur(10px);
+      }
+
+      .ipod-head h1 {
+        margin: 0;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(24px, 4vw, 42px);
+        font-weight: 900;
+        letter-spacing: 0;
+        line-height: 0.95;
+        text-transform: uppercase;
+      }
+
+      .window-tools {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-button {
+        width: 36px;
+        height: 36px;
+        display: grid;
+        place-items: center;
+        border: 1px solid rgba(15, 23, 28, 0.22);
+        border-radius: 6px;
+        background: #ffffff;
+        color: #111;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(11, 117, 108, 0.12);
+        transition: transform 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+      }
+
+      .icon-button:hover,
+      .icon-button:focus-visible {
+        border-color: #0b756c;
+        outline: none;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 0 rgba(11, 117, 108, 0.18);
+      }
+
+      .icon-button svg {
+        width: 18px;
+        height: 18px;
+        stroke: currentColor;
+        stroke-width: 2.2;
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+      }
+
+      .ipod-layout {
+        min-height: 0;
+        display: grid;
+        padding: 12px;
+      }
+
+      .ipod-stage {
+        position: relative;
+        min-height: 0;
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+        border: 1px solid rgba(15, 23, 28, 0.12);
+        border-radius: 8px;
+        background:
+          radial-gradient(ellipse at 50% 50%, rgba(255, 255, 255, 0.98), rgba(219, 226, 226, 0.76) 54%, rgba(183, 192, 192, 0.58)),
+          linear-gradient(145deg, #eef1f1, #c8d0d0);
+        perspective: 980px;
+        touch-action: none;
+        user-select: none;
+        cursor: grab;
+      }
+
+      .ipod-stage.dragging {
+        cursor: grabbing;
+      }
+
+      .ipod-stage::before {
+        content: "";
+        position: absolute;
+        width: 82mm;
+        height: 24mm;
+        left: 50%;
+        bottom: max(26px, 8%);
+        border-radius: 50%;
+        background: radial-gradient(ellipse, rgba(25, 30, 32, 0.24), transparent 68%);
+        filter: blur(8px);
+        transform: translateX(-50%);
+        pointer-events: none;
+      }
+
+      .scale-chip {
+        position: absolute;
+        left: 14px;
+        top: 14px;
+        z-index: 4;
+        display: grid;
+        gap: 2px;
+        padding: 7px 9px;
+        border: 1px solid rgba(15, 23, 28, 0.16);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.86);
+        color: #111;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 13px;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+        pointer-events: none;
+      }
+
+      .scale-chip small {
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: none;
+      }
+
+      .model-space {
+        width: min(94vw, 700px);
+        height: min(100%, calc(100dvh - 108px));
+        min-height: 520px;
+        position: relative;
+        display: grid;
+        place-items: center;
+        transform-style: preserve-3d;
+        z-index: 1;
+      }
+
+      .ipod-model {
+        --rx: -16deg;
+        --ry: -28deg;
+        --display-scale: 1.2;
+        --w: 61.8mm;
+        --h: 102mm;
+        --d: 19.9mm;
+        --z: 9.95mm;
+        position: relative;
+        width: var(--w);
+        height: var(--h);
+        transform-style: preserve-3d;
+        transform: scale(var(--display-scale)) rotateX(var(--rx)) rotateY(var(--ry));
+        transition: transform 90ms linear;
+      }
+
+      .ipod-model.animating {
+        transition: transform 240ms ease;
+      }
+
+      .body-face {
+        position: absolute;
+        left: 0;
+        top: 0;
+        backface-visibility: hidden;
+      }
+
+      .front,
+      .back {
+        width: var(--w);
+        height: var(--h);
+        border-radius: 17mm;
+      }
+
+      .front {
+        transform: translateZ(var(--z));
+        overflow: hidden;
+        border: 0.35mm solid rgba(190, 195, 195, 0.72);
+        background:
+          radial-gradient(ellipse at 50% -6%, rgba(255, 255, 255, 0.98), transparent 27%),
+          radial-gradient(ellipse at 50% 106%, rgba(159, 168, 168, 0.2), transparent 30%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(244, 245, 244, 0.72) 38%, rgba(214, 219, 218, 0.54)),
+          #f7f7f3;
+        box-shadow:
+          inset 2mm 2mm 4mm rgba(255, 255, 255, 0.9),
+          inset -2.8mm -3mm 4.5mm rgba(168, 176, 176, 0.24),
+          inset 0 0 0 0.35mm rgba(255, 255, 255, 0.66),
+          0 5mm 9mm rgba(0, 0, 0, 0.18);
+      }
+
+      .front::before {
+        content: "";
+        position: absolute;
+        inset: 1.6mm;
+        border-radius: 15.4mm;
+        background:
+          linear-gradient(90deg, rgba(206, 213, 213, 0.26), transparent 4.8mm calc(100% - 4.8mm), rgba(120, 133, 133, 0.08)),
+          linear-gradient(100deg, rgba(255, 255, 255, 0.42), transparent 24% 72%, rgba(170, 178, 178, 0.12)),
+          rgba(255, 255, 255, 0.28);
+        box-shadow:
+          inset 0 0 0 0.2mm rgba(255, 255, 255, 0.7),
+          inset 1.2mm 0 2.8mm rgba(255, 255, 255, 0.72),
+          inset -1.4mm 0 2.8mm rgba(131, 143, 143, 0.14),
+          inset 0 0 4.8mm rgba(168, 178, 178, 0.12);
+      }
+
+      .front::after {
+        content: "";
+        position: absolute;
+        inset: 0.4mm;
+        border-radius: 16.2mm;
+        box-shadow:
+          inset 1.8mm 0 2.8mm rgba(255, 255, 255, 0.68),
+          inset -1.9mm 0 2.8mm rgba(117, 130, 130, 0.16),
+          inset 0 1.8mm 2.8mm rgba(255, 255, 255, 0.78),
+          inset 0 -2mm 3.4mm rgba(137, 148, 148, 0.2);
+        pointer-events: none;
+      }
+
+      .back {
+        transform: rotateY(180deg) translateZ(var(--z));
+        overflow: hidden;
+        border: 0.35mm solid rgba(146, 153, 153, 0.5);
+        background:
+          radial-gradient(ellipse at 50% -8%, rgba(255, 255, 255, 0.94), transparent 24%),
+          radial-gradient(ellipse at 50% 108%, rgba(82, 96, 98, 0.2), transparent 28%),
+          linear-gradient(118deg, rgba(255, 255, 255, 0.9), rgba(210, 217, 218, 0.94) 33%, rgba(247, 249, 249, 0.95) 62%, rgba(173, 184, 186, 0.86)),
+          #cfd5d5;
+        box-shadow:
+          inset 0 0 0 0.7mm rgba(255, 255, 255, 0.35),
+          inset 0 -5mm 9mm rgba(86, 98, 100, 0.22),
+          inset 2.2mm 0 4.4mm rgba(255, 255, 255, 0.5),
+          inset -2.4mm 0 4.6mm rgba(91, 106, 108, 0.2);
+      }
+
+      .top,
+      .bottom {
+        width: var(--w);
+        height: var(--d);
+        border-radius: 17mm;
+        background:
+          radial-gradient(ellipse at 50% 0, rgba(255, 255, 255, 0.95), transparent 56%),
+          linear-gradient(180deg, #fbfbfa, #d6dcdb 72%, #aab4b4);
+        box-shadow:
+          inset 0 0 0 0.25mm rgba(146, 156, 156, 0.24),
+          inset 0 1mm 1.6mm rgba(255, 255, 255, 0.7);
+      }
+
+      .top {
+        transform: rotateX(90deg) translateZ(var(--z));
+      }
+
+      .bottom {
+        top: calc(var(--h) - var(--d));
+        transform: rotateX(-90deg) translateZ(var(--z));
+      }
+
+      .bottom-charging-port {
+        position: absolute;
+        left: 50%;
+        top: 8.2mm;
+        width: 21mm;
+        height: 3.4mm;
+        border-radius: 0.9mm;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.36), transparent 40%),
+          linear-gradient(180deg, #7f8988, #151b1c);
+        box-shadow:
+          inset 0 0.5mm 0.8mm rgba(0, 0, 0, 0.56),
+          0 0 0 0.28mm rgba(255, 255, 255, 0.58);
+        transform: translateX(-50%) translateZ(0.4mm);
+      }
+
+      .left,
+      .right {
+        width: var(--d);
+        height: var(--h);
+        border-radius: 17mm;
+        background:
+          radial-gradient(ellipse at 50% 3%, rgba(255, 255, 255, 0.82), transparent 24%),
+          radial-gradient(ellipse at 50% 97%, rgba(90, 104, 104, 0.16), transparent 26%),
+          linear-gradient(90deg, #9fadad, #eff1f0 52%, #c9d0d0);
+        box-shadow:
+          inset 0 0 0 0.25mm rgba(118, 130, 130, 0.2),
+          inset 1mm 0 1.8mm rgba(255, 255, 255, 0.48),
+          inset -1mm 0 1.8mm rgba(111, 124, 124, 0.2);
+      }
+
+      .left {
+        transform: rotateY(-90deg) translateZ(var(--z));
+      }
+
+      .right {
+        left: calc(var(--w) - var(--d));
+        transform: rotateY(90deg) translateZ(var(--z));
+      }
+
+      .screen {
+        position: absolute;
+        left: 11.1mm;
+        top: 12mm;
+        width: 39.6mm;
+        height: 30mm;
+        display: grid;
+        align-content: start;
+        gap: 0.85mm;
+        padding: 1.8mm 2.1mm;
+        border: 0.7mm solid #c8cdca;
+        border-radius: 1.6mm;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 22%),
+          #9eaa9e;
+        box-shadow:
+          inset 0 0 0 0.35mm rgba(44, 55, 48, 0.16),
+          inset 0 -2mm 3mm rgba(49, 62, 53, 0.14);
+        color: rgba(38, 48, 42, 0.74);
+        font-family: "Courier New", monospace;
+        font-size: 2.7mm;
+        font-weight: 900;
+        line-height: 1;
+        transform: translateZ(0.8mm);
+      }
+
+      .screen::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 0.9mm;
+        background: linear-gradient(125deg, rgba(255, 255, 255, 0.36), transparent 32% 74%, rgba(32, 45, 38, 0.1));
+        pointer-events: none;
+      }
+
+      .screen.lit {
+        background:
+          radial-gradient(ellipse at 50% 45%, rgba(216, 236, 212, 0.46), transparent 68%),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.55), transparent 22%),
+          #a8b7a7;
+        box-shadow:
+          inset 0 0 0 0.35mm rgba(44, 55, 48, 0.16),
+          inset 0 -2mm 3mm rgba(49, 62, 53, 0.14),
+          0 0 4mm rgba(196, 222, 192, 0.2);
+      }
+
+      .screen .title {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 0.65mm;
+        border-bottom: 0.25mm solid rgba(44, 55, 48, 0.28);
+      }
+
+      .screen .battery {
+        width: 5.2mm;
+        height: 2.4mm;
+        border: 0.25mm solid rgba(38, 48, 42, 0.58);
+        border-radius: 0.35mm;
+        background: linear-gradient(90deg, rgba(38, 48, 42, 0.55) 0 72%, transparent 72%);
+        box-shadow: 0.8mm 0 0 -0.45mm rgba(38, 48, 42, 0.58);
+      }
+
+      .screen .row {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        min-height: 4mm;
+        padding: 0 0.7mm;
+        border-radius: 0.45mm;
+      }
+
+      .screen .row.active {
+        background: rgba(42, 53, 45, 0.64);
+        color: rgba(226, 236, 225, 0.92);
+      }
+
+      .screen .now-playing {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 0.9mm;
+        padding-top: 0.6mm;
+      }
+
+      .screen .track-title {
+        font-size: 3mm;
+      }
+
+      .screen .track-meta {
+        opacity: 0.72;
+      }
+
+      .screen .progress {
+        height: 1.7mm;
+        border-radius: 2mm;
+        background: rgba(255, 255, 255, 0.18);
+        overflow: hidden;
+      }
+
+      .screen .progress i {
+        display: block;
+        width: var(--progress, 45%);
+        height: 100%;
+        background: rgba(39, 51, 43, 0.7);
+      }
+
+      .screen .status-line {
+        position: relative;
+        z-index: 1;
+        margin-top: auto;
+        opacity: 0.72;
+        font-size: 2.25mm;
+      }
+
+      .screen.game-screen {
+        gap: 0.45mm;
+        padding: 1.25mm 1.7mm;
+        overflow: hidden;
+        font-size: 2.15mm;
+        grid-template-rows: auto minmax(0, 1fr) auto;
+      }
+
+      .screen.game-screen .title {
+        padding-bottom: 0.38mm;
+      }
+
+      .screen.game-screen .status-line {
+        min-height: 2.1mm;
+        font-size: 1.65mm;
+        line-height: 1;
+        white-space: nowrap;
+      }
+
+      .screen .game-wrap {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        gap: 0.45mm;
+        min-height: 0;
+        align-content: start;
+      }
+
+      .game-board {
+        width: max-content;
+        max-width: 100%;
+        display: grid;
+        justify-self: center;
+        gap: 0.18mm;
+        padding: 0.42mm;
+        border: 0.25mm solid rgba(38, 48, 42, 0.36);
+        background: rgba(40, 52, 44, 0.14);
+        overflow: hidden;
+      }
+
+      .snake-board {
+        grid-template-columns: repeat(12, 1.28mm);
+        grid-template-rows: repeat(8, 1.28mm);
+      }
+
+      .brick-board {
+        grid-template-columns: repeat(14, 1.04mm);
+        grid-template-rows: repeat(9, 1.04mm);
+      }
+
+      .catch-board {
+        grid-template-columns: repeat(10, 1.42mm);
+        grid-template-rows: repeat(8, 1.42mm);
+      }
+
+      .game-pixel {
+        aspect-ratio: 1;
+        background: rgba(39, 51, 43, 0.12);
+      }
+
+      .game-pixel.snake,
+      .game-pixel.paddle {
+        background: rgba(39, 51, 43, 0.76);
+      }
+
+      .game-pixel.head,
+      .game-pixel.ball,
+      .game-pixel.drop {
+        background: rgba(39, 51, 43, 0.94);
+      }
+
+      .game-pixel.food,
+      .game-pixel.brick {
+        background: rgba(39, 51, 43, 0.48);
+        box-shadow: inset 0 0 0 0.35mm rgba(39, 51, 43, 0.24);
+      }
+
+      .game-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 1.85mm;
+        line-height: 1;
+      }
+
+      .screen .bar {
+        position: relative;
+        z-index: 1;
+        width: 100%;
+        height: 1.7mm;
+        border-radius: 2mm;
+        background:
+          linear-gradient(90deg, rgba(39, 51, 43, 0.7) 0 56%, rgba(39, 51, 43, 0.18) 56%),
+          rgba(255, 255, 255, 0.16);
+      }
+
+      .wheel {
+        position: absolute;
+        left: 6.9mm;
+        top: 51mm;
+        width: 48mm;
+        height: 48mm;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 50% 50%, transparent 0 12.3mm, rgba(230, 232, 230, 0.96) 12.5mm 100%),
+          conic-gradient(from 12deg, #f8f8f5, #d9dedc, #ffffff, #cfd6d4, #f6f6f2);
+        box-shadow:
+          inset 0 0 0 0.45mm rgba(156, 166, 166, 0.32),
+          inset 1.8mm 1.8mm 3.5mm rgba(255, 255, 255, 0.86),
+          inset -2mm -2.4mm 4mm rgba(128, 140, 140, 0.22),
+          0 1.4mm 2.2mm rgba(132, 144, 144, 0.18);
+        transform: translateZ(0.9mm);
+      }
+
+      .wheel::before {
+        content: "";
+        position: absolute;
+        inset: 15.1mm;
+        border-radius: 50%;
+        background:
+          radial-gradient(circle at 38% 33%, rgba(255, 255, 255, 0.9), transparent 38%),
+          #f4f4f1;
+        box-shadow:
+          inset 0 0 0 0.35mm rgba(148, 158, 158, 0.24),
+          inset -1mm -1.4mm 2mm rgba(128, 137, 137, 0.18);
+      }
+
+      .wheel button {
+        position: absolute;
+        z-index: 2;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        color: transparent;
+        cursor: pointer;
+      }
+
+      .wheel button:focus-visible {
+        outline: 0.5mm solid rgba(11, 117, 108, 0.8);
+        outline-offset: 0.4mm;
+      }
+
+      .wheel button:active ~ .wheel-press,
+      .wheel button.active ~ .wheel-press {
+        opacity: 1;
+      }
+
+      .wheel button:hover ~ .wheel-press {
+        opacity: 0.34;
+      }
+
+      .wheel-menu,
+      .wheel-prev,
+      .wheel-next,
+      .wheel-play {
+        width: 15mm;
+        height: 12mm;
+      }
+
+      .wheel-menu {
+        left: 16.5mm;
+        top: 1.6mm;
+      }
+
+      .wheel-prev {
+        left: 1.8mm;
+        top: 18mm;
+      }
+
+      .wheel-next {
+        right: 1.8mm;
+        top: 18mm;
+      }
+
+      .wheel-play {
+        left: 16.5mm;
+        bottom: 1.7mm;
+      }
+
+      .wheel-select {
+        left: 15.1mm;
+        top: 15.1mm;
+        width: 17.8mm;
+        height: 17.8mm;
+        border-radius: 50%;
+      }
+
+      .wheel-press {
+        position: absolute;
+        inset: 15.1mm;
+        z-index: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 50% 50%, rgba(203, 211, 211, 0.62), transparent 70%);
+        opacity: 0;
+        transition: opacity 120ms ease;
+        pointer-events: none;
+      }
+
+      .wheel-label {
+        position: absolute;
+        color: #a0a7a6;
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 2.6mm;
+        font-weight: 900;
+        line-height: 1;
+        text-transform: uppercase;
+      }
+
+      .wheel-label.menu {
+        left: 50%;
+        top: 5mm;
+        transform: translateX(-50%);
+      }
+
+      .wheel-label.back-icon {
+        left: 7.4mm;
+        top: 22.4mm;
+      }
+
+      .wheel-label.forward-icon {
+        right: 7.2mm;
+        top: 22.4mm;
+      }
+
+      .wheel-label.play {
+        left: 50%;
+        bottom: 5.2mm;
+        transform: translateX(-50%);
+      }
+
+      .hold-switch,
+      .firewire-port,
+      .headphone-port,
+      .charging-port,
+      .power-button {
+        position: absolute;
+        transform: translateZ(calc(var(--z) + 0.7mm));
+        pointer-events: none;
+      }
+
+      .hold-switch {
+        left: 8mm;
+        top: -3.8mm;
+        width: 19mm;
+        height: 2.8mm;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #d8dcda, #f7f7f4 56%, #ad451f 57% 78%, #c9d0ce 79%);
+        box-shadow: inset 0 0 0 0.25mm rgba(78, 90, 90, 0.24);
+      }
+
+      .firewire-port {
+        left: 31mm;
+        top: -4mm;
+        width: 13mm;
+        height: 3.1mm;
+        border-radius: 0.8mm;
+        background: linear-gradient(180deg, #899291, #202728);
+        box-shadow: inset 0 0.5mm 0.7mm rgba(0, 0, 0, 0.5), 0 0 0 0.25mm rgba(255, 255, 255, 0.7);
+      }
+
+      .headphone-port {
+        right: 8.5mm;
+        top: -4.3mm;
+        width: 5.2mm;
+        height: 5.2mm;
+        border-radius: 50%;
+        background: radial-gradient(circle, #111 0 38%, #7f8988 39% 55%, #e7ecea 56%);
+      }
+
+      .charging-port {
+        left: 50%;
+        bottom: -4.2mm;
+        width: 20mm;
+        height: 3.2mm;
+        border-radius: 0.9mm;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 42%),
+          linear-gradient(180deg, #8d9695, #202829);
+        box-shadow:
+          inset 0 0.45mm 0.8mm rgba(0, 0, 0, 0.48),
+          0 0 0 0.28mm rgba(255, 255, 255, 0.72);
+        transform: translateX(-50%) translateZ(calc(var(--z) + 0.7mm));
+      }
+
+      .power-button {
+        right: 18mm;
+        top: -3.2mm;
+        width: 9.2mm;
+        height: 2.2mm;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #f4f5f2, #aeb8b7);
+        box-shadow:
+          inset 0 0 0 0.22mm rgba(85, 96, 96, 0.28),
+          0 0.45mm 0.8mm rgba(40, 50, 50, 0.2);
+      }
+
+      .back-logo {
+        position: absolute;
+        left: 50%;
+        top: 20mm;
+        width: 19mm;
+        height: 22mm;
+        transform: translateX(-50%);
+        filter: drop-shadow(0.35mm 0.45mm 0.45mm rgba(255, 255, 255, 0.62));
+      }
+
+      .apple-body {
+        position: absolute;
+        left: 4.2mm;
+        top: 5.2mm;
+        width: 11.5mm;
+        height: 14.2mm;
+        border-radius: 48% 46% 50% 52% / 42% 44% 58% 56%;
+        background: rgba(65, 75, 78, 0.36);
+        transform: rotate(-9deg);
+      }
+
+      .apple-body::before {
+        content: "";
+        position: absolute;
+        left: -2.4mm;
+        top: 2.6mm;
+        width: 8.2mm;
+        height: 10.8mm;
+        border-radius: 52% 44% 48% 58% / 45% 48% 58% 58%;
+        background: rgba(65, 75, 78, 0.36);
+      }
+
+      .apple-body::after {
+        content: "";
+        position: absolute;
+        right: -2.1mm;
+        top: 4mm;
+        width: 4.6mm;
+        height: 4.6mm;
+        border-radius: 50%;
+        background: #d9dfdf;
+        box-shadow: 0.5mm -0.4mm 0.6mm rgba(255, 255, 255, 0.2);
+      }
+
+      .apple-leaf {
+        position: absolute;
+        left: 10mm;
+        top: 0.4mm;
+        width: 6.8mm;
+        height: 3.8mm;
+        border-radius: 100% 0 100% 0;
+        background: rgba(65, 75, 78, 0.36);
+        transform: rotate(-24deg);
+      }
+
+      .back-brand {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 23mm;
+        color: rgba(66, 75, 78, 0.42);
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 7.2mm;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-align: center;
+        text-shadow: 0.35mm 0.35mm 0.7mm rgba(255, 255, 255, 0.55);
+      }
+
+      .back-specs {
+        position: absolute;
+        left: 7mm;
+        right: 7mm;
+        bottom: 8mm;
+        display: grid;
+        gap: 1.2mm;
+        color: rgba(60, 70, 73, 0.38);
+        font-family: Arial, Helvetica, sans-serif;
+        font-size: 2.3mm;
+        font-weight: 800;
+        line-height: 1.05;
+        text-align: center;
+      }
+
+      .shine {
+        position: absolute;
+        inset: -16mm -10mm auto auto;
+        width: 34mm;
+        height: 136mm;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.76), transparent);
+        filter: blur(0.7mm);
+        transform: rotate(20deg);
+      }
+
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0 0 0 0);
+        white-space: nowrap;
+      }
+
+      @media (max-width: 720px) {
+        .ipod-head {
+          padding: 12px 13px;
+        }
+
+        .icon-button {
+          width: 34px;
+          height: 34px;
+        }
+
+        .model-space {
+          min-height: 440px;
+        }
+
+        .ipod-model {
+          --display-scale: 1.04;
+        }
+
+        .scale-chip {
+          left: 10px;
+          top: 10px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="ipod-backdrop" id="ipodModal" role="dialog" aria-modal="true" aria-labelledby="ipodTitle">
+      <article class="ipod-modal">
+        <header class="ipod-head">
+          <h1 id="ipodTitle">Original iPod</h1>
+          <div class="window-tools">
+            <button class="icon-button" type="button" id="resetView" aria-label="Reset orientation">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M3 12a9 9 0 1 0 3-6.7" />
+                <path d="M3 4v6h6" />
+              </svg>
+            </button>
+            <button class="icon-button" type="button" id="closeModel" aria-label="Exit model">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </div>
+        </header>
+
+        <div class="ipod-layout">
+          <section class="ipod-stage" id="ipodStage" aria-label="Movable actual-size 3D original iPod model">
+            <div class="scale-chip" aria-hidden="true">
+              1:1 scale
+              <small>102 x 61.8 x 19.9 mm</small>
+            </div>
+            <div class="model-space">
+              <div class="ipod-model" id="ipodModel">
+                <div class="body-face front">
+                  <div class="screen" id="ipodScreen" aria-live="polite">
+                    <div class="title"><span>iPod</span><i class="battery" aria-hidden="true"></i></div>
+                    <div class="row active"><span>Music</span><span>&gt;</span></div>
+                    <div class="row"><span>Playlists</span><span>&gt;</span></div>
+                    <div class="row"><span>Extras</span><span>&gt;</span></div>
+                    <div class="row"><span>Settings</span><span>&gt;</span></div>
+                    <div class="status-line">Paused</div>
+                  </div>
+                  <div class="wheel" aria-label="iPod click wheel">
+                    <button class="wheel-menu" type="button" data-ipod-action="menu" aria-label="Menu"></button>
+                    <button class="wheel-prev" type="button" data-ipod-action="previous" aria-label="Previous"></button>
+                    <button class="wheel-select" type="button" data-ipod-action="select" aria-label="Select"></button>
+                    <button class="wheel-next" type="button" data-ipod-action="next" aria-label="Next"></button>
+                    <button class="wheel-play" type="button" data-ipod-action="play" aria-label="Play or pause"></button>
+                    <span class="wheel-press" aria-hidden="true"></span>
+                    <span class="wheel-label menu">Menu</span>
+                    <span class="wheel-label back-icon">|&lt;</span>
+                    <span class="wheel-label forward-icon">&gt;|</span>
+                    <span class="wheel-label play">&gt;||</span>
+                  </div>
+                  <div class="hold-switch"></div>
+                  <div class="firewire-port"></div>
+                  <div class="headphone-port"></div>
+                  <div class="power-button"></div>
+                </div>
+                <div class="body-face back">
+                  <div class="shine"></div>
+                  <div class="back-logo" aria-hidden="true">
+                    <span class="apple-body"></span>
+                    <span class="apple-leaf"></span>
+                  </div>
+                  <div class="back-brand">iPod</div>
+                  <div class="back-specs">
+                    <span>5GB FireWire Music Player</span>
+                    <span>Designed by Apple in California</span>
+                  </div>
+                </div>
+                <div class="body-face top"></div>
+                <div class="body-face bottom">
+                  <div class="bottom-charging-port"></div>
+                </div>
+                <div class="body-face left"></div>
+                <div class="body-face right"></div>
+              </div>
+            </div>
+            <span class="sr-only">Drag the model area to rotate the iPod orientation.</span>
+          </section>
+        </div>
+      </article>
+    </div>
+
+    <audio id="ipodAudio" preload="metadata"></audio>
+
+    <script>
+      (function () {
+        var stage = document.getElementById("ipodStage");
+        var model = document.getElementById("ipodModel");
+        var screen = document.getElementById("ipodScreen");
+        var audio = document.getElementById("ipodAudio");
+        var resetView = document.getElementById("resetView");
+        var closeModel = document.getElementById("closeModel");
+        var view = { x: -16, y: -28 };
+        var drag = null;
+        var screenState = {
+          path: ["iPod"],
+          menu: "root",
+          selected: 0,
+          playing: false,
+          track: 0,
+          progress: 34,
+          backlight: true,
+          snake: {
+            cells: [],
+            dir: "right",
+            nextDir: "right",
+            food: { x: 8, y: 4 },
+            running: false,
+            over: false,
+            score: 0
+          },
+          brick: {
+            paddle: 5,
+            ball: { x: 7, y: 6 },
+            dx: 1,
+            dy: -1,
+            bricks: [],
+            running: false,
+            over: false,
+            score: 0
+          },
+          catch: {
+            player: 4,
+            drop: { x: 3, y: 0 },
+            running: false,
+            over: false,
+            score: 0,
+            lives: 3
+          }
+        };
+        var menus = {
+          root: [
+            { label: "Music", target: "music" },
+            { label: "Playlists", target: "playlists" },
+            { label: "Extras", target: "extras" },
+            { label: "Settings", target: "settings" }
+          ],
+          music: [
+            { label: "Artists", target: "artists" },
+            { label: "Albums", target: "albums" },
+            { label: "Songs", target: "songs" },
+            { label: "Genres", target: "genres" }
+          ],
+          playlists: [
+            { label: "Retro Mix", play: 0 },
+            { label: "Booth Finds", play: 1 },
+            { label: "Late Night", play: 2 }
+          ],
+          artists: [
+            { label: "iPod Music Test", play: 0 },
+            { label: "Vero Flashback", play: 1 },
+            { label: "Museum Demo", play: 2 }
+          ],
+          albums: [
+            { label: "Synced WAVs", play: 0 },
+            { label: "Click Wheel Mix", play: 1 },
+            { label: "Original iPod", play: 2 }
+          ],
+          songs: [
+            { label: "iPod Music Test 1", play: 0 },
+            { label: "iPod Music Test 2", play: 1 },
+            { label: "iPod Music 3", play: 2 }
+          ],
+          genres: [
+            { label: "WAV", play: 0 },
+            { label: "Demo", play: 1 },
+            { label: "Museum", play: 2 }
+          ],
+          extras: [
+            { label: "Games", target: "games" },
+            { label: "Clock", message: "12:00 AM" },
+            { label: "Contacts", message: "No contacts" },
+            { label: "About", message: "5GB available" }
+          ],
+          games: [
+            { label: "Snake", game: "snake" },
+            { label: "Brick", game: "brick" },
+            { label: "Catch", game: "catch" },
+            { label: "Music Quiz", message: "Sync songs first" }
+          ],
+          settings: [
+            { label: "Backlight", toggle: "backlight" },
+            { label: "Contrast", message: "Contrast 50%" },
+            { label: "Clicker", message: "Clicker On" },
+            { label: "About", message: "iPod 1.0" }
+          ]
+        };
+        var tracks = [
+          { title: "iPod Music Test 1", artist: "Vero Flashback", src: "./ipod music test 1.wav" },
+          { title: "iPod Music Test 2", artist: "Vero Flashback", src: "./ipod music test 2.wav" },
+          { title: "iPod Music 3", artist: "Vero Flashback", src: "./ipod music 3.wav" }
+        ];
+
+        function escapeHtml(value) {
+          return String(value)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;");
+        }
+
+        function titleForMenu(menu) {
+          if (screenState.path.length) return screenState.path[screenState.path.length - 1];
+          return "iPod";
+        }
+
+        function isGameMenu() {
+          return screenState.menu === "snakeGame" || screenState.menu === "brickGame" || screenState.menu === "catchGame";
+        }
+
+        function currentTrack() {
+          return tracks[screenState.track] || tracks[0];
+        }
+
+        function loadAudioTrack(shouldPlay) {
+          var track = currentTrack();
+          if (!audio || !track || !track.src) return;
+          if (audio.getAttribute("src") !== track.src) {
+            audio.src = track.src;
+            audio.load();
+          }
+          if (!shouldPlay) return;
+          var playAttempt = audio.play();
+          if (playAttempt && typeof playAttempt.catch === "function") {
+            playAttempt.catch(function () {
+              screenState.playing = false;
+              renderScreen("Tap Play");
+            });
+          }
+        }
+
+        function changeTrack(direction) {
+          var wasPlaying = screenState.playing;
+          screenState.track = (screenState.track + direction + tracks.length) % tracks.length;
+          screenState.progress = 0;
+          if (wasPlaying) {
+            loadAudioTrack(true);
+          } else if (audio) {
+            audio.pause();
+            audio.src = currentTrack().src;
+            audio.load();
+          }
+          renderScreen();
+        }
+
+        function toggleCurrentTrack() {
+          if (screenState.playing) {
+            screenState.playing = false;
+            if (audio) audio.pause();
+          } else {
+            screenState.playing = true;
+            loadAudioTrack(true);
+          }
+          renderScreen();
+        }
+
+        function gamePixel(className) {
+          return '<span class="game-pixel ' + (className || "") + '"></span>';
+        }
+
+        function resetSnake(startRunning) {
+          screenState.snake = {
+            cells: [
+              { x: 3, y: 4 },
+              { x: 2, y: 4 },
+              { x: 1, y: 4 }
+            ],
+            dir: "right",
+            nextDir: "right",
+            food: { x: 8, y: 4 },
+            running: Boolean(startRunning),
+            over: false,
+            score: 0
+          };
+        }
+
+        function resetBrick(startRunning) {
+          var bricks = [];
+          for (var y = 0; y < 3; y += 1) {
+            for (var x = 1; x < 13; x += 2) {
+              bricks.push({ x: x, y: y });
+            }
+          }
+          screenState.brick = {
+            paddle: 5,
+            ball: { x: 7, y: 6 },
+            dx: 1,
+            dy: -1,
+            bricks: bricks,
+            running: Boolean(startRunning),
+            over: false,
+            score: 0
+          };
+        }
+
+        function resetCatch(startRunning) {
+          screenState.catch = {
+            player: 4,
+            drop: { x: 3, y: 0 },
+            running: Boolean(startRunning),
+            over: false,
+            score: 0,
+            lives: 3
+          };
+        }
+
+        function snakeCellKey(cell) {
+          return cell.x + "," + cell.y;
+        }
+
+        function placeFood() {
+          var snake = screenState.snake;
+          for (var y = 0; y < 8; y += 1) {
+            for (var x = 0; x < 12; x += 1) {
+              var test = {
+                x: (x * 5 + snake.score * 3 + 7) % 12,
+                y: (y * 3 + snake.score * 2 + 5) % 8
+              };
+              if (!snake.cells.some(function (cell) { return cell.x === test.x && cell.y === test.y; })) {
+                snake.food = test;
+                return;
+              }
+            }
+          }
+          snake.food = { x: 0, y: 0 };
+        }
+
+        function renderSnakeScreen() {
+          var snake = screenState.snake;
+          var occupied = {};
+          snake.cells.forEach(function (cell, index) {
+            occupied[snakeCellKey(cell)] = index === 0 ? "head" : "snake";
+          });
+          var pixels = "";
+          for (var y = 0; y < 8; y += 1) {
+            for (var x = 0; x < 12; x += 1) {
+              var key = x + "," + y;
+              var cellClass = occupied[key] || "";
+              if (snake.food.x === x && snake.food.y === y) cellClass = cellClass ? cellClass + " food" : "food";
+              pixels += gamePixel(cellClass);
+            }
+          }
+          var stateText = snake.over ? "Crashed" : (snake.running ? "Playing" : "Paused");
+          screen.innerHTML =
+            '<div class="title"><span>Snake</span><i class="battery" aria-hidden="true"></i></div>' +
+            '<div class="game-wrap">' +
+              '<div class="game-board snake-board">' + pixels + '</div>' +
+              '<div class="game-meta"><span>Score ' + snake.score + '</span><span>' + stateText + '</span></div>' +
+            '</div>' +
+            '<div class="status-line">Wheel moves - center exits</div>';
+        }
+
+        function renderBrickScreen() {
+          var brick = screenState.brick;
+          var pixels = "";
+          for (var y = 0; y < 9; y += 1) {
+            for (var x = 0; x < 14; x += 1) {
+              var cellClass = "";
+              if (brick.bricks.some(function (tile) { return tile.x === x && tile.y === y; })) cellClass = "brick";
+              if (brick.ball.x === x && brick.ball.y === y) cellClass = "ball";
+              if (y === 8 && x >= brick.paddle && x < brick.paddle + 4) cellClass = "paddle";
+              pixels += gamePixel(cellClass);
+            }
+          }
+          var stateText = brick.over ? "Miss" : (brick.running ? "Playing" : "Paused");
+          screen.innerHTML =
+            '<div class="title"><span>Brick</span><i class="battery" aria-hidden="true"></i></div>' +
+            '<div class="game-wrap">' +
+              '<div class="game-board brick-board">' + pixels + '</div>' +
+              '<div class="game-meta"><span>Score ' + brick.score + '</span><span>' + stateText + '</span></div>' +
+            '</div>' +
+            '<div class="status-line">Left/right - center exits</div>';
+        }
+
+        function renderCatchScreen() {
+          var game = screenState.catch;
+          var pixels = "";
+          for (var y = 0; y < 8; y += 1) {
+            for (var x = 0; x < 10; x += 1) {
+              var cellClass = "";
+              if (game.drop.x === x && game.drop.y === y) cellClass = "drop";
+              if (y === 7 && x >= game.player && x < game.player + 2) cellClass = "paddle";
+              pixels += gamePixel(cellClass);
+            }
+          }
+          var stateText = game.over ? "Done" : (game.running ? "Playing" : "Paused");
+          screen.innerHTML =
+            '<div class="title"><span>Catch</span><i class="battery" aria-hidden="true"></i></div>' +
+            '<div class="game-wrap">' +
+              '<div class="game-board catch-board">' + pixels + '</div>' +
+              '<div class="game-meta"><span>' + game.score + ' pts</span><span>' + game.lives + ' lives</span></div>' +
+            '</div>' +
+            '<div class="status-line">' + stateText + ' - center exits</div>';
+        }
+
+        function renderScreen(message) {
+          var track = currentTrack();
+          screen.classList.toggle("lit", screenState.backlight);
+          screen.classList.toggle("game-screen", isGameMenu());
+          if (screenState.menu === "snakeGame") {
+            renderSnakeScreen();
+            return;
+          }
+          if (screenState.menu === "brickGame") {
+            renderBrickScreen();
+            return;
+          }
+          if (screenState.menu === "catchGame") {
+            renderCatchScreen();
+            return;
+          }
+          if (screenState.menu === "nowPlaying") {
+            var status = message || (screenState.playing ? "Playing" : "Paused");
+            screen.innerHTML =
+              '<div class="title"><span>Now Playing</span><i class="battery" aria-hidden="true"></i></div>' +
+              '<div class="now-playing">' +
+                '<div class="track-title">' + escapeHtml(track.title) + '</div>' +
+                '<div class="track-meta">' + escapeHtml(track.artist) + '</div>' +
+                '<div class="progress" style="--progress: ' + screenState.progress + '%"><i></i></div>' +
+              '</div>' +
+              '<div class="status-line">' + escapeHtml(status) + '</div>';
+            return;
+          }
+
+          var items = menus[screenState.menu] || menus.root;
+          var rows = items.slice(0, 4).map(function (item, index) {
+            var active = index === screenState.selected ? " active" : "";
+            var suffix = item.target ? "&gt;" : "";
+            return '<div class="row' + active + '"><span>' + escapeHtml(item.label) + '</span><span>' + suffix + '</span></div>';
+          }).join("");
+          screen.innerHTML =
+            '<div class="title"><span>' + escapeHtml(titleForMenu(screenState.menu)) + '</span><i class="battery" aria-hidden="true"></i></div>' +
+            rows +
+            '<div class="status-line">' + escapeHtml(message || (screenState.playing ? "Playing" : "Paused")) + '</div>';
+        }
+
+        function currentItems() {
+          return menus[screenState.menu] || menus.root;
+        }
+
+        function moveSelection(direction) {
+          if (screenState.menu === "snakeGame") {
+            setSnakeDirection(direction < 0 ? "left" : "right");
+            return;
+          }
+          if (screenState.menu === "brickGame") {
+            moveBrick(direction);
+            return;
+          }
+          if (screenState.menu === "catchGame") {
+            moveCatch(direction);
+            return;
+          }
+          if (screenState.menu === "nowPlaying") {
+            changeTrack(direction);
+            return;
+          }
+          var items = currentItems();
+          screenState.selected = (screenState.selected + direction + items.length) % items.length;
+          renderScreen();
+        }
+
+        function openMenu(target, label) {
+          screenState.menu = target;
+          screenState.selected = 0;
+          screenState.path.push(label);
+          renderScreen();
+        }
+
+        function startTrack(index) {
+          screenState.track = index;
+          screenState.playing = true;
+          screenState.progress = 0;
+          screenState.menu = "nowPlaying";
+          screenState.path = ["iPod", "Now Playing"];
+          renderScreen();
+          loadAudioTrack(true);
+        }
+
+        function startSnake() {
+          resetSnake(true);
+          screenState.menu = "snakeGame";
+          screenState.path = ["iPod", "Extras", "Games", "Snake"];
+          renderScreen();
+        }
+
+        function startBrick() {
+          resetBrick(true);
+          screenState.menu = "brickGame";
+          screenState.path = ["iPod", "Extras", "Games", "Brick"];
+          renderScreen();
+        }
+
+        function startCatch() {
+          resetCatch(true);
+          screenState.menu = "catchGame";
+          screenState.path = ["iPod", "Extras", "Games", "Catch"];
+          renderScreen();
+        }
+
+        function selectCurrent() {
+          if (isGameMenu()) {
+            goBack();
+            return;
+          }
+          if (screenState.menu === "nowPlaying") {
+            toggleCurrentTrack();
+            return;
+          }
+          var item = currentItems()[screenState.selected];
+          if (!item) return;
+          if (item.target) {
+            openMenu(item.target, item.label);
+            return;
+          }
+          if (typeof item.play === "number") {
+            startTrack(item.play);
+            return;
+          }
+          if (item.game === "snake") {
+            startSnake();
+            return;
+          }
+          if (item.game === "brick") {
+            startBrick();
+            return;
+          }
+          if (item.game === "catch") {
+            startCatch();
+            return;
+          }
+          if (item.toggle === "backlight") {
+            screenState.backlight = !screenState.backlight;
+            renderScreen(screenState.backlight ? "Backlight On" : "Backlight Off");
+            return;
+          }
+          renderScreen(item.message || item.label);
+        }
+
+        function goBack() {
+          if (screenState.menu === "root") {
+            renderScreen("Main menu");
+            return;
+          }
+          if (isGameMenu()) {
+            screenState.snake.running = false;
+            screenState.brick.running = false;
+            screenState.catch.running = false;
+            screenState.menu = "games";
+            screenState.path = ["iPod", "Extras", "Games"];
+            screenState.selected = 0;
+            renderScreen();
+            return;
+          }
+          if (screenState.menu === "nowPlaying") {
+            screenState.menu = "root";
+            screenState.path = ["iPod"];
+            screenState.selected = 0;
+            renderScreen();
+            return;
+          }
+          screenState.path.pop();
+          var parent = screenState.path.length <= 1
+            ? "root"
+            : screenState.path[screenState.path.length - 1].toLowerCase().replace(/\s+/g, "");
+          screenState.menu = menus[parent] ? parent : "root";
+          screenState.selected = 0;
+          renderScreen();
+        }
+
+        function togglePlay() {
+          if (screenState.menu === "snakeGame") {
+            if (screenState.snake.over) {
+              resetSnake(true);
+            } else {
+              screenState.snake.running = !screenState.snake.running;
+            }
+            renderScreen();
+            return;
+          }
+          if (screenState.menu === "brickGame") {
+            if (screenState.brick.over) {
+              resetBrick(true);
+            } else {
+              screenState.brick.running = !screenState.brick.running;
+            }
+            renderScreen();
+            return;
+          }
+          if (screenState.menu === "catchGame") {
+            if (screenState.catch.over) {
+              resetCatch(true);
+            } else {
+              screenState.catch.running = !screenState.catch.running;
+            }
+            renderScreen();
+            return;
+          }
+          if (screenState.menu !== "nowPlaying") {
+            startTrack(screenState.track);
+            return;
+          }
+          toggleCurrentTrack();
+        }
+
+        function pulseButton(button) {
+          button.classList.add("active");
+          window.setTimeout(function () {
+            button.classList.remove("active");
+          }, 130);
+        }
+
+        function handleIpodAction(action, button) {
+          pulseButton(button);
+          if (screenState.menu === "snakeGame") {
+            if (action === "menu") setSnakeDirection("up");
+            if (action === "previous") setSnakeDirection("left");
+            if (action === "next") setSnakeDirection("right");
+            if (action === "play") setSnakeDirection("down");
+            if (action === "select") goBack();
+            return;
+          }
+          if (screenState.menu === "brickGame") {
+            if (action === "previous") moveBrick(-1);
+            if (action === "next") moveBrick(1);
+            if (action === "menu" || action === "play") togglePlay();
+            if (action === "select") goBack();
+            return;
+          }
+          if (screenState.menu === "catchGame") {
+            if (action === "previous") moveCatch(-1);
+            if (action === "next") moveCatch(1);
+            if (action === "menu" || action === "play") togglePlay();
+            if (action === "select") goBack();
+            return;
+          }
+          if (action === "menu") goBack();
+          if (action === "previous") moveSelection(-1);
+          if (action === "next") moveSelection(1);
+          if (action === "select") selectCurrent();
+          if (action === "play") togglePlay();
+        }
+
+        function turnSnake(direction) {
+          var snake = screenState.snake;
+          var order = ["up", "right", "down", "left"];
+          var current = order.indexOf(snake.nextDir);
+          snake.nextDir = order[(current + direction + order.length) % order.length];
+          snake.running = !snake.over;
+          renderScreen();
+        }
+
+        function setSnakeDirection(nextDir) {
+          var snake = screenState.snake;
+          var opposites = { up: "down", down: "up", left: "right", right: "left" };
+          if (opposites[snake.dir] === nextDir) return;
+          snake.nextDir = nextDir;
+          snake.running = !snake.over;
+          renderScreen();
+        }
+
+        function moveBrick(direction) {
+          var brick = screenState.brick;
+          brick.paddle = Math.max(0, Math.min(10, brick.paddle + direction));
+          brick.running = !brick.over;
+          renderScreen();
+        }
+
+        function moveCatch(direction) {
+          var game = screenState.catch;
+          game.player = Math.max(0, Math.min(8, game.player + direction));
+          game.running = !game.over;
+          renderScreen();
+        }
+
+        function tickSnake() {
+          var snake = screenState.snake;
+          if (screenState.menu !== "snakeGame" || !snake.running || snake.over) return;
+          snake.dir = snake.nextDir;
+          var head = snake.cells[0];
+          var next = { x: head.x, y: head.y };
+          if (snake.dir === "up") next.y -= 1;
+          if (snake.dir === "down") next.y += 1;
+          if (snake.dir === "left") next.x -= 1;
+          if (snake.dir === "right") next.x += 1;
+
+          var hitWall = next.x < 0 || next.x >= 12 || next.y < 0 || next.y >= 8;
+          var hitSelf = snake.cells.some(function (cell) {
+            return cell.x === next.x && cell.y === next.y;
+          });
+          if (hitWall || hitSelf) {
+            snake.running = false;
+            snake.over = true;
+            renderScreen();
+            return;
+          }
+
+          snake.cells.unshift(next);
+          if (next.x === snake.food.x && next.y === snake.food.y) {
+            snake.score += 1;
+            placeFood();
+          } else {
+            snake.cells.pop();
+          }
+          renderScreen();
+        }
+
+        function tickBrick() {
+          var brick = screenState.brick;
+          if (screenState.menu !== "brickGame" || !brick.running || brick.over) return;
+          var next = { x: brick.ball.x + brick.dx, y: brick.ball.y + brick.dy };
+          if (next.x < 0 || next.x >= 14) {
+            brick.dx *= -1;
+            next.x = brick.ball.x + brick.dx;
+          }
+          if (next.y < 0) {
+            brick.dy = 1;
+            next.y = brick.ball.y + brick.dy;
+          }
+
+          var brickIndex = brick.bricks.findIndex(function (tile) {
+            return tile.x === next.x && tile.y === next.y;
+          });
+          if (brickIndex >= 0) {
+            brick.bricks.splice(brickIndex, 1);
+            brick.dy *= -1;
+            brick.score += 1;
+            next = { x: brick.ball.x + brick.dx, y: brick.ball.y + brick.dy };
+          }
+
+          if (next.y === 8 && next.x >= brick.paddle && next.x < brick.paddle + 4) {
+            brick.dy = -1;
+            brick.dx = next.x < brick.paddle + 2 ? -1 : 1;
+            next = { x: brick.ball.x + brick.dx, y: brick.ball.y + brick.dy };
+          }
+
+          if (next.y >= 9) {
+            brick.running = false;
+            brick.over = true;
+            renderScreen();
+            return;
+          }
+
+          if (!brick.bricks.length) {
+            resetBrick(true);
+            screenState.brick.score = brick.score + 5;
+            renderScreen();
+            return;
+          }
+
+          brick.ball = next;
+          renderScreen();
+        }
+
+        function tickCatch() {
+          var game = screenState.catch;
+          if (screenState.menu !== "catchGame" || !game.running || game.over) return;
+          game.drop.y += 1;
+          if (game.drop.y >= 7) {
+            if (game.drop.x >= game.player && game.drop.x < game.player + 2) {
+              game.score += 1;
+            } else {
+              game.lives -= 1;
+            }
+            if (game.lives <= 0) {
+              game.running = false;
+              game.over = true;
+              renderScreen();
+              return;
+            }
+            game.drop = { x: (game.drop.x * 3 + game.score + 2) % 10, y: 0 };
+          }
+          renderScreen();
+        }
+
+        function renderView(animate) {
+          model.classList.toggle("animating", Boolean(animate));
+          model.style.setProperty("--rx", view.x + "deg");
+          model.style.setProperty("--ry", view.y + "deg");
+          if (animate) {
+            window.setTimeout(function () {
+              model.classList.remove("animating");
+            }, 260);
+          }
+        }
+
+        function setDefaultView() {
+          view.x = -16;
+          view.y = -28;
+          renderView(true);
+        }
+
+        stage.addEventListener("pointerdown", function (event) {
+          if (event.target.closest("button")) return;
+          drag = { x: event.clientX, y: event.clientY, startX: view.x, startY: view.y };
+          stage.classList.add("dragging");
+          stage.setPointerCapture(event.pointerId);
+        });
+
+        stage.addEventListener("pointermove", function (event) {
+          if (!drag) return;
+          view.x = Math.max(-72, Math.min(72, drag.startX - (event.clientY - drag.y) * 0.42));
+          view.y = drag.startY + (event.clientX - drag.x) * 0.42;
+          renderView(false);
+        });
+
+        function stopDrag(event) {
+          if (!drag) return;
+          drag = null;
+          stage.classList.remove("dragging");
+          if (event && typeof event.pointerId === "number") {
+            stage.releasePointerCapture(event.pointerId);
+          }
+        }
+
+        stage.addEventListener("pointerup", stopDrag);
+        stage.addEventListener("pointercancel", stopDrag);
+        resetView.addEventListener("click", setDefaultView);
+        document.querySelectorAll("[data-ipod-action]").forEach(function (button) {
+          button.addEventListener("pointerup", function (event) {
+            event.preventDefault();
+            event.stopPropagation();
+            handleIpodAction(button.getAttribute("data-ipod-action"), button);
+          });
+          button.addEventListener("keydown", function (event) {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            event.stopPropagation();
+            handleIpodAction(button.getAttribute("data-ipod-action"), button);
+          });
+        });
+        closeModel.addEventListener("click", function () {
+          if (window.history.length > 1) {
+            window.history.back();
+            return;
+          }
+          window.location.href = "./items.html";
+        });
+
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape") closeModel.click();
+          if (event.key === "Home") setDefaultView();
+          if (isGameMenu()) {
+            if (screenState.menu === "snakeGame") {
+              if (event.key === "ArrowUp") setSnakeDirection("up");
+              if (event.key === "ArrowDown") setSnakeDirection("down");
+              if (event.key === "ArrowLeft") setSnakeDirection("left");
+              if (event.key === "ArrowRight") setSnakeDirection("right");
+            }
+            if (screenState.menu === "brickGame") {
+              if (event.key === "ArrowLeft") moveBrick(-1);
+              if (event.key === "ArrowRight") moveBrick(1);
+              if (event.key === "ArrowUp" || event.key === "ArrowDown") togglePlay();
+            }
+            if (screenState.menu === "catchGame") {
+              if (event.key === "ArrowLeft") moveCatch(-1);
+              if (event.key === "ArrowRight") moveCatch(1);
+              if (event.key === "ArrowUp" || event.key === "ArrowDown") togglePlay();
+            }
+            if (event.key === "Enter") goBack();
+            if (event.key === " ") {
+              event.preventDefault();
+              togglePlay();
+            }
+            if (event.key === "Backspace") goBack();
+            return;
+          }
+          if (event.key === "ArrowUp" || event.key === "ArrowLeft") moveSelection(-1);
+          if (event.key === "ArrowDown" || event.key === "ArrowRight") moveSelection(1);
+          if (event.key === "Enter") selectCurrent();
+          if (event.key === " ") {
+            event.preventDefault();
+            togglePlay();
+          }
+          if (event.key === "Backspace") goBack();
+        });
+
+        window.setInterval(function () {
+          tickSnake();
+          tickBrick();
+          tickCatch();
+        }, 280);
+
+        if (audio) {
+          audio.addEventListener("timeupdate", function () {
+            if (!audio.duration) return;
+            screenState.progress = Math.min(100, Math.round((audio.currentTime / audio.duration) * 100));
+            if (screenState.menu === "nowPlaying") renderScreen();
+          });
+
+          audio.addEventListener("ended", function () {
+            screenState.track = (screenState.track + 1) % tracks.length;
+            screenState.progress = 0;
+            screenState.playing = true;
+            loadAudioTrack(true);
+            renderScreen();
+          });
+
+          audio.addEventListener("error", function () {
+            screenState.playing = false;
+            renderScreen("Audio unavailable");
+          });
+        }
+
+        window.setInterval(function () {
+          if (!screenState.playing || screenState.menu !== "nowPlaying" || (audio && audio.getAttribute("src"))) return;
+          screenState.progress = Math.min(100, screenState.progress + 3);
+          if (screenState.progress >= 100) {
+            screenState.track = (screenState.track + 1) % tracks.length;
+            screenState.progress = 4;
+          }
+          renderScreen();
+        }, 1600);
+
+        renderView(false);
+        renderScreen();
+      })();
+    </script>
+  </body>
+</html>
