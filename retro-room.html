@@ -812,6 +812,65 @@
         text-transform: uppercase;
       }
 
+      .media-gallery {
+        position: relative;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr) 38px;
+        gap: 7px;
+        min-height: 0;
+        padding: 8px 10px 7px;
+      }
+
+      .media-stage {
+        position: relative;
+        display: grid;
+        place-items: center;
+        min-height: 0;
+        overflow: hidden;
+        border: 1px solid rgba(111, 73, 36, 0.32);
+        background:
+          radial-gradient(circle at 50% 38%, rgba(255, 252, 236, 0.94), rgba(242, 224, 179, 0.78) 57%, rgba(205, 170, 105, 0.34)),
+          linear-gradient(180deg, rgba(255, 248, 224, 0.8), rgba(220, 184, 116, 0.34));
+      }
+
+      .media-cover-image {
+        width: min(78%, 236px);
+        max-height: min(322px, 44dvh);
+        aspect-ratio: 10 / 13;
+        object-fit: contain;
+        border-radius: 4px;
+        box-shadow:
+          0 16px 22px rgba(52, 31, 12, 0.26),
+          0 0 0 1px rgba(17, 12, 8, 0.22);
+      }
+
+      .media-count {
+        justify-self: center;
+        align-self: center;
+        color: #0051ba;
+        font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+        font-size: 19px;
+        font-weight: 800;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .media-stage .console-arrow {
+        bottom: 10px;
+        width: 34px;
+        font-size: 34px;
+        background: rgba(255, 246, 220, 0.72);
+        border-radius: 50%;
+      }
+
+      .media-stage .console-arrow.prev {
+        left: 8%;
+      }
+
+      .media-stage .console-arrow.next {
+        right: 8%;
+      }
+
       .modal-copy {
         display: grid;
         align-content: start;
@@ -990,6 +1049,15 @@
         .console-image {
           width: min(96%, 390px);
           max-height: 235px;
+        }
+
+        .media-gallery {
+          min-height: 260px;
+        }
+
+        .media-cover-image {
+          width: min(72%, 220px);
+          max-height: 245px;
         }
 
         .price-grid {
@@ -1725,6 +1793,412 @@
         }
       ];
 
+      var ps2GameItems = [
+        {
+          title: "Grand Theft Auto: San Andreas",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/01_gta_san_andreas.png",
+          release: "2004",
+          fact: "Its map combined three major cities: Los Santos, San Fierro, and Las Venturas.",
+          timeline: [
+            ["2004", "Rockstar sends players across a huge PS2-era open world."],
+            ["Museum", "A landmark cover for the black-case PS2 shelf."]
+          ]
+        },
+        {
+          title: "Grand Theft Auto: Vice City",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/02_gta_vice_city.png",
+          release: "2002",
+          fact: "Its neon 1986 Miami-inspired world is loaded with radio stations, ads, talk, and songs.",
+          timeline: [
+            ["2002", "Vice City brings a bright 1980s crime style to PS2."],
+            ["Museum", "One of the most instantly recognizable PS2 covers."]
+          ]
+        },
+        {
+          title: "Grand Theft Auto III",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/03_gta_iii.png",
+          release: "2001",
+          fact: "It helped define free-roaming 3D city games for a generation.",
+          timeline: [
+            ["2001", "Liberty City changes expectations for open-world play."],
+            ["Museum", "A foundational PS2-era title."]
+          ]
+        },
+        {
+          title: "Kingdom Hearts",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/04_kingdom_hearts.png",
+          release: "2002",
+          fact: "It blended Disney worlds with Square's role-playing-game style.",
+          timeline: [
+            ["2002", "Disney and Square characters share one action RPG."],
+            ["Museum", "A crossover that still feels unlikely and iconic."]
+          ]
+        },
+        {
+          title: "Kingdom Hearts II",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/05_kingdom_hearts_ii.png",
+          release: "2006",
+          fact: "Reaction Commands let players trigger flashy context-sensitive moves in battles.",
+          timeline: [
+            ["2006", "The sequel expands the Disney and Square adventure."],
+            ["Museum", "A polished late-PS2 shelf favorite."]
+          ]
+        },
+        {
+          title: "God of War",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/06_god_of_war.png",
+          release: "2005",
+          fact: "The original game introduced Kratos on a quest to defeat Ares.",
+          timeline: [
+            ["2005", "Kratos becomes one of PlayStation's defining characters."],
+            ["Museum", "A bold action-game cover for the PS2 wall."]
+          ]
+        },
+        {
+          title: "Shadow of the Colossus",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/07_shadow_of_the_colossus.png",
+          release: "2005",
+          fact: "The adventure centers on finding and defeating sixteen enormous colossi.",
+          timeline: [
+            ["2005", "A sparse world turns boss battles into the whole journey."],
+            ["Museum", "A quiet, cinematic contrast to louder PS2 covers."]
+          ]
+        },
+        {
+          title: "Ratchet & Clank: Up Your Arsenal",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/08_ratchet_and_clank_uya.png",
+          release: "2004",
+          fact: "It was the first Ratchet & Clank game to add online multiplayer.",
+          timeline: [
+            ["2004", "The series adds online battles and strange sci-fi weapons."],
+            ["Museum", "A playful PS2 action cover with mascot energy."]
+          ]
+        },
+        {
+          title: "Jak 3",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/09_jak_3.png",
+          release: "2004",
+          fact: "Jak 3 gives Jak both Dark Jak and Light Jak power styles.",
+          timeline: [
+            ["2004", "Naughty Dog closes the main PS2 Jak trilogy."],
+            ["Museum", "A desert-era action platformer for the shelf."]
+          ]
+        },
+        {
+          title: "Final Fantasy X",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/PS2/10_final_fantasy_x.png",
+          release: "2001",
+          fact: "It was the first Final Fantasy game to use full voice acting.",
+          timeline: [
+            ["2001", "Final Fantasy moves into voiced cinematic storytelling."],
+            ["Museum", "A major RPG cover from the early PS2 era."]
+          ]
+        },
+        {
+          title: "Ape Escape 3",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/01_ape_escape_3.png",
+          release: "2006",
+          fact: "Players chase Specter's escaped monkeys through movie-themed worlds.",
+          timeline: [
+            ["2006", "Kei and Yumi bring costume-swapping chaos to PS2."],
+            ["Museum", "A bright, goofy action cover for the games section."]
+          ]
+        },
+        {
+          title: "Dragon Ball Z: Budokai Tenkaichi 3",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/02_budokai_tenkaichi_3.png",
+          release: "2007",
+          fact: "Its roster includes more than 150 fighters and transformations.",
+          timeline: [
+            ["2007", "A huge Dragon Ball roster lands near the end of the PS2 era."],
+            ["Museum", "A loaded fighting-game cover with serious fan-service energy."]
+          ]
+        },
+        {
+          title: "Rez",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/03_rez.png",
+          release: "2002",
+          fact: "Every lock-on and shot adds layers to the electronic soundtrack.",
+          timeline: [
+            ["2002", "Rez turns rhythm, shooting, and abstract visuals into one experience."],
+            ["Museum", "A cult PS2 cover that feels like a playable music video."]
+          ]
+        },
+        {
+          title: "Persona 4",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/04_persona_4.png",
+          release: "2008",
+          fact: "A rural town hides a supernatural murder mystery inside television screens.",
+          timeline: [
+            ["2008", "Persona 4 arrives as one of the PS2's late RPG standouts."],
+            ["Museum", "A stylish cover from the console's long tail."]
+          ]
+        },
+        {
+          title: "Okami",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/05_okami.png",
+          release: "2006",
+          fact: "The Celestial Brush lets players paint symbols that change the world.",
+          timeline: [
+            ["2006", "Brushwork becomes a core adventure mechanic."],
+            ["Museum", "A cover that looks more like painted art than a standard game box."]
+          ]
+        },
+        {
+          title: "Katamari Damacy",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/06_katamari_damacy.png",
+          release: "2004",
+          fact: "You start by rolling up tiny objects, then grow big enough to collect buildings and clouds.",
+          timeline: [
+            ["2004", "A tiny sticky ball becomes one of PS2's strangest hits."],
+            ["Museum", "A joyful cover with pure oddball shelf appeal."]
+          ]
+        },
+        {
+          title: "Metal Gear Solid 3: Snake Eater",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/07_metal_gear_solid_3.png",
+          release: "2004",
+          fact: "Set in 1964, it works as a prequel to the Metal Gear story.",
+          timeline: [
+            ["2004", "The series heads into jungle survival and Cold War espionage."],
+            ["Museum", "A tactical action classic for the PS2 case lineup."]
+          ]
+        },
+        {
+          title: "Silent Hill 2",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/08_silent_hill_2.png",
+          release: "2001",
+          fact: "James Sunderland enters Silent Hill after receiving a letter from his deceased wife.",
+          timeline: [
+            ["2001", "Psychological horror becomes one of PS2's strongest moods."],
+            ["Museum", "A darker cover for the horror side of the shelf."]
+          ]
+        },
+        {
+          title: "Need for Speed: Underground 2",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/09_need_for_speed_underground_2.png",
+          release: "2004",
+          fact: "It was the first Need for Speed game to let players freely drive around an open city between races.",
+          timeline: [
+            ["2004", "Street racing moves into a free-roam city."],
+            ["Museum", "A tuner-era racing cover with early-2000s shine."]
+          ]
+        },
+        {
+          title: "Guitar Hero III: Legends of Rock",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/PS2/10_guitar_hero_iii.png",
+          release: "2007",
+          fact: "Its famous final challenge is DragonForce's extremely fast Through the Fire and Flames.",
+          timeline: [
+            ["2007", "The guitar-controller craze hits one of its biggest moments."],
+            ["Museum", "A rhythm-game cover that instantly suggests a plastic guitar nearby."]
+          ]
+        }
+      ];
+
+      var vhsMovieItems = [
+        {
+          title: "Back to the Future",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/01_back_to_the_future.png",
+          release: "1985",
+          fact: "The movie was rejected by studios more than forty times before becoming the highest-grossing film of 1985.",
+          timeline: [
+            ["1985", "Marty McFly turns time travel into an 80s movie staple."],
+            ["Museum", "A perfect VHS-era adventure cover."]
+          ]
+        },
+        {
+          title: "Ghostbusters",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/02_ghostbusters.png",
+          release: "1984",
+          fact: "The early concept was much bigger and stranger before becoming a New York ghost-hunting comedy.",
+          timeline: [
+            ["1984", "The no-ghost logo becomes instant pop culture."],
+            ["Museum", "A comedy-horror tape with huge logo power."]
+          ]
+        },
+        {
+          title: "The Goonies",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/03_the_goonies.png",
+          release: "1985",
+          fact: "The pirate ship finale used a real full-scale set, and the young cast saw it for the first time on camera.",
+          timeline: [
+            ["1985", "Treasure-hunt adventure becomes a sleepover classic."],
+            ["Museum", "A tape that matches the whole collecting spirit of the room."]
+          ]
+        },
+        {
+          title: "Jaws",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/04_jaws.png",
+          release: "1975",
+          fact: "Mechanical shark problems made Spielberg show the shark less often, which made the suspense stronger.",
+          timeline: [
+            ["1975", "The summer blockbuster era gets one of its defining monsters."],
+            ["Museum", "A sharp cover that still reads from across the room."]
+          ]
+        },
+        {
+          title: "Jurassic Park",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/05_jurassic_park.png",
+          release: "1993",
+          fact: "Its dinosaurs came from a groundbreaking blend of computer effects and full-size animatronics.",
+          timeline: [
+            ["1993", "Dinosaurs become a theatrical effects landmark."],
+            ["Museum", "A VHS cover with one of the cleanest logos ever."]
+          ]
+        },
+        {
+          title: "Toy Story",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/06_toy_story.png",
+          release: "1995",
+          fact: "Toy Story was the first feature-length film made entirely with computer animation.",
+          timeline: [
+            ["1995", "Computer animation takes over the feature-film spotlight."],
+            ["Museum", "A bright family tape for the 90s shelf."]
+          ]
+        },
+        {
+          title: "The Lion King",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/07_the_lion_king.png",
+          release: "1994",
+          fact: "The wildebeest stampede used early computer animation inside a hand-drawn feature.",
+          timeline: [
+            ["1994", "Disney releases one of its biggest animated hits."],
+            ["Museum", "A warm animated classic for the VHS wall."]
+          ]
+        },
+        {
+          title: "Titanic",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/08_titanic.png",
+          release: "1997",
+          fact: "Titanic tied the all-time Academy Awards record by winning eleven Oscars.",
+          timeline: [
+            ["1997", "A massive theatrical romance becomes a home-video staple."],
+            ["Museum", "A late-90s tape with blockbuster scale."]
+          ]
+        },
+        {
+          title: "The Matrix",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/09_the_matrix.png",
+          release: "1999",
+          fact: "Bullet time used arrays of cameras to slow motion while the viewpoint moved around the action.",
+          timeline: [
+            ["1999", "Sci-fi action gets a new visual language."],
+            ["Museum", "A slick cover that pushes the VHS shelf toward the DVD era."]
+          ]
+        },
+        {
+          title: "Star Wars",
+          image: "./Pictures/ps2_vhs_blackcase_fronts/VHS/10_star_wars.png",
+          release: "1977",
+          fact: "The original 1977 release was simply titled Star Wars; Episode IV: A New Hope was added later.",
+          timeline: [
+            ["1977", "Space fantasy reshapes blockbuster culture."],
+            ["Museum", "A must-have movie icon for any retro media shelf."]
+          ]
+        },
+        {
+          title: "E.T. the Extra-Terrestrial",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/01_et.png",
+          release: "1982",
+          fact: "E.T. became the highest-grossing film ever and held that record for eleven years.",
+          timeline: [
+            ["1982", "A friendly alien becomes one of Spielberg's biggest hits."],
+            ["Museum", "A gentle sci-fi tape with huge nostalgia pull."]
+          ]
+        },
+        {
+          title: "Beetlejuice",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/02_beetlejuice.png",
+          release: "1988",
+          fact: "The character's name is actually spelled Betelgeuse, after a real star.",
+          timeline: [
+            ["1988", "A strange afterlife comedy becomes a cult favorite."],
+            ["Museum", "A weird, loud tape that breaks up the shelf nicely."]
+          ]
+        },
+        {
+          title: "Raiders of the Lost Ark",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/03_raiders_of_the_lost_ark.png",
+          release: "1981",
+          fact: "Indiana Jones shooting the swordsman happened because Harrison Ford was sick and could not film the planned long fight.",
+          timeline: [
+            ["1981", "Indiana Jones starts a new adventure-movie standard."],
+            ["Museum", "A tape with classic treasure-hunt energy."]
+          ]
+        },
+        {
+          title: "The Terminator",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/04_the_terminator.png",
+          release: "1984",
+          fact: "Arnold Schwarzenegger's Terminator has surprisingly little dialogue in the film.",
+          timeline: [
+            ["1984", "Tech-noir sci-fi gives VHS shelves a darker machine edge."],
+            ["Museum", "A sharp action cover for the movie section."]
+          ]
+        },
+        {
+          title: "Home Alone",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/05_home_alone.png",
+          release: "1990",
+          fact: "Made on a modest budget, it became the highest-grossing live-action comedy of its era.",
+          timeline: [
+            ["1990", "Kevin McCallister turns holiday chaos into a home-video favorite."],
+            ["Museum", "A family comedy tape with instant shelf recognition."]
+          ]
+        },
+        {
+          title: "The Little Mermaid",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/06_the_little_mermaid.png",
+          release: "1989",
+          fact: "Under the Sea won the Academy Award for Best Original Song.",
+          timeline: [
+            ["1989", "Disney's animation renaissance begins in a big way."],
+            ["Museum", "A colorful animated VHS cover for the family section."]
+          ]
+        },
+        {
+          title: "Aladdin",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/07_aladdin.png",
+          release: "1992",
+          fact: "Robin Williams improvised so much Genie dialogue that animators built scenes around his recordings.",
+          timeline: [
+            ["1992", "Genie energy helps make Aladdin a 90s animation hit."],
+            ["Museum", "A bright Disney tape with big character personality."]
+          ]
+        },
+        {
+          title: "The Shining",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/08_the_shining.png",
+          release: "1980",
+          fact: "Jack Nicholson improvised the famous Here's Johnny line.",
+          timeline: [
+            ["1980", "The Overlook Hotel becomes horror-movie shorthand."],
+            ["Museum", "A colder, stranger tape for the horror side of the shelf."]
+          ]
+        },
+        {
+          title: "Scream",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/09_scream.png",
+          release: "1996",
+          fact: "The Ghostface mask was discovered while the production team scouted locations.",
+          timeline: [
+            ["1996", "Meta slasher style resets 90s horror."],
+            ["Museum", "A horror tape with one of the decade's strongest masks."]
+          ]
+        },
+        {
+          title: "The Nightmare Before Christmas",
+          image: "./Pictures/ps2_vhs_additional_20_no_white_bands/VHS/10_nightmare_before_christmas.png",
+          release: "1993",
+          fact: "The film was made with stop-motion puppets and miniature sets photographed frame by frame.",
+          timeline: [
+            ["1993", "Halloween and Christmas collide in handmade stop motion."],
+            ["Museum", "A seasonal tape that works year-round on a retro shelf."]
+          ]
+        }
+      ];
+
       var modal = document.getElementById("itemModal");
       var modalTitle = document.getElementById("modalTitle");
       var modalDescription = document.getElementById("modalDescription");
@@ -1742,6 +2216,9 @@
       var hotspotLayer = document.getElementById("hotspotLayer");
       var lastFocus = null;
       var activeConsoleIndex = 0;
+      var activeMediaIndex = 0;
+      var activeMediaItems = ps2GameItems;
+      var activeMediaType = "games";
       var cardDescriptions = {
         livingDead: "A stark horror print that gives the left wall a midnight-theater mood and connects the room back to early home-video culture.",
         ghostbusters: "A bright 1980s comedy mark that instantly reads from across the room, balancing the darker horror art beside it.",
@@ -1952,6 +2429,85 @@
         closeModal.focus();
       }
 
+      function renderMediaSlide() {
+        var mediaItem = activeMediaItems[activeMediaIndex];
+        var isMovie = activeMediaType === "movies";
+        setModalCopy({
+          title: mediaItem.title,
+          description: isMovie
+            ? "A VHS/movie cover from the museum movie shelf. Use the arrows to browse all 20 movies in this section."
+            : "A PS2 game cover from the museum game shelf. Use the arrows to browse all 20 games in this section.",
+          retail: isMovie ? "VHS cover art" : "PS2 cover art",
+          release: mediaItem.release,
+          timeline: mediaItem.timeline,
+          fact: mediaItem.fact,
+          source: isMovie ? "Movie shelf" : "Video game shelf"
+        });
+
+        var image = modalVisual.querySelector(".media-cover-image");
+        var count = modalVisual.querySelector(".media-count");
+        if (image) {
+          image.src = mediaItem.image;
+          image.alt = mediaItem.title + (isMovie ? " VHS cover" : " PS2 cover");
+        }
+        if (count) {
+          count.textContent = activeMediaIndex + 1 + " / " + activeMediaItems.length;
+        }
+      }
+
+      function createMediaGallery() {
+        var gallery = document.createElement("div");
+        var stage = document.createElement("div");
+        var prev = document.createElement("button");
+        var next = document.createElement("button");
+        var image = document.createElement("img");
+        var count = document.createElement("div");
+
+        gallery.className = "media-gallery";
+        stage.className = "media-stage";
+        prev.className = "console-arrow prev";
+        next.className = "console-arrow next";
+        image.className = "media-cover-image";
+        count.className = "media-count";
+
+        prev.type = "button";
+        next.type = "button";
+        prev.setAttribute("aria-label", "Previous cover");
+        next.setAttribute("aria-label", "Next cover");
+        prev.textContent = "<";
+        next.textContent = ">";
+
+        prev.addEventListener("click", function () {
+          activeMediaIndex = (activeMediaIndex + activeMediaItems.length - 1) % activeMediaItems.length;
+          renderMediaSlide();
+        });
+        next.addEventListener("click", function () {
+          activeMediaIndex = (activeMediaIndex + 1) % activeMediaItems.length;
+          renderMediaSlide();
+        });
+
+        stage.appendChild(prev);
+        stage.appendChild(image);
+        stage.appendChild(next);
+        gallery.appendChild(stage);
+        gallery.appendChild(count);
+        return gallery;
+      }
+
+      function openMediaGallery(type) {
+        activeMediaType = type;
+        activeMediaItems = type === "movies" ? vhsMovieItems : ps2GameItems;
+        activeMediaIndex = 0;
+        lastFocus = document.activeElement;
+        modalVisual.innerHTML = "";
+        modalVisual.classList.remove("has-play");
+        modalVisual.classList.add("has-media");
+        modalVisual.appendChild(createMediaGallery());
+        renderMediaSlide();
+        modal.classList.add("open");
+        closeModal.focus();
+      }
+
       function openPlayableModal(url, title) {
         lastFocus = document.activeElement;
         rubiksGameFrame.title = title || "Playable interactive exhibit";
@@ -1970,6 +2526,16 @@
       function openItem(key) {
         var item = items[key];
         if (!item) return;
+
+        if (key === "gameShelf") {
+          openMediaGallery("games");
+          return;
+        }
+
+        if (key === "vhsTapes") {
+          openMediaGallery("movies");
+          return;
+        }
 
         if (key === "gameConsoles" || key === "nes" || key === "gamecube" || key === "n64") {
           openConsoleGallery(key === "gameConsoles" ? "nes" : key);
@@ -1995,6 +2561,7 @@
       function closeItem() {
         modal.classList.remove("open");
         modalVisual.classList.remove("has-play");
+        modalVisual.classList.remove("has-media");
         if (lastFocus && typeof lastFocus.focus === "function") {
           lastFocus.focus();
         }
