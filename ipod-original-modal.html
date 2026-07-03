@@ -471,20 +471,35 @@
       }
 
       .screen.game-screen {
-        gap: 0.45mm;
-        padding: 1.25mm 1.7mm;
+        left: 7.7mm;
+        top: 9.2mm;
+        width: 46.4mm;
+        height: 38.4mm;
+        gap: 0.5mm;
+        padding: 1.05mm 1.35mm 1.15mm;
         overflow: hidden;
-        font-size: 2.15mm;
+        border-color: rgba(72, 82, 74, 0.8);
+        border-radius: 2mm;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.3), transparent 18%),
+          repeating-linear-gradient(0deg, rgba(38, 48, 42, 0.08) 0 0.18mm, transparent 0.18mm 0.72mm),
+          #a8b7a7;
+        font-size: 2.1mm;
         grid-template-rows: auto minmax(0, 1fr) auto;
       }
 
       .screen.game-screen .title {
-        padding-bottom: 0.38mm;
+        min-height: 3.5mm;
+        padding: 0 0.55mm 0.35mm;
+        border-bottom-width: 0.22mm;
+        font-size: 2.15mm;
       }
 
       .screen.game-screen .status-line {
-        min-height: 2.1mm;
-        font-size: 1.65mm;
+        min-height: 2.35mm;
+        padding: 0.15mm 0.5mm 0;
+        border-top: 0.18mm solid rgba(44, 55, 48, 0.22);
+        font-size: 1.55mm;
         line-height: 1;
         white-space: nowrap;
       }
@@ -495,7 +510,7 @@
         display: grid;
         gap: 0.45mm;
         min-height: 0;
-        align-content: start;
+        align-content: center;
       }
 
       .game-board {
@@ -503,31 +518,38 @@
         max-width: 100%;
         display: grid;
         justify-self: center;
-        gap: 0.18mm;
-        padding: 0.42mm;
-        border: 0.25mm solid rgba(38, 48, 42, 0.36);
-        background: rgba(40, 52, 44, 0.14);
+        gap: 0.12mm;
+        padding: 0.55mm;
+        border: 0.28mm solid rgba(38, 48, 42, 0.48);
+        border-radius: 0.55mm;
+        background:
+          radial-gradient(ellipse at 50% 45%, rgba(255, 255, 255, 0.14), transparent 68%),
+          rgba(40, 52, 44, 0.18);
+        box-shadow:
+          inset 0 0 0 0.2mm rgba(255, 255, 255, 0.18),
+          0 0.45mm 0 rgba(38, 48, 42, 0.18);
         overflow: hidden;
       }
 
       .snake-board {
-        grid-template-columns: repeat(12, 1.28mm);
-        grid-template-rows: repeat(8, 1.28mm);
+        grid-template-columns: repeat(12, 2.02mm);
+        grid-template-rows: repeat(8, 2.02mm);
       }
 
       .brick-board {
-        grid-template-columns: repeat(14, 1.04mm);
-        grid-template-rows: repeat(9, 1.04mm);
+        grid-template-columns: repeat(14, 1.68mm);
+        grid-template-rows: repeat(9, 1.68mm);
       }
 
       .catch-board {
-        grid-template-columns: repeat(10, 1.42mm);
-        grid-template-rows: repeat(8, 1.42mm);
+        grid-template-columns: repeat(10, 2.18mm);
+        grid-template-rows: repeat(8, 2.18mm);
       }
 
       .game-pixel {
         aspect-ratio: 1;
-        background: rgba(39, 51, 43, 0.12);
+        border-radius: 0.18mm;
+        background: rgba(39, 51, 43, 0.13);
       }
 
       .game-pixel.snake,
@@ -551,8 +573,16 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        font-size: 1.85mm;
+        gap: 0.8mm;
+        font-size: 1.65mm;
         line-height: 1;
+      }
+
+      .game-meta span {
+        min-width: 0;
+        padding: 0.35mm 0.55mm;
+        border-radius: 0.4mm;
+        background: rgba(38, 48, 42, 0.14);
       }
 
       .screen .bar {
@@ -1243,7 +1273,7 @@
               '<div class="game-board snake-board">' + pixels + '</div>' +
               '<div class="game-meta"><span>Score ' + snake.score + '</span><span>' + stateText + '</span></div>' +
             '</div>' +
-            '<div class="status-line">Wheel moves - center exits</div>';
+            '<div class="status-line">Wheel: up down left right - center exits</div>';
         }
 
         function renderBrickScreen() {

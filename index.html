@@ -428,36 +428,46 @@
         position: absolute;
         top: 50%;
         z-index: 5;
-        width: 34px;
-        height: 34px;
+        width: 48px;
+        height: 60px;
         display: grid;
         place-items: center;
-        border: 2px solid #242424;
-        border-radius: 50%;
-        background: rgba(255, 253, 245, 0.96);
-        color: #14528c;
+        border: 3px solid #242424;
+        border-radius: 12px;
+        background:
+          linear-gradient(180deg, #ffffff, #fff0cf 72%, #ffc20f);
+        color: #cf2b21;
         cursor: pointer;
         font-family: "Arial Narrow", Impact, sans-serif;
-        font-size: 26px;
+        font-size: 34px;
         font-weight: 900;
         line-height: 1;
-        box-shadow: 0 5px 0 rgba(36, 36, 36, 0.13);
+        box-shadow: 0 8px 0 rgba(36, 36, 36, 0.16), 0 14px 24px rgba(83, 61, 39, 0.16);
         transform: translateY(-50%);
+      }
+
+      .feature-arrow::after {
+        content: "";
+        position: absolute;
+        inset: 7px;
+        border: 2px solid rgba(36, 36, 36, 0.12);
+        border-radius: 8px;
+        pointer-events: none;
       }
 
       .feature-arrow:hover,
       .feature-arrow:focus-visible {
         outline: none;
-        color: #2a8f8a;
-        transform: translateY(calc(-50% - 2px));
+        color: #14528c;
+        transform: translateY(calc(-50% - 4px)) rotate(-2deg);
       }
 
       .feature-arrow.prev {
-        left: -4px;
+        left: -22px;
       }
 
       .feature-arrow.next {
-        right: -4px;
+        right: -22px;
       }
 
       .content-band {
@@ -835,11 +845,11 @@
         }
 
         .feature-arrow.prev {
-          left: 0;
+          left: -4px;
         }
 
         .feature-arrow.next {
-          right: 0;
+          right: -4px;
         }
 
         .polaroid-grid,
@@ -989,9 +999,9 @@
             <small>Open the clickable retro room.</small>
           </a>
           <a class="polaroid" href="./social-media.html">
-            <img class="social-logo-card" src="./Pictures/social-media-logos.svg" alt="YouTube and Instagram logos for Vero Flashback social media" />
+            <img class="social-logo-card" src="./Pictures/social-media-logos.svg" alt="Instagram, TikTok, YouTube, and eBay links for Vero Flashback social media" />
             <strong>Social Media</strong>
-            <small>Follow finds, videos, and booth updates.</small>
+            <small>Follow finds, videos, eBay listings, and booth updates.</small>
           </a>
           <a class="polaroid" href="./contact.html">
             <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback contact page" />
