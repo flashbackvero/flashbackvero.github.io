@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1050 1000" role="img" aria-label="Instagram, TikTok, YouTube, and eBay social media links">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000" role="img" aria-label="Instagram, TikTok, YouTube, and eBay social media links">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#151515"/>
@@ -18,36 +18,37 @@
     <filter id="glow" x="-25%" y="-25%" width="150%" height="150%">
       <feDropShadow dx="0" dy="0" stdDeviation="12" flood-color="#ffffff" flood-opacity="0.25"/>
     </filter>
+    <path id="tiktok-note" d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-.93-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.15 1.07-.14 1.61.24 1.64 1.82 3.02 3.5 2.87 1.12-.01 2.19-.66 2.77-1.61.19-.33.4-.67.41-1.06.1-1.79.06-3.57.07-5.36.01-4.03-.01-8.05.02-12.07z"/>
   </defs>
-  <rect width="1050" height="1000" rx="44" fill="url(#bg)"/>
-  <path d="M70 190c130-76 260-82 390-18 114 56 214 57 325 4 74-35 138-37 194-7v657c-111-58-218-55-322 9-119 74-247 76-384 7-80-40-148-48-203-26z" fill="#fffdf5" opacity="0.055"/>
+  <rect width="1000" height="1000" rx="44" fill="url(#bg)"/>
+  <path d="M60 190c126-76 250-82 375-18 110 56 206 57 313 4 71-35 132-37 192-7v657c-107-58-209-55-309 9-115 74-238 76-370 7-77-40-142-48-201-26z" fill="#fffdf5" opacity="0.055"/>
   <g filter="url(#shadow)">
-    <rect x="138" y="154" width="328" height="258" rx="54" fill="url(#insta)"/>
-    <rect x="228" y="210" width="148" height="148" rx="43" fill="none" stroke="#ffffff" stroke-width="18" filter="url(#glow)"/>
-    <circle cx="302" cy="284" r="36" fill="none" stroke="#ffffff" stroke-width="18"/>
-    <circle cx="356" cy="230" r="13" fill="#ffffff"/>
-    <text x="302" y="470" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">Instagram</text>
+    <rect x="110" y="120" width="320" height="250" rx="50" fill="url(#insta)"/>
+    <rect x="196" y="171" width="148" height="148" rx="43" fill="none" stroke="#ffffff" stroke-width="18" filter="url(#glow)"/>
+    <circle cx="270" cy="245" r="36" fill="none" stroke="#ffffff" stroke-width="18"/>
+    <circle cx="324" cy="191" r="13" fill="#ffffff"/>
   </g>
+  <text x="270" y="424" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">Instagram</text>
   <g filter="url(#shadow)">
-    <rect x="584" y="154" width="328" height="258" rx="54" fill="#101010"/>
-    <path d="M740 208h45c6 42 31 65 70 70v45c-27-1-51-9-70-23v91c0 66-44 110-110 110-61 0-107-43-107-101 0-61 46-103 111-103 10 0 19 1 28 4v48c-9-4-18-6-28-6-33 0-56 22-56 54 0 31 22 53 52 53 33 0 55-23 55-59z" fill="#ffffff"/>
-    <path d="M785 208c7 34 28 54 64 60" fill="none" stroke="#25f4ee" stroke-width="13" stroke-linecap="round"/>
-    <path d="M707 349c-9-4-18-6-28-6-33 0-56 22-56 54" fill="none" stroke="#fe2c55" stroke-width="13" stroke-linecap="round"/>
-    <text x="748" y="470" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">TikTok</text>
+    <rect x="570" y="120" width="320" height="250" rx="50" fill="#101010"/>
+    <use href="#tiktok-note" transform="translate(648.1 161.8) scale(6.6)" fill="#25f4ee"/>
+    <use href="#tiktok-note" transform="translate(656.1 169.8) scale(6.6)" fill="#fe2c55"/>
+    <use href="#tiktok-note" transform="translate(652.1 165.8) scale(6.6)" fill="#ffffff"/>
   </g>
+  <text x="730" y="424" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">TikTok</text>
   <g filter="url(#shadow)">
-    <rect x="138" y="522" width="328" height="258" rx="54" fill="#ffffff"/>
-    <rect x="190" y="612" width="224" height="118" rx="34" fill="#ff0033"/>
-    <path d="M285 638v66l59-33z" fill="#ffffff"/>
-    <text x="302" y="838" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">YouTube</text>
+    <rect x="110" y="490" width="320" height="250" rx="50" fill="#ffffff"/>
+    <rect x="158" y="556" width="224" height="118" rx="30" fill="#ff0033"/>
+    <path d="M248 585v62l58-31z" fill="#ffffff"/>
   </g>
+  <text x="270" y="794" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">YouTube</text>
   <g filter="url(#shadow)">
-    <rect x="584" y="522" width="328" height="258" rx="54" fill="#fffdf5"/>
-    <text x="748" y="698" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="102">
+    <rect x="570" y="490" width="320" height="250" rx="50" fill="#fffdf5"/>
+    <text x="730" y="651" text-anchor="middle" font-family="Arial Black, Impact, sans-serif" font-size="102">
       <tspan fill="#e53238">e</tspan><tspan fill="#0064d2">B</tspan><tspan fill="#f5af02">a</tspan><tspan fill="#86b817">y</tspan>
     </text>
-    <text x="748" y="838" text-anchor="middle" fill="#0064d2" font-family="Arial Black, Impact, sans-serif" font-size="48">eBay Store</text>
   </g>
-  <text x="525" y="910" text-anchor="middle" fill="#ffc20f" font-family="Arial Black, Impact, sans-serif" font-size="58">FOLLOW VERO FLASHBACK</text>
-  <text x="525" y="958" text-anchor="middle" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="27" font-weight="700">finds, booth updates, videos, and listings</text>
+  <text x="730" y="794" text-anchor="middle" fill="#ffffff" font-family="Arial Black, Impact, sans-serif" font-size="48">eBay Store</text>
+  <text x="500" y="902" text-anchor="middle" fill="#ffc20f" font-family="Arial Black, Impact, sans-serif" font-size="54">FOLLOW VERO FLASHBACK</text>
+  <text x="500" y="950" text-anchor="middle" fill="#ffffff" opacity="0.86" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">finds, booth updates, videos, and listings</text>
 </svg>

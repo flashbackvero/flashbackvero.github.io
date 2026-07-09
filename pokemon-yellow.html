@@ -465,6 +465,151 @@
         text-transform: uppercase;
       }
 
+      .sale-carousel {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 12px;
+        margin: 6px 0 24px;
+      }
+
+      .sale-track {
+        position: relative;
+        width: 100%;
+        min-height: 440px;
+      }
+
+      .sale-card {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: min(330px, 84%);
+        opacity: 0;
+        pointer-events: none;
+        overflow: hidden;
+        border: 3px solid rgba(36, 36, 36, 0.18);
+        border-radius: 16px;
+        background: #ffffff;
+        box-shadow: 0 18px 34px rgba(83, 61, 39, 0.18);
+        transform: translate(-50%, -50%) translateX(var(--orbit-x, 48px)) translateY(var(--orbit-y, 20px)) scale(var(--orbit-scale, 0.92));
+        transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1), opacity 600ms ease, filter 600ms ease;
+        filter: saturate(0.92);
+      }
+
+      .sale-card.is-active {
+        opacity: 1;
+        pointer-events: auto;
+        z-index: 3;
+        --orbit-x: 0px;
+        --orbit-y: 0px;
+        --orbit-scale: 1.04;
+        filter: none;
+      }
+
+      .sale-card.is-prev {
+        opacity: 1;
+        z-index: 1;
+        --orbit-x: -46px;
+        --orbit-y: 10px;
+        --orbit-scale: 0.9;
+      }
+
+      .sale-card.is-next {
+        opacity: 1;
+        z-index: 1;
+        --orbit-x: 46px;
+        --orbit-y: 10px;
+        --orbit-scale: 0.9;
+      }
+
+      .sale-card a {
+        display: block;
+        background: #ffffff;
+      }
+
+      .sale-card img {
+        width: 100%;
+        aspect-ratio: 0.9;
+        padding: 10px;
+        object-fit: contain;
+        background: #ffffff;
+      }
+
+      .sale-caption {
+        display: block;
+        padding: 10px 12px 12px;
+        border-top: 2px solid rgba(36, 36, 36, 0.12);
+        color: #242424;
+        font-size: 15px;
+        font-weight: 900;
+        line-height: 1.3;
+        text-align: center;
+        text-transform: uppercase;
+      }
+
+      .sale-dots {
+        z-index: 3;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+
+      .sale-dot {
+        width: 14px;
+        height: 14px;
+        padding: 0;
+        border: 2px solid #242424;
+        border-radius: 50%;
+        background: #ffffff;
+        cursor: pointer;
+        box-shadow: 0 3px 0 rgba(36, 36, 36, 0.14);
+      }
+
+      .sale-dot.is-active {
+        background: #14528c;
+      }
+
+      .sale-dot:focus-visible {
+        outline: 3px solid rgba(20, 82, 140, 0.28);
+        outline-offset: 3px;
+      }
+
+      .sale-arrow {
+        position: absolute;
+        top: 50%;
+        z-index: 5;
+        width: 42px;
+        height: 54px;
+        display: grid;
+        place-items: center;
+        border: 3px solid #242424;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #ffffff, #fff0cf 72%, #ffc20f);
+        color: #cf2b21;
+        cursor: pointer;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 30px;
+        font-weight: 900;
+        line-height: 1;
+        box-shadow: 0 8px 0 rgba(36, 36, 36, 0.16), 0 14px 24px rgba(83, 61, 39, 0.16);
+        transform: translateY(-50%);
+      }
+
+      .sale-arrow:hover,
+      .sale-arrow:focus-visible {
+        outline: none;
+        color: #14528c;
+        transform: translateY(calc(-50% - 4px)) rotate(-2deg);
+      }
+
+      .sale-arrow.prev {
+        left: -6px;
+      }
+
+      .sale-arrow.next {
+        right: -6px;
+      }
+
       @media (max-width: 900px) {
         .hero,
         .article-shell {
@@ -590,11 +735,40 @@
 
       <section class="article-shell" id="article">
         <article class="article-panel">
-          <p>Some collectibles are rare because they survived in exceptional condition. This one is scarce before condition even enters the conversation.</p>
+          <p>Only six sealed copies of the Wal-Mart Movie Ticket Sticker Pokemon Yellow are known to exist, and just one carries a WATA 9.8 A++ grade. This is that copy: a true population-one grail.</p>
           <p>This is a factory-sealed copy of Pokemon Yellow Version: Special Pikachu Edition in the elusive Wal-Mart Movie Ticket Sticker packaging variation, an early retailer promotion connected to the era of Pokemon: The First Movie.</p>
           <p>Graded WATA 9.8 A++, this copy combines a near-perfect box grade with WATA's highest-tier seal designation. More importantly, PSA Games' current population data records only six sealed examples of this exact Wal-Mart Movie Ticket Sticker variant. Of those, just one is graded 9.8 A++.</p>
           <p>That makes this copy a true population one: the sole highest-graded certified example currently recorded for one of the rarest retail variants of Pokemon Yellow.</p>
           <p>Population reports can change as new copies are discovered and submitted, but as of the current report, this is not simply a high-grade Pokemon game. It is the top certified example of a historic 1999 Pokemon promotion.</p>
+          <div class="sale-carousel" aria-label="Record graded Pokemon game sales">
+            <button class="sale-arrow prev" id="salePrev" type="button" aria-label="Previous sale record">&lt;</button>
+            <div class="sale-track" id="saleTrack">
+              <div class="sale-card is-active">
+                <a href="./Pictures/Pokemon red sold goldin.png" aria-label="View Pokemon Red Goldin sale record full size">
+                  <img src="./Pictures/Pokemon red sold goldin.png" alt="Graded Pokemon Red sold at Goldin auction record" />
+                </a>
+                <span class="sale-caption">Pokemon Red &middot; Sold At Goldin</span>
+              </div>
+              <div class="sale-card">
+                <a href="./Pictures/pokemon blue first goldin.png" aria-label="View Pokemon Blue Goldin sale record full size">
+                  <img src="./Pictures/pokemon blue first goldin.png" alt="Graded Pokemon Blue first sold at Goldin auction record" />
+                </a>
+                <span class="sale-caption">Pokemon Blue &middot; First At Goldin</span>
+              </div>
+              <div class="sale-card">
+                <a href="./Pictures/pokemon yellow sold heritage.png" aria-label="View Pokemon Yellow Heritage sale record full size">
+                  <img src="./Pictures/pokemon yellow sold heritage.png" alt="Graded Pokemon Yellow sold at Heritage auction record" />
+                </a>
+                <span class="sale-caption">Pokemon Yellow &middot; Sold At Heritage</span>
+              </div>
+            </div>
+            <button class="sale-arrow next" id="saleNext" type="button" aria-label="Next sale record">&gt;</button>
+            <div class="sale-dots" aria-label="Choose sale record">
+              <button class="sale-dot is-active" type="button" aria-label="Show Pokemon Red sale" aria-current="true"></button>
+              <button class="sale-dot" type="button" aria-label="Show Pokemon Blue sale"></button>
+              <button class="sale-dot" type="button" aria-label="Show Pokemon Yellow sale"></button>
+            </div>
+          </div>
         </article>
 
         <aside class="evidence-board" aria-label="Quick evidence notes">
@@ -652,6 +826,56 @@
     <script>
       var shapeField = document.querySelector(".shape-field");
       var ticking = false;
+      var saleTrack = document.getElementById("saleTrack");
+      var salePrev = document.getElementById("salePrev");
+      var saleNext = document.getElementById("saleNext");
+      var saleCards = Array.prototype.slice.call(saleTrack.querySelectorAll(".sale-card"));
+      var saleDots = Array.prototype.slice.call(document.querySelectorAll(".sale-dot"));
+      var activeSale = 0;
+      var saleTimer = null;
+
+      function showSale(index) {
+        activeSale = (index + saleCards.length) % saleCards.length;
+        saleCards.forEach(function (card, cardIndex) {
+          var previous = (activeSale + saleCards.length - 1) % saleCards.length;
+          var next = (activeSale + 1) % saleCards.length;
+          card.classList.toggle("is-active", cardIndex === activeSale);
+          card.classList.toggle("is-prev", cardIndex === previous);
+          card.classList.toggle("is-next", cardIndex === next);
+        });
+        saleDots.forEach(function (dot, dotIndex) {
+          var active = dotIndex === activeSale;
+          dot.classList.toggle("is-active", active);
+          dot.setAttribute("aria-current", active ? "true" : "false");
+        });
+      }
+
+      function startSaleRotation() {
+        window.clearInterval(saleTimer);
+        saleTimer = window.setInterval(function () {
+          showSale(activeSale + 1);
+        }, 6400);
+      }
+
+      salePrev.addEventListener("click", function () {
+        showSale(activeSale - 1);
+        startSaleRotation();
+      });
+
+      saleNext.addEventListener("click", function () {
+        showSale(activeSale + 1);
+        startSaleRotation();
+      });
+
+      saleDots.forEach(function (dot, index) {
+        dot.addEventListener("click", function () {
+          showSale(index);
+          startSaleRotation();
+        });
+      });
+
+      showSale(0);
+      startSaleRotation();
 
       function moveBackground() {
         var offset = Math.min(window.scrollY * 0.16, 180);
