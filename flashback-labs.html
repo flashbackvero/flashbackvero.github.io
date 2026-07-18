@@ -8,12 +8,72 @@
       name="description"
       content="Flashback Labs is the game development studio behind Vero Flashback's playable games, including Knightfall Chess and Particle Simulator." />
     <link rel="stylesheet" href="./page.css" />
+    <style>
+      /* Keep the big headline inside its column so it never clips. */
+      .hero-page h1 {
+        font-size: clamp(36px, 5.2vw, 62px);
+      }
+      .labs-store-line {
+        margin-top: 14px;
+        font-family: Arial, sans-serif;
+        font-weight: 900;
+        font-size: 1.05rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #b3402e;
+      }
+      /* Bottom info cards: bigger, bolder, and styled to match the site. */
+      .note-band {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 18px;
+        margin-top: 26px;
+      }
+      .note {
+        border: 3px solid rgba(20, 82, 140, 0.24);
+        border-radius: 8px;
+        background: #fffdf5;
+        padding: 22px 24px;
+      }
+      .note b {
+        display: block;
+        margin-bottom: 10px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-weight: 900;
+        font-size: 1.6rem;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+        color: #202020;
+      }
+      .note p {
+        margin: 0 0 12px;
+        font-family: Arial, sans-serif;
+        font-weight: 700;
+        font-size: 1.08rem;
+        line-height: 1.55;
+        color: #33302b;
+      }
+      .note p:last-child {
+        margin-bottom: 0;
+      }
+      .note a {
+        font-weight: 900;
+      }
+    </style>
   </head>
   <body>
     <main class="page-shell">
-      <header class="topbar">
-        <a class="logo-link" href="./index.html"><img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo" /></a>
-        <a class="back-link" href="./index.html">Back Home</a>
+      <header class="site-header">
+        <a class="logo-link" href="./index.html" aria-label="Vero Flashback home">
+          <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo" />
+        </a>
+        <nav class="site-nav" aria-label="Primary navigation">
+          <a class="nav-link" href="./index.html">Home</a>
+          <a class="nav-link" href="./items.html">The Shop</a>
+          <a class="nav-link" href="./new-arrivals.html">Whats New</a>
+          <a class="nav-link" href="./flashback-labs.html" aria-current="page">Flashback Labs</a>
+          <a class="nav-link" href="./contact.html">Contact</a>
+        </nav>
       </header>
 
       <section class="hero-page">
@@ -23,6 +83,7 @@
             Flashback Labs is the development side of Vero Flashback — where the retro spirit of the shop turns into
             playable games for the web and mobile. Everything is built in-house, one pixel at a time.
           </p>
+          <p class="labs-store-line">Coming soon to the App Store and Google Play</p>
           <div class="hero-actions">
             <a class="action-link" href="./knightfall-chess.html">Play Knightfall Chess</a>
             <a class="action-link" href="./new-arrivals.html">Whats New</a>
@@ -43,7 +104,7 @@
           <b>Particle Simulator</b>
           <p>
             A falling-sand physics sandbox with 80+ elements, machines, portals, and a fixed 70,000-particle engine.
-            Currently in development for a mobile release on the app stores.
+            Coming soon to the App Store and Google Play.
           </p>
         </article>
         <article class="note">
@@ -60,7 +121,7 @@
           <b>Mobile Game Support</b>
           <p>
             Having trouble with one of our mobile games, found a bug, or want to suggest a feature? Email
-            <a class="contact-link" href="mailto:flashbacklabs@gmail.com">flashbacklabs@gmail.com</a>
+            <a class="contact-link" href="mailto:flashbackvero@gmail.com">flashbackvero@gmail.com</a>
             and we'll get back to you as soon as we can — usually within a few days.
           </p>
           <p>
