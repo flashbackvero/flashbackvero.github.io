@@ -342,6 +342,18 @@
       .report-result.win { color: #7ee0a6; }
       .report-result.loss { color: #f0897f; }
       .report-result.draw { color: #e6c66d; }
+      .report-taunt {
+        margin: 8px 0 6px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid rgba(240, 137, 127, 0.4);
+        background: rgba(240, 137, 127, 0.1);
+        font-size: 0.9rem;
+        font-style: italic;
+        line-height: 1.45;
+        color: #f4b1a9;
+      }
+      .report-taunt[hidden] { display: none; }
       .report-eyebrow { margin: 6px 0 2px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.16em; color: #b9a9d9; }
       .report-rating { display: grid; gap: 2px; margin-bottom: 6px; }
       .report-rating-num { font-size: 3rem; font-weight: 900; line-height: 1; color: #f0d493; }
@@ -764,6 +776,7 @@
           <div class="game-report" id="gameReport" hidden>
             <div class="report-card">
               <p class="report-result" id="reportResult">Result</p>
+              <p class="report-taunt" id="reportTaunt" hidden></p>
               <p class="report-eyebrow">Your performance rating</p>
               <div class="report-rating">
                 <span class="report-rating-num" id="reportRating">0</span>
@@ -880,6 +893,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
         var levelButtons = Array.prototype.slice.call(document.querySelectorAll(".level-button"));
         var gameReportEl = document.getElementById("gameReport");
         var reportResultEl = document.getElementById("reportResult");
+        var reportTauntEl = document.getElementById("reportTaunt");
         var reportRatingEl = document.getElementById("reportRating");
         var reportTitleEl = document.getElementById("reportTitle");
         var reportNoteEl = document.getElementById("reportNote");
@@ -1248,7 +1262,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
         // Concentric, slightly wavy tree rings plus fine grain and speckle — mapped
         // onto the round tabletop so it reads as a real cut-wood surface.
         function makeWoodTexture() {
-          var s = 512;
+          var s = 1024;
           var canvas = document.createElement("canvas");
           canvas.width = canvas.height = s;
           var ctx = canvas.getContext("2d");
@@ -1261,22 +1275,27 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
               var r = Math.sqrt(dx * dx + dy * dy);
               var ang = Math.atan2(dy, dx);
               // Wobble the ring radius so rings aren't perfect circles.
-              var wob = Math.sin(ang * 5) * 6 + Math.sin(ang * 11 + r * 0.05) * 4;
-              var ring = Math.sin((r + wob) * 0.17);
-              var streak = Math.sin(ang * 240) * 0.03;          // fine radial grain
-              var shade = 0.52 + ring * 0.2 + streak + (Math.random() - 0.5) * 0.05;
-              shade = Math.max(0.22, Math.min(1, shade));
+              var wob = Math.sin(ang * 5) * 12 + Math.sin(ang * 11 + r * 0.025) * 8;
+              var ring = Math.sin((r + wob) * 0.085);
+              // Sharpen the rings: real growth rings are narrow dark bands
+              // between wide light ones, not an even sine wave.
+              ring = Math.sign(ring) * Math.pow(Math.abs(ring), 0.6);
+              var streak = Math.sin(ang * 240) * 0.028;         // fine radial grain
+              // Broad light/dark figure so the top isn't uniformly ringed.
+              var mottle = Math.sin(x * 0.009 + Math.sin(y * 0.006) * 2.2) * 0.055;
+              var shade = 0.55 + ring * 0.16 + streak + mottle + (Math.random() - 0.5) * 0.04;
+              shade = Math.max(0.24, Math.min(1, shade));
               var idx = (y * s + x) * 4;
-              data[idx] = Math.round(150 * shade + 46);
-              data[idx + 1] = Math.round(98 * shade + 28);
-              data[idx + 2] = Math.round(54 * shade + 14);
+              data[idx] = Math.round(163 * shade + 52);
+              data[idx + 1] = Math.round(101 * shade + 27);
+              data[idx + 2] = Math.round(52 * shade + 12);
               data[idx + 3] = 255;
             }
           }
           ctx.putImageData(img, 0, 0);
           var tex = new THREE.CanvasTexture(canvas);
           tex.colorSpace = THREE.SRGBColorSpace;
-          tex.anisotropy = 4;
+          tex.anisotropy = 8;
           return tex;
         }
 
@@ -1308,7 +1327,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           var keyLight = new THREE.DirectionalLight(0xffe5be, 3.3);
           keyLight.position.set(-6, 11, 7);
           keyLight.castShadow = true;
-          keyLight.shadow.mapSize.set(1024, 1024);
+          keyLight.shadow.mapSize.set(2048, 2048);
           keyLight.shadow.camera.left = -8;
           keyLight.shadow.camera.right = 8;
           keyLight.shadow.camera.top = 8;
@@ -1337,7 +1356,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           // as real cut wood. The board sits on it.
           var woodTex = makeWoodTexture();
           var tableWood = new THREE.MeshPhysicalMaterial({
-            color: 0x6b4a2c, roughness: 0.55, metalness: 0.0, clearcoat: 0.3, clearcoatRoughness: 0.6
+            color: 0x77522e, roughness: 0.45, metalness: 0.0, clearcoat: 0.55, clearcoatRoughness: 0.4
           });
           var tableProfile = smoothProfile([
             [0, 0], [8.0, 0], [8.7, 0], [9.0, -0.05], [9.12, -0.2],
@@ -1350,7 +1369,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
 
           var tableTopFace = new THREE.Mesh(
             new THREE.CircleGeometry(8.7, 96),
-            new THREE.MeshPhysicalMaterial({ map: woodTex, roughness: 0.5, metalness: 0.0, clearcoat: 0.3, clearcoatRoughness: 0.55 })
+            new THREE.MeshPhysicalMaterial({ map: woodTex, roughness: 0.38, metalness: 0.0, clearcoat: 0.6, clearcoatRoughness: 0.35 })
           );
           tableTopFace.rotation.x = -Math.PI / 2;
           tableTopFace.position.y = -0.497;
@@ -1393,10 +1412,11 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           squareMeshes = [];
           for (var i = 0; i < 64; i++) {
             var lightSquare = (rowOf(i) + colOf(i)) % 2 === 0;
-            var squareColor = lightSquare ? 0xc7b591 : 0x2a2f36;
+            // Classic tournament look: creamy maple and rich walnut.
+            var squareColor = lightSquare ? 0xe4d4ac : 0x4a3322;
             var squareMaterial = new THREE.MeshStandardMaterial({
               color: squareColor,
-              roughness: lightSquare ? 0.66 : 0.54,
+              roughness: lightSquare ? 0.58 : 0.46,
               metalness: 0.02
             });
             var square = new THREE.Mesh(squareGeometry, squareMaterial);
@@ -1813,7 +1833,13 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           var move = chooseBookMove(moves);
           if (!move) {
             if (level === "pro") move = chooseSearchMove(moves, PRO_CFG);
-            else move = chooseLeveledMove(moves, level === "mid" ? MID_CFG : EASY_CFG);
+            else if (level === "mid") {
+              // Mid blunders very occasionally; otherwise it runs the same deep
+              // search as Pro but with less time and a looser selection gap.
+              if (Math.random() < MID_CFG.blunder) move = moves[Math.floor(Math.random() * moves.length)];
+              else move = chooseSearchMove(moves, MID_CFG);
+            }
+            else move = chooseLeveledMove(moves, EASY_CFG);
           }
           commitMove(move);
           renderGame(true);
@@ -1821,12 +1847,10 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           else updateStatus("Your move.");
         }
 
-        // Easy and Mid Bekah. Each root move gets its own exact search, so the
-        // human-style move choice below genuinely adds variety and mistakes (the
-        // deep alpha-beta path can't do this — its non-best scores are only upper
-        // bounds, which would make it always play near-best). Easy looks one step
-        // ahead, wanders widely, and blunders outright about a third of the time;
-        // Mid looks deeper, stays closer to the best move, and rarely blunders.
+        // Easy Bekah. Each root move gets its own exact shallow search, so the
+        // human-style move choice below genuinely adds variety and mistakes.
+        // Easy looks one step ahead, wanders widely, and blunders outright
+        // about a quarter of the time.
         function chooseLeveledMove(moves, cfg) {
           if (cfg.blunder && Math.random() < cfg.blunder) {
             return moves[Math.floor(Math.random() * moves.length)];
@@ -1836,6 +1860,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           aiNodeCount = 0;
           aiNodeCap = cfg.nodeCap;
           killers = [];
+          tt = new Map();
           orderMovesInPlace(board, moves, 0, 0);
           var scored = [];
           var best = -Infinity;
@@ -1843,8 +1868,11 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
             var clone = board.slice();
             applyMove(clone, moves[i]);
             var score = searchBest(clone, cfg.depth, -Infinity, Infinity, "w", 1);
+            // Once the clock runs out the remaining scores are garbage — keep
+            // only fully-evaluated moves so an unexamined one is never picked.
+            if (aiAbort) break;
             scored.push({ move: moves[i], score: score });
-            if (!aiAbort && score > best) best = score;
+            if (score > best) best = score;
           }
           return pickHumanMove(scored, moves[0], best, cfg.gap, cfg.temp) || moves[0];
         }
@@ -1879,22 +1907,29 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
         var aiNodeCap = 2600000;
         var killers = [];
         var moveLog = [];
+        // Transposition table: caches search results per position so repeated
+        // positions (very common with alpha-beta) are scored once, letting the
+        // same time budget reach several plies deeper. Cleared for each AI move.
+        var tt = new Map();
+        var TT_MAX = 250000;
+        var TT_EXACT = 0, TT_LOWER = 1, TT_UPPER = 2;
 
         // Per-level engine settings, tuned so strength clearly climbs Easy < Mid
-        // < Pro. Easy and Mid use chooseLeveledMove (shallow, exact per-move
-        // scores + spread + an occasional blunder). Pro uses the deep search.
-        //   depth  = extra plies searched past each root move
+        // < Pro. Easy uses chooseLeveledMove (shallow, exact per-move scores +
+        // spread + frequent blunders). Mid and Pro use the deep iterative search;
+        // Mid gets less time, a looser selection gap, and a rare random blunder.
+        //   depth  = extra plies searched past each root move (Easy)
         //   gap    = how far below best a move may still be chosen (centipawns)
         //   temp   = randomness among those moves (higher = looser)
         //   blunder= chance of just grabbing a random legal move
-        var EASY_CFG = { depth: 1, gap: 320, temp: 150, blunder: 0.32, timeMs: 600, nodeCap: 400000 };
-        var MID_CFG = { depth: 3, gap: 70, temp: 40, blunder: 0.05, timeMs: 1700, nodeCap: 1100000 };
-        var PRO_CFG = { maxDepth: 14, timeMul: 2.4, timeCap: 4200, nodeCap: 5000000, gap: 12, temp: 12 };
+        var EASY_CFG = { depth: 1, gap: 300, temp: 140, blunder: 0.26, timeMs: 700, nodeCap: 500000 };
+        var MID_CFG = { maxDepth: 4, timeMul: 1.2, timeCap: 2800, nodeCap: 3000000, gap: 45, temp: 28, blunder: 0.02 };
+        var PRO_CFG = { maxDepth: 18, timeMul: 2.8, timeCap: 5600, nodeCap: 10000000, gap: 6, temp: 6 };
 
         function keyOf(m) { return m.from * 64 + m.to; }
         function timeUp() {
           if (aiAbort) return true;
-          if ((++aiNodeCount & 1023) === 0 && nowMs() > aiDeadline) aiAbort = true;
+          if ((++aiNodeCount & 63) === 0 && nowMs() > aiDeadline) aiAbort = true;
           if (aiNodeCount > aiNodeCap) aiAbort = true;
           return aiAbort;
         }
@@ -1957,7 +1992,8 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           // in the endgame (phase 1 = full material, 0 = bare kings/pawns).
           var phase = Math.min(24, phaseCount) / 24;
           score += kingTapered(bKing, true, phase) - kingTapered(wKing, false, phase);
-          // Rooks belong on open (no pawns) and semi-open (no friendly pawn) files.
+          // Rooks belong on open (no pawns) and semi-open (no friendly pawn)
+          // files, and are dangerous on the 7th rank (the enemy's pawn rank).
           for (var ri = 0; ri < 64; ri++) {
             var rp = position[ri];
             if (!rp || rp.toLowerCase() !== "r") continue;
@@ -1966,6 +2002,9 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
             var own = rb ? bFile[rc] : wFile[rc];
             var opp = rb ? wFile[rc] : bFile[rc];
             if (own === 0) score += (rb ? 1 : -1) * (opp === 0 ? 18 : 9);
+            var rrow = rowOf(ri);
+            if (rb && rrow === 6) score += 20;
+            else if (!rb && rrow === 1) score -= 20;
           }
           return score;
         }
@@ -1988,12 +2027,14 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           return s;
         }
 
-        // Move ordering: preferred (PV) move, then winning captures, then killer moves.
+        // Move ordering: preferred (PV/TT) move, then winning captures and
+        // promotions, then killer moves.
         function moveOrderScore(position, m, ply, preferredKey) {
           var k = keyOf(m);
           if (preferredKey && k === preferredKey) return 1000000;
           var victim = position[m.to];
           if (victim) return 100000 + VALUES[victim.toLowerCase()] * 8 - VALUES[position[m.from].toLowerCase()];
+          if (m.promotion) return 95000 + VALUES[m.promotion.toLowerCase()] * 4;
           var kl = killers[ply];
           if (kl) { if (kl[0] === k) return 9000; if (kl[1] === k) return 8000; }
           return 0;
@@ -2011,30 +2052,38 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
         }
 
         // Capture-only search past the horizon so the engine stops hanging pieces.
+        // Fail-soft: returns the real best value found, never the clamped window
+        // edge. (Fail-hard returned `alpha` for below-window positions, which made
+        // every weak root move "tie" the best one and hid mates behind noise.)
         function quiescence(position, alpha, beta, color, qd) {
           if (timeUp()) return evaluateBoard(position);
           var standPat = evaluateBoard(position);
           if (qd >= 5) return standPat;
           var caps = orderMovesInPlace(position, allLegalMoves(position, color).filter(function (m) { return position[m.to]; }), 250, 0);
           if (color === "b") {
-            if (standPat > alpha) alpha = standPat;
+            var best = standPat;
+            if (best > alpha) alpha = best;
             for (var i = 0; i < caps.length && alpha < beta; i++) {
               var clone = position.slice(); applyMove(clone, caps[i]);
               var sc = quiescence(clone, alpha, beta, "w", qd + 1);
+              if (sc > best) best = sc;
               if (sc > alpha) alpha = sc;
             }
-            return alpha;
+            return best;
           }
-          if (standPat < beta) beta = standPat;
+          var bestMin = standPat;
+          if (bestMin < beta) beta = bestMin;
           for (var j = 0; j < caps.length && alpha < beta; j++) {
             var clone2 = position.slice(); applyMove(clone2, caps[j]);
             var sc2 = quiescence(clone2, alpha, beta, "b", qd + 1);
+            if (sc2 < bestMin) bestMin = sc2;
             if (sc2 < beta) beta = sc2;
           }
-          return beta;
+          return bestMin;
         }
 
-        // Minimax with alpha-beta + killer moves. Black maximizes, White minimizes.
+        // Minimax with alpha-beta + killer moves + transposition table.
+        // Black maximizes, White minimizes.
         function searchBest(position, depth, alpha, beta, color, ply) {
           if (timeUp()) return 0;
           var moves = allLegalMoves(position, color);
@@ -2046,30 +2095,53 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
             return 0;
           }
           if (depth <= 0) return quiescence(position, alpha, beta, color, 0);
-          orderMovesInPlace(position, moves, ply, 0);
-          var i, clone, sc;
+          // Probe the transposition table: reuse a stored score when it was
+          // searched at least this deep, and use its best move to order first.
+          var alphaOrig = alpha, betaOrig = beta;
+          var key = color + position.join(",");
+          var entry = tt.get(key);
+          var ttMoveKey = 0;
+          if (entry) {
+            ttMoveKey = entry.moveKey || 0;
+            if (entry.depth >= depth) {
+              if (entry.flag === TT_EXACT) return entry.score;
+              if (entry.flag === TT_LOWER && entry.score >= beta) return entry.score;
+              if (entry.flag === TT_UPPER && entry.score <= alpha) return entry.score;
+            }
+          }
+          orderMovesInPlace(position, moves, ply, ttMoveKey);
+          var i, clone, sc, bestMove = null, result;
           if (color === "b") {
             var bestMax = -Infinity;
             for (i = 0; i < moves.length; i++) {
               clone = position.slice(); applyMove(clone, moves[i]);
               sc = searchBest(clone, depth - 1, alpha, beta, "w", ply + 1);
               if (aiAbort) return bestMax === -Infinity ? 0 : bestMax;
-              if (sc > bestMax) bestMax = sc;
+              if (sc > bestMax) { bestMax = sc; bestMove = moves[i]; }
               if (bestMax > alpha) alpha = bestMax;
               if (alpha >= beta) { if (!position[moves[i].to]) storeKiller(ply, moves[i]); break; }
             }
-            return bestMax;
+            result = bestMax;
+          } else {
+            var bestMin = Infinity;
+            for (i = 0; i < moves.length; i++) {
+              clone = position.slice(); applyMove(clone, moves[i]);
+              sc = searchBest(clone, depth - 1, alpha, beta, "b", ply + 1);
+              if (aiAbort) return bestMin === Infinity ? 0 : bestMin;
+              if (sc < bestMin) { bestMin = sc; bestMove = moves[i]; }
+              if (bestMin < beta) beta = bestMin;
+              if (alpha >= beta) { if (!position[moves[i].to]) storeKiller(ply, moves[i]); break; }
+            }
+            result = bestMin;
           }
-          var bestMin = Infinity;
-          for (i = 0; i < moves.length; i++) {
-            clone = position.slice(); applyMove(clone, moves[i]);
-            sc = searchBest(clone, depth - 1, alpha, beta, "b", ply + 1);
-            if (aiAbort) return bestMin === Infinity ? 0 : bestMin;
-            if (sc < bestMin) bestMin = sc;
-            if (bestMin < beta) beta = bestMin;
-            if (alpha >= beta) { if (!position[moves[i].to]) storeKiller(ply, moves[i]); break; }
+          // Store the result (skip aborted searches and ply-dependent mate scores).
+          if (!aiAbort && Math.abs(result) < AI_MATE - 2000 && tt.size < TT_MAX) {
+            var flag = TT_EXACT;
+            if (result <= alphaOrig) flag = TT_UPPER;
+            else if (result >= betaOrig) flag = TT_LOWER;
+            tt.set(key, { depth: depth, score: result, flag: flag, moveKey: bestMove ? keyOf(bestMove) : 0 });
           }
-          return bestMin;
+          return result;
         }
 
         function nowMs() {
@@ -2105,7 +2177,24 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           "g1f3 d7d5 d2d4": ["g8f6"],
           "g1f3 g8f6 c2c4": ["e7e6", "g7g6"],
           "c2c4 e7e5 b1c3": ["g8f6", "b8c6"],
-          "c2c4 g8f6 b1c3": ["e7e6", "g7g6"]
+          "c2c4 g8f6 b1c3": ["e7e6", "g7g6"],
+          "e2e4 c7c5 g1f3 d7d6 d2d4": ["c5d4"],
+          "e2e4 c7c5 g1f3 b8c6 d2d4": ["c5d4"],
+          "e2e4 c7c5 g1f3 e7e6 d2d4": ["c5d4"],
+          "e2e4 e7e5 g1f3 b8c6 f1b5": ["a7a6", "g8f6"],
+          "e2e4 e7e5 g1f3 b8c6 f1c4": ["f8c5", "g8f6"],
+          "e2e4 e7e5 g1f3 b8c6 d2d4": ["e5d4"],
+          "e2e4 e7e5 g1f3 g8f6 f3e5": ["d7d6"],
+          "e2e4 e7e6 d2d4 d7d5 b1c3": ["g8f6", "f8b4"],
+          "e2e4 e7e6 d2d4 d7d5 e4e5": ["c7c5"],
+          "e2e4 c7c6 d2d4 d7d5 b1c3": ["d5e4"],
+          "e2e4 c7c6 d2d4 d7d5 e4e5": ["c8f5"],
+          "d2d4 g8f6 c2c4 e7e6 b1c3": ["f8b4"],
+          "d2d4 g8f6 c2c4 e7e6 g1f3": ["d7d5", "b7b6"],
+          "d2d4 g8f6 c2c4 g7g6 b1c3": ["d7d5", "f8g7"],
+          "d2d4 d7d5 c2c4 e7e6 b1c3": ["g8f6"],
+          "d2d4 d7d5 c2c4 c7c6 g1f3": ["g8f6"],
+          "d2d4 d7d5 c2c4 c7c6 b1c3": ["g8f6"]
         };
 
         function chooseBookMove(moves) {
@@ -2163,6 +2252,7 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           aiNodeCount = 0;
           aiNodeCap = cfg.nodeCap;
           killers = [];
+          tt = new Map();
           orderMovesInPlace(board, moves, 0, 0);
           var bestMove = moves[0];
           var bestScore = 0;
@@ -2177,10 +2267,10 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
             for (var i = 0; i < moves.length; i++) {
               var clone = board.slice();
               applyMove(clone, moves[i]);
-              // Alpha-beta at the root for depth/strength. The best move gets an
-              // exact score; weaker moves fail low and are conservatively
-              // under-weighted in the human selection below — which is fine.
-              var score = searchBest(clone, depth - 1, alpha, Infinity, "w", 1);
+              // Alpha-beta at the root, with the window opened `gap` below the
+              // best so every move that could enter the human selection pool
+              // gets an exact score; clearly-worse moves still fail low fast.
+              var score = searchBest(clone, depth - 1, alpha === -Infinity ? -Infinity : alpha - cfg.gap - 20, Infinity, "w", 1);
               if (aiAbort) break;
               scored.push({ move: moves[i], score: score });
               if (score > iterScore) { iterScore = score; iterBest = moves[i]; }
@@ -2350,6 +2440,20 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           else playerStats.blunder++;
         }
 
+        // Bekah gloats a little when she wins. All in good fun.
+        var BEKAH_TAUNTS = [
+          "Checkmate! Want me to go easy next time? …I won't.",
+          "That king of yours really needed better bodyguards.",
+          "I've seen pawns with better plans.",
+          "Don't worry — losing to me is very common.",
+          "Maybe try checkers next time?",
+          "You blinked. I checkmated. Story of the game.",
+          "Your pieces fought bravely. Shame about their manager.",
+          "Another one for my trophy shelf.",
+          "I had that planned twelve moves ago. Give or take twelve.",
+          "The board says checkmate, but I say better luck next time."
+        ];
+
         function ratingTitle(rating) {
           if (rating >= 2700) return "Super Grandmaster";
           if (rating >= 2500) return "Grandmaster (GM)";
@@ -2384,6 +2488,15 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           reportResultEl.textContent = result === "win" ? "You beat Bekah!"
             : result === "loss" ? "Bekah wins" : "Draw";
           reportResultEl.className = "report-result " + result;
+          if (reportTauntEl) {
+            if (result === "loss") {
+              reportTauntEl.textContent = "Bekah: “" +
+                BEKAH_TAUNTS[Math.floor(Math.random() * BEKAH_TAUNTS.length)] + "”";
+              reportTauntEl.hidden = false;
+            } else {
+              reportTauntEl.hidden = true;
+            }
+          }
           reportRatingEl.textContent = rating;
           reportTitleEl.textContent = ratingTitle(rating);
           reportNoteEl.textContent = playerStats.moves
@@ -2534,11 +2647,51 @@ import{Matrix3 as e,Vector2 as t,Color as n,Vector3 as i,mergeUniforms as r,Cube
           return isSquareAttacked(position, kingIndex, enemy(color));
         }
 
+        // Fast reverse test: look outward from the square for attackers instead
+        // of generating every enemy piece's attack list. This runs inside the
+        // legality filter for every candidate move, so it dominates search speed.
+        var KNIGHT_STEPS = [[-2, -1], [-2, 1], [-1, -2], [-1, 2], [1, -2], [1, 2], [2, -1], [2, 1]];
+        var SLIDE_DIRS = [
+          [-1, 0, "rq"], [1, 0, "rq"], [0, -1, "rq"], [0, 1, "rq"],
+          [-1, -1, "bq"], [-1, 1, "bq"], [1, -1, "bq"], [1, 1, "bq"]
+        ];
         function isSquareAttacked(position, square, byColor) {
-          for (var i = 0; i < 64; i++) {
-            var piece = position[i];
-            if (!piece || colorOf(piece) !== byColor) continue;
-            if (attackSquares(position, i).indexOf(square) !== -1) return true;
+          var row = rowOf(square), col = colOf(square);
+          var i, r, c, p;
+          for (i = 0; i < 8; i++) {
+            r = row + KNIGHT_STEPS[i][0]; c = col + KNIGHT_STEPS[i][1];
+            if (inBounds(r, c)) {
+              p = position[indexOf(r, c)];
+              if (p && colorOf(p) === byColor && p.toLowerCase() === "n") return true;
+            }
+          }
+          // A pawn of byColor attacks this square from the row it advances from.
+          var pawnRow = byColor === "w" ? row + 1 : row - 1;
+          for (i = -1; i <= 1; i += 2) {
+            c = col + i;
+            if (inBounds(pawnRow, c)) {
+              p = position[indexOf(pawnRow, c)];
+              if (p && colorOf(p) === byColor && p.toLowerCase() === "p") return true;
+            }
+          }
+          for (r = row - 1; r <= row + 1; r++) {
+            for (c = col - 1; c <= col + 1; c++) {
+              if ((r !== row || c !== col) && inBounds(r, c)) {
+                p = position[indexOf(r, c)];
+                if (p && colorOf(p) === byColor && p.toLowerCase() === "k") return true;
+              }
+            }
+          }
+          for (i = 0; i < 8; i++) {
+            r = row + SLIDE_DIRS[i][0]; c = col + SLIDE_DIRS[i][1];
+            while (inBounds(r, c)) {
+              p = position[indexOf(r, c)];
+              if (p) {
+                if (colorOf(p) === byColor && SLIDE_DIRS[i][2].indexOf(p.toLowerCase()) !== -1) return true;
+                break;
+              }
+              r += SLIDE_DIRS[i][0]; c += SLIDE_DIRS[i][1];
+            }
           }
           return false;
         }
