@@ -1,4 +1,4 @@
-const CACHE = "particle-simulator-v40";
+const CACHE = "particle-simulator-v41";
 const SHELL = ["/particle-lab/", "/particle-lab/manifest.webmanifest", "/particle-lab/icon-64.png", "/particle-lab/icon-192.png", "/particle-lab/icon-512.png", "/particle-lab/og-v19.png"];
 
 self.addEventListener("install", (event) => {
