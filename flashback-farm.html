@@ -1,0 +1,4041 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashback Farm | Plant Growing Simulator</title>
+    <style>
+      * { box-sizing: border-box; }
+
+      :root {
+        --ink: #242424;
+        --card: #ffffff;
+        --blue: #14528c;
+        --green: #2f7a34;
+        --gold: #c9911a;
+        --red: #b0342c;
+        --sky1: #6fc3f7;
+        --sky2: #cdefff;
+        --grass1: #8ed167;
+        --grass2: #5da743;
+      }
+
+      html, body { height: 100%; }
+
+      body {
+        margin: 0;
+        min-width: 320px;
+        color: var(--ink);
+        font-family: Arial, Helvetica, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+        overflow-x: hidden;
+      }
+
+      button { font-family: inherit; cursor: pointer; }
+      button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+      /* ================= the world behind the page ================= */
+      .world {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 46%, #a9dc84 46.1%, var(--grass2) 100%);
+        transition: background 2s linear;
+      }
+
+      .world .sun {
+        position: absolute;
+        left: 12%;
+        top: 12%;
+        width: 92px;
+        height: 92px;
+        margin: -46px 0 0 -46px;
+        border-radius: 50%;
+        background: radial-gradient(circle at 42% 38%, #fffbe0, #ffd857 58%, rgba(255, 216, 87, 0));
+        filter: drop-shadow(0 0 30px rgba(255, 214, 74, 0.6));
+        transition: left 2s linear, top 2s linear, opacity 2s linear;
+      }
+
+      .world .hills {
+        position: absolute;
+        left: -5%;
+        right: -5%;
+        top: 38%;
+        height: 22%;
+      }
+
+      .world .cloud {
+        position: absolute;
+        opacity: 0.9;
+        animation: drift linear infinite;
+      }
+
+      @keyframes drift {
+        from { transform: translateX(-30vw); }
+        to { transform: translateX(130vw); }
+      }
+
+      .world .field-far {
+        position: absolute;
+        left: 0; right: 0; top: 46%; bottom: 0;
+        background-image:
+          repeating-linear-gradient(96deg, rgba(255, 255, 255, 0.09) 0 3px, transparent 3px 26px),
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='46' height='20'%3E%3Cpath d='M3 20 Q5 9 7 20 M13 20 Q16 6 18 20 M26 20 Q28 10 31 20 M37 20 Q40 5 42 20' fill='none' stroke='%23ffffff' stroke-opacity='.22' stroke-width='2'/%3E%3C/svg%3E");
+      }
+
+      .world .rain {
+        position: absolute;
+        inset: -20% 0 0;
+        opacity: 0;
+        transition: opacity 1.2s linear;
+        background-image: repeating-linear-gradient(104deg, rgba(255, 255, 255, 0.55) 0 1px, transparent 1px 9px);
+        animation: pour 0.5s linear infinite;
+      }
+
+      .world.wet .rain { opacity: 0.5; }
+
+      @keyframes pour {
+        from { transform: translateY(-40px); }
+        to { transform: translateY(40px); }
+      }
+
+      /* ================= page shell ================= */
+      .page {
+        width: min(1260px, calc(100% - 26px));
+        margin: 0 auto;
+        padding: 20px 0 70px;
+        position: relative;
+        z-index: 1;
+      }
+
+      h1, h2, h3 {
+        font-family: "Arial Narrow", Impact, sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.02em;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 14px;
+      }
+
+      /* the farm's hand-painted sign, hung from two posts */
+      .title-block {
+        position: relative;
+        padding: 14px 26px 16px;
+        border: 5px solid #6b4526;
+        border-radius: 18px;
+        background:
+          repeating-linear-gradient(90deg, rgba(120, 78, 38, 0.08) 0 3px, transparent 3px 24px),
+          linear-gradient(180deg, #f6e2b8, #e0c390);
+        box-shadow: 0 8px 0 #4e3018, inset 0 0 0 4px #c79a63;
+        transform: rotate(-1deg);
+      }
+
+      .title-block::before,
+      .title-block::after {
+        content: "";
+        position: absolute;
+        top: 12px;
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        border: 2px solid #4e3018;
+        background: radial-gradient(circle at 35% 35%, #ffe9a8, #c08b4c);
+      }
+
+      .title-block::before { left: 12px; }
+      .title-block::after { right: 12px; }
+
+      .title-block h1 {
+        margin: 0;
+        font-size: clamp(32px, 5.4vw, 50px);
+        line-height: 1;
+        color: #7a3d18;
+        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65), 0 4px 0 rgba(120, 78, 38, 0.35);
+      }
+
+      .title-block p {
+        margin: 6px 0 0;
+        font-size: 13.5px;
+        font-weight: bold;
+        color: #7a5f3c;
+      }
+
+      .hud { display: flex; gap: 9px; flex-wrap: wrap; align-items: stretch; }
+
+      .stat {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 116px;
+        padding: 10px 16px;
+        border: 4px solid #6b4526;
+        border-radius: 16px;
+        color: #5e3c22;
+        background:
+          repeating-linear-gradient(90deg, rgba(150, 100, 55, 0.06) 0 2px, transparent 2px 18px),
+          linear-gradient(180deg, #fdf3dc, #ecd9b0);
+        box-shadow: 0 6px 0 #4e3018, inset 0 0 0 3px #c79a63;
+      }
+
+      .stat span {
+        font-size: 11px;
+        letter-spacing: 0.13em;
+        text-transform: uppercase;
+        color: #90714a;
+      }
+
+      .stat strong {
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 28px;
+        line-height: 1.05;
+        transition: transform 0.12s ease;
+      }
+
+      .stat.coins strong { color: var(--gold); }
+      .stat.level strong { color: var(--blue); }
+      .stat.pop strong { transform: scale(1.28); }
+
+      .mute {
+        min-width: 58px;
+        border: 4px solid #6b4526;
+        border-radius: 16px;
+        background: linear-gradient(180deg, #fdf3dc, #ecd9b0);
+        box-shadow: 0 6px 0 #4e3018, inset 0 0 0 3px #c79a63;
+        display: grid;
+        place-items: center;
+        padding: 0 8px;
+      }
+
+      .mute svg { width: 30px; height: 30px; }
+      .mute[aria-pressed="true"] { filter: grayscale(0.6); opacity: 0.75; }
+
+      .xpbar {
+        height: 8px;
+        margin-top: 5px;
+        border-radius: 99px;
+        border: 2px solid #7a5228;
+        background: #d9c4a0;
+        overflow: hidden;
+      }
+
+      .xpbar i {
+        display: block;
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #6fc04a, #a6e06a);
+        transition: width 0.3s ease;
+      }
+
+      /* tabs hang from a beam like painted farm signs */
+      .tabs {
+        position: relative;
+        display: flex;
+        gap: 14px;
+        margin: 0 0 22px;
+        padding-top: 20px;
+        flex-wrap: wrap;
+      }
+
+      .tabs::before {
+        content: "";
+        position: absolute;
+        left: -6px; right: -6px; top: 0;
+        height: 13px;
+        border-radius: 5px;
+        background: linear-gradient(180deg, #a9764a, #6b4526);
+        box-shadow: 0 3px 0 rgba(0, 0, 0, 0.22);
+      }
+
+      .tab {
+        position: relative;
+        flex: 1 1 170px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 11px;
+        min-height: 64px;
+        margin-top: 16px;
+        padding: 0 18px;
+        border: 4px solid #6b4526;
+        border-radius: 14px;
+        color: #5e3c22;
+        background:
+          repeating-linear-gradient(90deg, rgba(120, 78, 38, 0.08) 0 3px, transparent 3px 22px),
+          linear-gradient(180deg, #f4dfb4, #dfc189);
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 27px;
+        font-weight: 900;
+        text-transform: uppercase;
+        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.55);
+        box-shadow: 0 6px 0 #4e3018, inset 0 0 0 3px #c79a63;
+        transform-origin: 50% -22px;
+        transition: transform 0.14s ease, filter 0.14s ease;
+      }
+
+      /* the two ropes it hangs from */
+      .tab::before {
+        content: "";
+        position: absolute;
+        left: 16px; right: 16px; top: -18px;
+        height: 18px;
+        background:
+          linear-gradient(180deg, #b98550, #7a5228) 14% 0 / 5px 18px no-repeat,
+          linear-gradient(180deg, #b98550, #7a5228) 86% 0 / 5px 18px no-repeat;
+      }
+
+      .tab svg { width: 36px; height: 36px; flex: 0 0 36px; }
+      .tab:hover { transform: rotate(-1.4deg); }
+      .tab:active { transform: translateY(3px) rotate(1deg); box-shadow: 0 3px 0 #4e3018, inset 0 0 0 3px #c79a63; }
+
+      .tab[aria-selected="true"] {
+        color: #3f2a17;
+        background:
+          repeating-linear-gradient(90deg, rgba(120, 78, 38, 0.1) 0 3px, transparent 3px 22px),
+          linear-gradient(180deg, #ffd76a, #e9a72c);
+        box-shadow: 0 6px 0 #8a5f10, inset 0 0 0 3px #ffe9a8, 0 0 24px rgba(255, 197, 66, 0.55);
+        animation: signSwing 3.4s ease-in-out infinite;
+      }
+
+      @keyframes signSwing {
+        0%, 100% { transform: rotate(-1.1deg); }
+        50% { transform: rotate(1.1deg); }
+      }
+
+      .panel { display: none; }
+      .panel.active { display: block; }
+
+      /* every panel is a nailed-up wooden board, not a web card */
+      .card {
+        position: relative;
+        border: 5px solid #6b4526;
+        border-radius: 22px;
+        padding: 20px;
+        margin-bottom: 20px;
+        color: #4a3320;
+        background-image:
+          radial-gradient(circle at 15px 15px, rgba(90, 58, 28, 0.5) 0 4px, transparent 5px),
+          radial-gradient(circle at calc(100% - 15px) 15px, rgba(90, 58, 28, 0.5) 0 4px, transparent 5px),
+          radial-gradient(circle at 15px calc(100% - 15px), rgba(90, 58, 28, 0.5) 0 4px, transparent 5px),
+          radial-gradient(circle at calc(100% - 15px) calc(100% - 15px), rgba(90, 58, 28, 0.5) 0 4px, transparent 5px),
+          repeating-linear-gradient(92deg, rgba(150, 100, 55, 0.07) 0 2px, transparent 2px 26px),
+          linear-gradient(180deg, #fdf3dc, #f0e0bc);
+        box-shadow: 0 10px 0 #4e3018, 0 16px 26px rgba(0, 0, 0, 0.22), inset 0 0 0 4px #b98550;
+      }
+
+      .card > h2 {
+        margin: 0 0 14px;
+        font-size: 30px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: #5e3c22;
+        text-shadow: 0 2px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .card > h2 svg { width: 44px; height: 44px; }
+
+      .hint {
+        margin: 0 0 16px;
+        font-size: 14.5px;
+        color: #7a5f3c;
+        line-height: 1.5;
+      }
+
+      /* ================= weather + tools ================= */
+      .weather-strip {
+        display: flex;
+        align-items: center;
+        gap: 13px;
+        flex-wrap: wrap;
+        padding: 12px 18px;
+        margin: 0 0 16px;
+        border: 4px solid #6b4526;
+        border-radius: 999px;
+        color: #5e3c22;
+        font-weight: bold;
+        background: linear-gradient(180deg, #cfe9f7, #a9d5ee);
+        box-shadow: 0 5px 0 #4e3018, inset 0 0 0 3px #ecf7ff;
+        font-size: 15px;
+      }
+
+      .weather-strip .wicon { width: 42px; height: 42px; flex: 0 0 42px; }
+
+      .clockwrap {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex: 1 1 210px;
+        min-width: 170px;
+      }
+
+      .daybar {
+        flex: 1 1 auto;
+        display: block;
+        height: 10px;
+        min-width: 90px;
+        border: 2px solid var(--ink);
+        border-radius: 99px;
+        background: #ece9e2;
+        overflow: hidden;
+      }
+
+      .daybar i { display: block; height: 100%; background: linear-gradient(90deg, #ffd76a, #ff9d3d); }
+
+      /* seeds down the left, field in the middle, tools down the right */
+      .play-area {
+        display: grid;
+        grid-template-columns: 208px minmax(0, 1fr) 208px;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .side {
+        padding: 12px 12px 14px;
+        border: 4px solid #6b4526;
+        border-radius: 18px;
+        background:
+          repeating-linear-gradient(90deg, rgba(90, 58, 28, 0.09) 0 3px, transparent 3px 24px),
+          linear-gradient(180deg, #b98550, #8a5f2c);
+        box-shadow: 0 7px 0 #4e3018, inset 0 3px 0 rgba(255, 255, 255, 0.22);
+      }
+
+      .side-title {
+        margin: 0 0 10px;
+        text-align: center;
+        font-size: 22px;
+        color: #fdf3dc;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+      }
+
+      .seeds-side .seedbelt {
+        flex-direction: column;
+        overflow: visible;
+        padding: 16px 2px 2px;
+        gap: 10px;
+      }
+
+      .seeds-side .seed-chip { min-width: 0; width: 100%; }
+      .tools-side .rail { flex-direction: column; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+      .tools-side .tool { width: 100%; }
+      .tools-side .tool span { flex: 1 1 auto; }
+
+      /* the action bar sits on a wooden shelf under the field */
+      .rail {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 16px 0 14px;
+        padding: 12px 14px;
+        border: 4px solid #6b4526;
+        border-radius: 18px;
+        background:
+          repeating-linear-gradient(90deg, rgba(90, 58, 28, 0.09) 0 3px, transparent 3px 24px),
+          linear-gradient(180deg, #b98550, #8a5f2c);
+        box-shadow: 0 7px 0 #4e3018, inset 0 3px 0 rgba(255, 255, 255, 0.22);
+      }
+
+      .tool {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        min-height: 58px;
+        padding: 0 17px;
+        border: 4px solid #5e3c22;
+        border-radius: 14px;
+        color: #4a3320;
+        background: linear-gradient(180deg, #fdf3dc, #ead6ae);
+        font-size: 15px;
+        font-weight: bold;
+        box-shadow: 0 5px 0 #4e3018;
+        transition: transform 0.08s ease, box-shadow 0.08s ease;
+      }
+
+      .tool:hover { transform: translateY(-2px); box-shadow: 0 7px 0 #4e3018; }
+      .tool:active { transform: translateY(3px); box-shadow: 0 1px 0 #4e3018; }
+      .tool svg { width: 32px; height: 32px; flex: 0 0 32px; }
+
+      .tool[aria-pressed="true"] {
+        background: linear-gradient(180deg, #ffd76a, #e9a72c);
+        box-shadow: 0 5px 0 #8a5f10, 0 0 20px rgba(255, 197, 66, 0.6);
+      }
+
+      .tool small { font-weight: normal; opacity: 0.75; }
+
+      /* seed packets pinned along a rail */
+      .seedbelt {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding: 18px 4px 14px;
+        margin-top: 4px;
+        position: relative;
+      }
+
+      .seedbelt::before {
+        content: "";
+        position: absolute;
+        left: 0; right: 0; top: 6px;
+        height: 7px;
+        border-radius: 4px;
+        background: linear-gradient(180deg, #c79a63, #7a5228);
+      }
+
+      .seed-chip {
+        position: relative;
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 140px;
+        padding: 10px 14px 10px 10px;
+        border: 4px solid #6b4526;
+        border-radius: 14px;
+        color: #4a3320;
+        background: linear-gradient(180deg, #fdf3dc, #ecd9b0);
+        text-align: left;
+        line-height: 1.25;
+        box-shadow: 0 5px 0 #4e3018;
+        transition: transform 0.12s ease, box-shadow 0.12s ease;
+      }
+
+      /* the pin holding the packet to the rail */
+      .seed-chip::before {
+        content: "";
+        position: absolute;
+        left: 50%; top: -13px;
+        width: 12px; height: 12px;
+        margin-left: -6px;
+        border-radius: 50%;
+        border: 2px solid #4e3018;
+        background: radial-gradient(circle at 35% 35%, #ffe9a8, #d09a2c);
+      }
+
+      .seed-chip svg { width: 50px; height: 50px; flex: 0 0 50px; }
+      .seed-chip:hover { transform: translateY(-3px) rotate(-1.5deg); }
+
+      .seed-chip[aria-pressed="true"] {
+        background: linear-gradient(180deg, #ffeeb4, #ffd76a);
+        box-shadow: 0 5px 0 #8a5f10, 0 0 22px rgba(255, 197, 66, 0.55);
+        transform: translateY(-3px);
+      }
+
+      .seed-chip b { display: block; font-size: 15px; }
+      .seed-chip span { font-size: 12px; color: #86663f; }
+
+      /* ================= the field ================= */
+      .field {
+        position: relative;
+        padding: 162px 26px 24px;
+        border: 5px solid #5e3c22;
+        border-radius: 18px;
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='18'%3E%3Cpath d='M3 18 Q5 8 7 18 M13 18 Q16 5 18 18 M25 18 Q27 9 30 18 M36 18 Q39 4 41 18' fill='none' stroke='%23ffffff' stroke-opacity='.25' stroke-width='2'/%3E%3C/svg%3E"),
+          linear-gradient(180deg, var(--grass1), var(--grass2));
+        box-shadow: inset 0 -12px 26px rgba(28, 70, 20, 0.32), 0 8px 0 #4e3018;
+        overflow: hidden;
+      }
+
+      /* the illustrated backdrop: hills, barn, silo, windmill, treeline */
+      .scene {
+        position: absolute;
+        left: 0; right: 0; top: 0;
+        height: 152px;
+        pointer-events: none;
+      }
+
+      .scene svg { display: block; width: 100%; height: 100%; }
+
+      /* the dirt path the beds sit on */
+      .field::after {
+        content: "";
+        position: absolute;
+        left: 0; right: 0; top: 130px;
+        height: 24px;
+        background:
+          repeating-linear-gradient(93deg, rgba(0, 0, 0, 0.09) 0 3px, transparent 3px 15px),
+          linear-gradient(180deg, #b07f4e, #8a5f2c);
+        box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.22);
+        pointer-events: none;
+      }
+
+      /* picket fencing around all four sides of the plot */
+      .field .fence {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 4;
+      }
+
+      .field .fence::before,
+      .field .fence::after {
+        content: "";
+        position: absolute;
+        left: 0; right: 0;
+        height: 34px;
+        background:
+          linear-gradient(#e2c396, #b08a52) 0 9px / 100% 6px repeat-x,
+          linear-gradient(#e2c396, #b08a52) 0 21px / 100% 6px repeat-x,
+          repeating-linear-gradient(90deg, #edd3a8 0 11px, transparent 11px 34px);
+        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
+      }
+
+      .field .fence::before { top: 0; }
+      .field .fence::after { bottom: 0; transform: scaleY(-1); }
+
+      .field .rails {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 4;
+        background:
+          linear-gradient(90deg, #c79a63 0 13px, transparent 13px),
+          linear-gradient(270deg, #c79a63 0 13px, transparent 13px);
+        box-shadow: inset 13px 0 0 -10px #7a5228, inset -13px 0 0 -10px #7a5228;
+      }
+
+      .plots {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
+        gap: 13px;
+      }
+
+      .plot {
+        position: relative;
+        aspect-ratio: 1;
+        padding: 0;
+        border: 0;
+        border-radius: 14px;
+        background: transparent;
+        filter: drop-shadow(0 6px 4px rgba(20, 50, 15, 0.4));
+        overflow: visible;
+        transition: transform 0.1s ease;
+      }
+
+      .plot > svg.bed { position: absolute; inset: 0; width: 100%; height: 100%; }
+      .plot:hover { transform: translateY(-3px) scale(1.02); }
+      .plot:active { transform: translateY(2px) scale(0.99); }
+
+      .plot.locked {
+        border-color: #3e6b2c;
+        background:
+          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='14'%3E%3Cpath d='M2 14 Q4 6 6 14 M12 14 Q15 3 17 14 M23 14 Q25 6 28 14' fill='none' stroke='%23ffffff' stroke-opacity='.3' stroke-width='2'/%3E%3C/svg%3E"),
+          linear-gradient(180deg, #79bd5c, #4f9640);
+        box-shadow: inset 0 0 16px rgba(20, 60, 15, 0.35);
+        color: #143d0c;
+      }
+
+      .plot.locked .lock {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        text-transform: uppercase;
+        font-size: 13px;
+        line-height: 1.1;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.45);
+      }
+
+      .plot.locked .lock svg { width: 26px; height: 26px; }
+
+      .plot.ready { animation: readyPulse 1.7s ease-in-out infinite; }
+
+      @keyframes readyPulse {
+        0%, 100% { filter: drop-shadow(0 6px 4px rgba(20, 50, 15, 0.4)) drop-shadow(0 0 6px rgba(255, 212, 94, 0.75)); }
+        50% { filter: drop-shadow(0 6px 4px rgba(20, 50, 15, 0.4)) drop-shadow(0 0 18px rgba(255, 226, 143, 1)); }
+      }
+
+      .plot > svg.crop { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+      /* the plant is nested: .grow scales smoothly between drawn stages,
+         .plant does the idle sway so the two transforms never fight */
+      .grow {
+        transform-box: view-box;
+        transform-origin: 50% 88%;
+        transition: transform 0.25s linear;
+        animation: stageIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+      }
+
+      .plant {
+        transform-box: view-box;
+        transform-origin: 50% 90%;
+        animation: sway 3.6s ease-in-out infinite;
+      }
+
+      .plot:nth-child(3n) .plant { animation-duration: 4.4s; animation-delay: -1.2s; }
+      .plot:nth-child(3n + 1) .plant { animation-duration: 3.1s; animation-delay: -0.6s; }
+      .plot.ready .plant { animation: readyBob 1.5s ease-in-out infinite; }
+
+      @keyframes sway {
+        0%, 100% { transform: rotate(-1.7deg); }
+        50% { transform: rotate(1.7deg); }
+      }
+
+      @keyframes stageIn {
+        0% { transform: scale(0.82) translateY(3px); }
+        60% { transform: scale(1.05) translateY(-1px); }
+        100% { transform: scale(1) translateY(0); }
+      }
+
+      @keyframes readyBob {
+        0%, 100% { transform: translateY(0) rotate(-1deg); }
+        50% { transform: translateY(-3px) rotate(1deg); }
+      }
+
+      /* watering splash */
+      .splash {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .splash i {
+        position: absolute;
+        top: -12%;
+        width: 7px;
+        height: 11px;
+        border-radius: 50% 50% 60% 60%;
+        background: #6fc0f0;
+        box-shadow: 0 0 0 1px rgba(20, 60, 90, 0.35);
+        animation: fall 0.62s ease-in forwards;
+      }
+
+      .splash u {
+        position: absolute;
+        bottom: 18%;
+        width: 22px;
+        height: 9px;
+        margin-left: -11px;
+        border: 2px solid rgba(150, 220, 255, 0.95);
+        border-radius: 50%;
+        opacity: 0;
+        animation: ripple 0.6s ease-out forwards;
+      }
+
+      @keyframes ripple {
+        0% { transform: scale(0.2); opacity: 0; }
+        30% { opacity: 0.95; }
+        100% { transform: scale(1.9); opacity: 0; }
+      }
+
+      @keyframes fall {
+        0% { transform: translateY(0) scaleY(0.8); opacity: 0; }
+        20% { opacity: 1; }
+        75% { transform: translateY(78px) scaleY(1.25); opacity: 1; }
+        100% { transform: translateY(84px) scaleY(0.3) scaleX(1.9); opacity: 0; }
+      }
+
+      /* seed dropping into a freshly planted bed */
+      .seedfall {
+        position: absolute;
+        left: 50%;
+        top: 6%;
+        width: 10px;
+        height: 8px;
+        margin-left: -5px;
+        border-radius: 50%;
+        background: #c8a870;
+        box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.25);
+        animation: seedDrop 0.5s ease-in forwards;
+        pointer-events: none;
+      }
+
+      @keyframes seedDrop {
+        0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+        15% { opacity: 1; }
+        80% { transform: translateY(56px) rotate(220deg); opacity: 1; }
+        100% { transform: translateY(60px) scale(0.5, 0.3); opacity: 0; }
+      }
+
+      /* produce flying out of a harvested bed */
+      .flyer {
+        position: fixed;
+        z-index: 60;
+        width: 54px;
+        height: 54px;
+        margin: -27px 0 0 -27px;
+        pointer-events: none;
+        animation: flyOut 0.85s cubic-bezier(0.22, 0.7, 0.3, 1) forwards;
+      }
+
+      .flyer svg { width: 100%; height: 100%; }
+
+      @keyframes flyOut {
+        0% { transform: translate(0, 0) scale(0.5) rotate(-12deg); opacity: 0; }
+        25% { transform: translate(0, -34px) scale(1.15) rotate(6deg); opacity: 1; }
+        100% { transform: translate(14px, -74px) scale(0.55) rotate(16deg); opacity: 0; }
+      }
+
+      .plot .wet {
+        position: absolute;
+        left: 9%; right: 9%; bottom: 14%;
+        height: 42%;
+        border-radius: 0 0 10px 10px;
+        background: linear-gradient(180deg, rgba(30, 70, 110, 0), rgba(24, 60, 96, 0.62));
+        opacity: 0;
+        transition: opacity 0.4s ease;
+        pointer-events: none;
+      }
+
+      .plot .meter {
+        position: absolute;
+        left: 14%; right: 14%; bottom: 4%;
+        height: 8px;
+        border: 2px solid rgba(0, 0, 0, 0.5);
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.35);
+        overflow: hidden;
+      }
+
+      .plot .meter i { display: block; height: 100%; background: #7ad06a; transition: width 0.25s linear; }
+
+      .plot .drop {
+        position: absolute;
+        right: 8px; bottom: 20px;
+        width: 17px; height: 17px;
+      }
+
+      .plot .badge {
+        position: absolute;
+        top: 6px; right: 6px;
+        padding: 2px 7px;
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        background: #fff;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 13px;
+        text-transform: uppercase;
+      }
+
+      .plot .badge.weeds { background: #6fae4b; color: #fff; border-color: #2f4f1c; }
+      .plot .badge.fert { background: var(--gold); color: #fff; }
+      .plot .badge.dead { background: #7a6a5c; color: #fff; }
+      .plot .badge.dry { background: var(--red); color: #fff; animation: dryBlink 1s steps(2, end) infinite; }
+
+      @keyframes dryBlink { 50% { opacity: 0.4; } }
+
+      .plot .label {
+        position: absolute;
+        top: 6px; left: 9px;
+        text-align: left;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 15px;
+        text-transform: uppercase;
+        color: #fff;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.5);
+        pointer-events: none;
+      }
+
+      .plot .label.empty { top: 44%; left: 0; right: 0; text-align: center; opacity: 0.75; }
+
+      /* farmyard strip under the plots */
+      .yard {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 3px dashed rgba(255, 255, 255, 0.55);
+        filter: drop-shadow(0 4px 3px rgba(20, 50, 15, 0.35));
+      }
+
+      .yard .prop { width: 100px; height: 100px; }
+      .yard .prop.wide { width: 132px; }
+      .yard .prop.barn-prop { width: 124px; height: 124px; }
+
+      /* ================= lists ================= */
+      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 12px; }
+
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border: 4px solid #6b4526;
+        border-radius: 14px;
+        color: #4a3320;
+        background: linear-gradient(180deg, #fdf3dc, #ecd9b0);
+        box-shadow: 0 5px 0 #4e3018;
+      }
+
+      .row .icon {
+        flex: 0 0 68px;
+        width: 68px; height: 68px;
+        border: 3px solid #5e3c22;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #fffaf0, #ecdcbb);
+        box-shadow: inset 0 -4px 8px rgba(120, 78, 38, 0.18);
+        display: grid;
+        place-items: center;
+        overflow: hidden;
+      }
+
+      .row .icon svg { width: 100%; height: 100%; }
+      .row .body { flex: 1 1 auto; min-width: 0; }
+      .row .body b { display: block; font-size: 17px; color: #5e3c22; }
+      .row .body small { display: block; font-size: 12px; color: #86663f; line-height: 1.4; }
+
+      .locked-row { opacity: 0.55; }
+
+      .trend { font-size: 11px; font-weight: bold; }
+      .trend.up { color: var(--green); }
+      .trend.down { color: var(--red); }
+
+      .toolbar-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+
+      .ghost {
+        min-height: 48px;
+        padding: 0 18px;
+        border: 4px solid #4e3018;
+        border-radius: 12px;
+        color: #4a3320;
+        background: linear-gradient(180deg, #f4dfb4, #dfc189);
+        box-shadow: 0 5px 0 #4e3018;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 19px;
+        text-transform: uppercase;
+      }
+
+      .ghost:active { transform: translateY(3px); box-shadow: 0 1px 0 #4e3018; }
+      .ghost.danger { color: #7c231d; box-shadow: 0 5px 0 #7c231d; }
+
+      /* ================= store ================= */
+      .shopfront {
+        position: relative;
+        margin: -14px -14px 16px;
+        padding: 0 0 16px;
+        border-radius: 14px 14px 0 0;
+        background: linear-gradient(180deg, #8a5f2c, #6b4a2f);
+        overflow: visible;
+      }
+
+      .awning {
+        position: relative;
+        height: 34px;
+        border-radius: 14px 14px 0 0;
+        background: repeating-linear-gradient(90deg, #c94f3a 0 24px, #f5eeda 24px 48px);
+        box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.18);
+      }
+
+      .awning::after {
+        content: "";
+        position: absolute;
+        left: 0; right: 0; bottom: -12px;
+        height: 13px;
+        background: repeating-linear-gradient(90deg, #c94f3a 0 24px, #f5eeda 24px 48px);
+        -webkit-mask-image: radial-gradient(circle 12px at 12px 0, transparent 0 12px, #000 12.5px);
+        mask-image: radial-gradient(circle 12px at 12px 0, transparent 0 12px, #000 12.5px);
+        -webkit-mask-size: 24px 13px;
+        mask-size: 24px 13px;
+        -webkit-mask-repeat: repeat-x;
+        mask-repeat: repeat-x;
+      }
+
+      .shop-sign {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        margin: 22px 14px 0;
+        padding: 8px 14px;
+        border: 3px solid #3f2a17;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #f5eeda, #e2cfa5);
+        box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25);
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 21px;
+        text-transform: uppercase;
+        color: #3f2a17;
+      }
+
+      .shop-sign svg { width: 28px; height: 28px; }
+      .shop-sign span { font-size: 12px; font-family: Arial, sans-serif; text-transform: none; color: #6b4a2f; }
+
+      .shelf {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(216px, 1fr));
+        gap: 14px;
+      }
+
+      .shelf-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 12px 12px 26px;
+        border: 4px solid #3f2a17;
+        border-radius: 12px;
+        background:
+          radial-gradient(circle at 12px 12px, rgba(0, 0, 0, 0.07) 0 2px, transparent 2.5px) 0 0 / 24px 24px,
+          linear-gradient(180deg, #fbf5e6, #efe3c8);
+        box-shadow: 0 6px 0 rgba(63, 42, 23, 0.35);
+      }
+
+      /* the plank each item stands on */
+      .shelf-card::after {
+        content: "";
+        position: absolute;
+        left: -4px; right: -4px; bottom: -4px;
+        height: 16px;
+        border: 3px solid #4e3018;
+        border-radius: 0 0 8px 8px;
+        background: linear-gradient(180deg, #c79a63, #8a5f2c);
+        box-shadow: inset 0 2px 0 rgba(255, 255, 255, 0.25);
+      }
+
+      .shelf-card .peg {
+        position: absolute;
+        top: 6px; left: 50%;
+        width: 26px; height: 5px;
+        margin-left: -13px;
+        border-radius: 3px;
+        background: #b9a276;
+        box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.25);
+      }
+
+      .shelf-card .art {
+        width: 112px;
+        height: 112px;
+        margin: 12px auto 6px;
+        filter: drop-shadow(0 5px 4px rgba(0, 0, 0, 0.22));
+        transition: transform 0.16s ease;
+      }
+
+      .shelf-card:hover .art { transform: translateY(-4px) scale(1.05) rotate(-2deg); }
+      .shelf-card .art svg { width: 100%; height: 100%; }
+      .shelf-card b { font-size: 17px; text-align: center; }
+      .shelf-card .meta { margin-top: 3px; font-size: 12.5px; color: #6b5a3c; text-align: center; line-height: 1.45; }
+
+      .shelf-card .buys { display: flex; gap: 6px; margin-top: auto; padding-top: 10px; }
+      .shelf-card .buys .buy { flex: 1 1 0; justify-content: center; }
+
+      .shelf-card.locked {
+        filter: grayscale(0.75);
+      }
+
+      .shelf-card.locked::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 9px;
+        background: rgba(60, 50, 35, 0.16);
+      }
+
+      .lock-tag {
+        position: absolute;
+        z-index: 2;
+        top: 8px; right: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 3px 8px;
+        border: 2px solid #3f2a17;
+        border-radius: 999px;
+        background: #e2cfa5;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .lock-tag svg { width: 14px; height: 14px; }
+
+      .own-pill {
+        align-self: center;
+        margin-top: 6px;
+        padding: 2px 9px;
+        border-radius: 999px;
+        background: #dfeed6;
+        border: 1px solid #7aa96a;
+        font-size: 11px;
+        font-weight: bold;
+        color: #2f6b26;
+      }
+
+      .buy {
+        display: inline-flex;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 48px;
+        padding: 0 16px;
+        border: 4px solid #4e3018;
+        border-radius: 12px;
+        color: #3f2a17;
+        background: linear-gradient(180deg, #ffd76a, #e9a72c);
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 22px;
+        text-transform: uppercase;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+        box-shadow: 0 5px 0 #8a5f10;
+        transition: transform 0.07s ease, box-shadow 0.07s ease, filter 0.12s ease;
+      }
+
+      .buy:hover { filter: brightness(1.07); transform: translateY(-2px); box-shadow: 0 7px 0 #8a5f10; }
+      .buy svg { width: 22px; height: 22px; flex: 0 0 22px; }
+
+      .buy.sell {
+        color: #17330f;
+        background: linear-gradient(180deg, #a8e06a, #5fae3c);
+        box-shadow: 0 5px 0 #2f6b1e;
+      }
+
+      .buy.sell:hover { box-shadow: 0 7px 0 #2f6b1e; }
+      .buy:disabled { background: linear-gradient(180deg, #ded6c4, #bdb3a0); box-shadow: 0 5px 0 #8a8272; color: #6b6355; }
+      .buy.wide { width: 100%; justify-content: center; margin-top: auto; }
+      .shelf-card .buy.wide, .stall .buy.wide { margin-top: 10px; }
+      .shelf-card .buy.wide { margin-top: auto; }
+      .buy:active { transform: translateY(3px); box-shadow: 0 1px 0 #8a5f10; }
+
+      /* ================= market ================= */
+      .board {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 8px 0 18px;
+        padding: 16px 20px;
+        border: 5px solid #6b4526;
+        border-radius: 14px;
+        background:
+          radial-gradient(circle at 20% 30%, rgba(255, 255, 255, 0.07) 0 40%, transparent 60%),
+          linear-gradient(180deg, #3b4a41, #2c3831);
+        color: #eef3ea;
+        box-shadow: 0 8px 0 #4e3018, inset 0 0 22px rgba(0, 0, 0, 0.45);
+      }
+
+      /* bunting strung over the market board */
+      .board::before {
+        content: "";
+        position: absolute;
+        left: -5px; right: -5px; top: -22px;
+        height: 22px;
+        background:
+          repeating-linear-gradient(90deg, #e0384c 0 26px, #f5c518 26px 52px, #4fae4f 52px 78px, #3f7fd0 78px 104px);
+        -webkit-mask-image: radial-gradient(circle 13px at 13px 22px, #000 0 13px, transparent 13.5px);
+        mask-image: radial-gradient(circle 13px at 13px 22px, #000 0 13px, transparent 13.5px);
+        -webkit-mask-size: 26px 22px;
+        mask-size: 26px 22px;
+        -webkit-mask-repeat: repeat-x;
+        mask-repeat: repeat-x;
+      }
+
+      .board h3 {
+        margin: 0;
+        font-size: 30px;
+        letter-spacing: 0.04em;
+        color: #fdf6e3;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+      }
+
+      .board .total {
+        margin-left: auto;
+        text-align: right;
+        line-height: 1.15;
+      }
+
+      .board .total span { display: block; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+      .board .total strong { font-family: "Arial Narrow", Impact, sans-serif; font-size: 32px; color: #ffd76a; }
+
+      .stalls {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(228px, 1fr));
+        gap: 14px;
+      }
+
+      .stall {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        padding: 46px 12px 12px;
+        border: 4px solid #5e3c22;
+        border-radius: 14px;
+        background:
+          repeating-linear-gradient(90deg, rgba(120, 78, 38, 0.07) 0 3px, transparent 3px 26px),
+          linear-gradient(180deg, #fdf3dc 0 62%, #e6cfa4);
+        box-shadow: 0 7px 0 #4e3018, inset 0 0 0 3px #d8b788;
+        overflow: hidden;
+      }
+
+      /* each stall gets its own striped awning */
+      .stall::before {
+        content: "";
+        position: absolute;
+        left: -2px; right: -2px; top: 0;
+        height: 30px;
+        background: repeating-linear-gradient(90deg, #c94f3a 0 20px, #f8ecd0 20px 40px);
+        box-shadow: inset 0 -6px 10px rgba(0, 0, 0, 0.2);
+      }
+
+      .stall::after {
+        content: "";
+        position: absolute;
+        left: -2px; right: -2px; top: 30px;
+        height: 11px;
+        background: repeating-linear-gradient(90deg, #c94f3a 0 20px, #f8ecd0 20px 40px);
+        -webkit-mask-image: radial-gradient(circle 10px at 10px 0, transparent 0 10px, #000 10.5px);
+        mask-image: radial-gradient(circle 10px at 10px 0, transparent 0 10px, #000 10.5px);
+        -webkit-mask-size: 20px 11px;
+        mask-size: 20px 11px;
+        -webkit-mask-repeat: repeat-x;
+        mask-repeat: repeat-x;
+      }
+
+      .stall.empty-stock { opacity: 0.66; }
+
+      /* the chalk price panel */
+      .stall .slate {
+        margin: 6px -2px 0;
+        padding: 7px 8px 9px;
+        border: 3px solid #3f2a17;
+        border-radius: 10px;
+        background: linear-gradient(180deg, #3f4a41, #2b342e);
+        box-shadow: inset 0 0 14px rgba(0, 0, 0, 0.5);
+      }
+
+      .stall .slate .name { color: #fdf3dc; margin-top: 0; }
+      .stall .slate .priceline b { color: #ffe08a; }
+      .stall .slate .stock { color: #cbd6c6; }
+      .stall .slate .pill { background: rgba(255, 255, 255, 0.14); border-color: rgba(255, 255, 255, 0.3); color: #e8f0e4; }
+      .stall .slate .pill.up { background: rgba(126, 214, 118, 0.22); border-color: #7ed676; color: #b6f0ad; }
+      .stall .slate .pill.down { background: rgba(238, 124, 112, 0.2); border-color: #ee7c70; color: #ffbdb5; }
+
+      .stall .crate { width: 126px; height: 126px; margin: 0 auto; transition: transform 0.16s ease; }
+      .stall .crate svg { width: 100%; height: 100%; }
+      .stall:hover .crate { transform: translateY(-4px) scale(1.04); }
+
+      .stall .name {
+        margin-top: 3px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 22px;
+        text-transform: uppercase;
+        text-align: center;
+      }
+
+      .stall .priceline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        margin-top: 3px;
+      }
+
+      .stall .priceline b { font-family: "Arial Narrow", Impact, sans-serif; font-size: 27px; color: var(--gold); }
+
+      .pill {
+        padding: 1px 7px;
+        border-radius: 999px;
+        border: 1px solid #b8b3a5;
+        background: #f0eee4;
+        font-size: 11px;
+        font-weight: bold;
+        color: #6d6d6d;
+      }
+
+      .pill.up { background: #e2f4de; border-color: #7aa96a; color: #2f6b26; }
+      .pill.down { background: #fbe4e1; border-color: #d09189; color: #a5302a; }
+
+      .spark { display: block; width: 100%; height: 26px; margin: 6px 0 2px; }
+
+      .stall .stock {
+        text-align: center;
+        font-size: 11px;
+        color: #5c5c5c;
+      }
+
+      .hot-ribbon {
+        position: absolute;
+        top: -3px; right: -3px;
+        padding: 3px 9px;
+        border: 2px solid #7c231d;
+        border-radius: 0 10px 0 10px;
+        background: var(--red);
+        color: #fff;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 12px;
+        text-transform: uppercase;
+        animation: hotGlow 1.6s ease-in-out infinite;
+      }
+
+      @keyframes hotGlow {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(176, 52, 44, 0.5); }
+        50% { box-shadow: 0 0 0 6px rgba(176, 52, 44, 0); }
+      }
+
+      /* ================= effects ================= */
+      .fx {
+        position: fixed;
+        inset: 0;
+        z-index: 55;
+        pointer-events: none;
+        overflow: hidden;
+      }
+
+      .particle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        margin: -6px 0 0 -6px;
+        border-radius: 50%;
+        will-change: transform, opacity;
+      }
+
+      .particle.star {
+        border-radius: 0;
+        clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+      }
+
+      .particle.bit { border-radius: 3px; }
+
+      /* golden crops */
+      .plot.golden {
+        box-shadow: inset 0 0 0 4px #ffd76a, inset 0 -8px 12px rgba(0, 0, 0, 0.3), 0 0 22px rgba(255, 200, 60, 0.55);
+      }
+
+      .plot.golden svg.crop {
+        filter: drop-shadow(0 0 5px rgba(255, 214, 90, 0.95)) saturate(1.35) brightness(1.12);
+        animation: shimmer 2.4s ease-in-out infinite;
+      }
+
+      @keyframes shimmer {
+        0%, 100% { filter: drop-shadow(0 0 4px rgba(255, 214, 90, 0.8)) saturate(1.3) brightness(1.08); }
+        50% { filter: drop-shadow(0 0 12px rgba(255, 226, 130, 1)) saturate(1.6) brightness(1.25); }
+      }
+
+      .plot .badge.gold {
+        background: linear-gradient(180deg, #ffd76a, #e0a81c);
+        color: #4a3320;
+        border-color: #8a6110;
+      }
+
+      /* level-up + big event banner */
+      .banner {
+        position: fixed;
+        left: 50%;
+        top: 22%;
+        z-index: 58;
+        transform: translate(-50%, 0);
+        padding: 14px 30px;
+        border: 4px solid var(--ink);
+        border-radius: 18px;
+        background: linear-gradient(180deg, #fff6d8, #ffd76a);
+        box-shadow: 0 10px 0 rgba(0, 0, 0, 0.18), 0 0 40px rgba(255, 205, 80, 0.7);
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(26px, 5vw, 44px);
+        text-transform: uppercase;
+        color: #6b4a2f;
+        text-align: center;
+        pointer-events: none;
+        animation: bannerIn 1.9s ease-out forwards;
+      }
+
+      .banner small { display: block; font-family: Arial, sans-serif; font-size: 14px; text-transform: none; color: #7a5c2a; }
+
+      @keyframes bannerIn {
+        0% { opacity: 0; transform: translate(-50%, 26px) scale(0.7); }
+        14% { opacity: 1; transform: translate(-50%, 0) scale(1.08); }
+        24% { transform: translate(-50%, 0) scale(1); }
+        78% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -30px) scale(0.95); }
+      }
+
+      /* level-up notification card */
+      .levelup {
+        position: fixed;
+        left: 50%;
+        top: 16%;
+        z-index: 59;
+        width: min(430px, calc(100% - 32px));
+        padding: 20px 22px 22px;
+        border: 5px solid #6b4526;
+        border-radius: 22px;
+        background:
+          repeating-linear-gradient(90deg, rgba(120, 78, 38, 0.07) 0 3px, transparent 3px 24px),
+          linear-gradient(180deg, #fff7e2, #f3dfb2);
+        box-shadow: 0 12px 0 #4e3018, 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 0 0 4px #ffd76a;
+        text-align: center;
+        pointer-events: none;
+        animation: levelIn 3.6s cubic-bezier(0.2, 1.4, 0.4, 1) forwards;
+      }
+
+      .levelup .ribbon {
+        display: inline-block;
+        margin: -34px 0 8px;
+        padding: 5px 20px;
+        border: 4px solid #8a5f10;
+        border-radius: 999px;
+        background: linear-gradient(180deg, #ffd76a, #e9a72c);
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 17px;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: #4a3320;
+      }
+
+      .levelup h4 {
+        margin: 0;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: clamp(34px, 7vw, 52px);
+        line-height: 1;
+        text-transform: uppercase;
+        color: #7a3d18;
+        text-shadow: 0 3px 0 rgba(255, 255, 255, 0.7);
+      }
+
+      .levelup .unlocks {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+      }
+
+      .levelup .unlock {
+        width: 96px;
+        padding: 8px 6px 10px;
+        border: 4px solid #6b4526;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ffffff, #f0e3c4);
+        box-shadow: 0 5px 0 #4e3018;
+        animation: unlockPop 0.5s cubic-bezier(0.34, 1.7, 0.5, 1) backwards;
+      }
+
+      .levelup .unlock:nth-child(2) { animation-delay: 0.12s; }
+      .levelup .unlock:nth-child(3) { animation-delay: 0.24s; }
+      .levelup .unlock svg { width: 62px; height: 62px; }
+      .levelup .unlock b { display: block; font-size: 13px; color: #5e3c22; }
+      .levelup .unlock small { display: block; font-size: 11px; color: #8a6535; }
+      .levelup .none { margin: 12px 0 0; font-size: 14px; color: #7a5f3c; }
+
+      @keyframes levelIn {
+        0% { opacity: 0; transform: translate(-50%, 40px) scale(0.7); }
+        10% { opacity: 1; transform: translate(-50%, 0) scale(1.05); }
+        16% { transform: translate(-50%, 0) scale(1); }
+        88% { opacity: 1; transform: translate(-50%, 0) scale(1); }
+        100% { opacity: 0; transform: translate(-50%, -26px) scale(0.96); }
+      }
+
+      @keyframes unlockPop {
+        from { opacity: 0; transform: scale(0.5) rotate(-8deg); }
+        to { opacity: 1; transform: scale(1) rotate(0deg); }
+      }
+
+      /* harvest streak counter */
+      .streak {
+        position: fixed;
+        right: 18px;
+        top: 50%;
+        z-index: 56;
+        padding: 10px 16px;
+        border: 4px solid #7c231d;
+        border-radius: 14px;
+        background: linear-gradient(180deg, #ff8a5c, #d94427);
+        color: #fff;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 30px;
+        text-transform: uppercase;
+        text-shadow: 0 2px 0 rgba(0, 0, 0, 0.3);
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.2);
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+      }
+
+      .streak.on { opacity: 1; animation: streakPop 0.35s ease-out; }
+      .streak small { display: block; font-family: Arial, sans-serif; font-size: 11px; letter-spacing: 0.1em; }
+
+      @keyframes streakPop {
+        0% { transform: scale(0.7) rotate(-6deg); }
+        60% { transform: scale(1.18) rotate(3deg); }
+        100% { transform: scale(1) rotate(0deg); }
+      }
+
+      /* lightning + rainbow */
+      .flash {
+        position: fixed;
+        inset: 0;
+        z-index: 54;
+        background: #ffffff;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .flash.strike { animation: strike 0.6s ease-out; }
+
+      @keyframes strike {
+        0% { opacity: 0; }
+        6% { opacity: 0.85; }
+        14% { opacity: 0.1; }
+        22% { opacity: 0.7; }
+        100% { opacity: 0; }
+      }
+
+      .rainbow {
+        position: absolute;
+        left: 50%;
+        top: 6%;
+        width: 120vw;
+        height: 60vw;
+        margin-left: -60vw;
+        border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+        border: 22px solid;
+        border-image: linear-gradient(90deg, #e0384c, #ef8b2c, #f5d13c, #4fae4f, #3f7fd0, #7a4fb0) 1;
+        border-bottom: 0;
+        opacity: 0;
+        transition: opacity 2.5s ease;
+        pointer-events: none;
+        filter: blur(1px);
+      }
+
+      .rainbow.show { opacity: 0.4; }
+
+      .blades {
+        transform-box: fill-box;
+        transform-origin: 50% 50%;
+        animation: spin 9s linear infinite;
+      }
+
+      @keyframes spin { to { transform: rotate(360deg); } }
+
+      /* field critters */
+      .critter {
+        position: absolute;
+        width: 34px;
+        height: 34px;
+        pointer-events: none;
+        animation: flit linear infinite;
+        z-index: 3;
+      }
+
+      .critter svg { width: 100%; height: 100%; }
+
+      /* hens patrolling the yard: they walk, stop, peck at the dirt, turn round */
+      .hen {
+        position: absolute;
+        left: 4%;
+        width: 52px;
+        height: 52px;
+        z-index: 3;
+        pointer-events: none;
+        animation: patrol 26s linear infinite;
+        filter: drop-shadow(0 3px 2px rgba(20, 50, 15, 0.35));
+      }
+
+      .hen svg { width: 100%; height: 100%; overflow: visible; }
+
+      @keyframes patrol {
+        0%   { left: 4%;  transform: scaleX(1); }
+        34%  { left: 72%; transform: scaleX(1); }
+        44%  { left: 72%; transform: scaleX(1); }
+        47%  { left: 72%; transform: scaleX(-1); }
+        84%  { left: 4%;  transform: scaleX(-1); }
+        96%  { left: 4%;  transform: scaleX(-1); }
+        100% { left: 4%;  transform: scaleX(1); }
+      }
+
+      /* body rocks with each step */
+      .hen-body {
+        transform-box: view-box;
+        transform-origin: 50% 80%;
+        animation: henBob var(--step, 0.58s) ease-in-out infinite alternate;
+      }
+
+      @keyframes henBob {
+        from { transform: translateY(0) rotate(-1.5deg); }
+        to { transform: translateY(-2px) rotate(1.5deg); }
+      }
+
+      /* legs stride out of phase with each other */
+      .hen .leg { transform-box: view-box; animation: stride var(--step, 0.58s) ease-in-out infinite alternate; }
+      .hen .leg-a { transform-origin: 44% 76%; }
+      .hen .leg-b { transform-origin: 57% 76%; animation-delay: calc(var(--step, 0.58s) / -2); }
+
+      @keyframes stride {
+        from { transform: rotate(-15deg); }
+        to { transform: rotate(15deg); }
+      }
+
+      /* head dips to peck, but only while the hen has stopped walking */
+      .hen-head {
+        transform-box: view-box;
+        transform-origin: 58% 62%;
+        animation: henPeck 26s linear infinite;
+      }
+
+      @keyframes henPeck {
+        0%, 33% { transform: rotate(0deg); }
+        36% { transform: rotate(24deg); }
+        38.5% { transform: rotate(6deg); }
+        41% { transform: rotate(24deg); }
+        43.5% { transform: rotate(4deg); }
+        46%, 85% { transform: rotate(0deg); }
+        88% { transform: rotate(24deg); }
+        90.5% { transform: rotate(5deg); }
+        93% { transform: rotate(22deg); }
+        95.5%, 100% { transform: rotate(0deg); }
+      }
+
+      /* the odd wing flutter on the turn */
+      .hen-wing {
+        transform-box: fill-box;
+        transform-origin: 20% 50%;
+        animation: henFlutter 26s linear infinite;
+      }
+
+      @keyframes henFlutter {
+        0%, 45% { transform: rotate(0deg) scaleY(1); }
+        47% { transform: rotate(-22deg) scaleY(0.8); }
+        49% { transform: rotate(4deg) scaleY(1.05); }
+        51% { transform: rotate(-16deg) scaleY(0.85); }
+        53%, 97% { transform: rotate(0deg) scaleY(1); }
+        98.5% { transform: rotate(-18deg) scaleY(0.85); }
+        100% { transform: rotate(0deg) scaleY(1); }
+      }
+      .critter .wing { animation: flap 0.22s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: 90% 50%; }
+
+      @keyframes flap {
+        from { transform: rotateY(0deg) scaleX(1); }
+        to { transform: rotateY(0deg) scaleX(0.35); }
+      }
+
+      @keyframes flit {
+        0% { transform: translate(-10%, 30px) rotate(-6deg); }
+        25% { transform: translate(30vw, -14px) rotate(5deg); }
+        50% { transform: translate(58vw, 34px) rotate(-4deg); }
+        75% { transform: translate(84vw, -8px) rotate(6deg); }
+        100% { transform: translate(112vw, 22px) rotate(-3deg); }
+      }
+
+      /* ================= toasts ================= */
+      .toasts {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: column-reverse;
+        gap: 6px;
+        z-index: 50;
+        width: min(420px, calc(100% - 24px));
+        pointer-events: none;
+      }
+
+      .toast {
+        padding: 9px 13px;
+        border: 2px solid var(--ink);
+        border-radius: 10px;
+        background: var(--ink);
+        color: #fff;
+        font-size: 13px;
+        font-weight: bold;
+        box-shadow: 0 6px 0 rgba(0, 0, 0, 0.15);
+        animation: pop 0.22s ease;
+      }
+
+      .toast.good { background: var(--green); border-color: #1e5322; }
+      .toast.bad { background: var(--red); border-color: #7c231d; }
+      .toast.cash { background: var(--gold); border-color: #8a6110; }
+
+      @keyframes pop {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: none; }
+      }
+
+      .float {
+        position: fixed;
+        z-index: 60;
+        pointer-events: none;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 20px;
+        color: #1f6b26;
+        text-shadow: 0 2px 0 #fff, 0 0 6px rgba(0, 0, 0, 0.2);
+        animation: rise 0.9s ease-out forwards;
+      }
+
+      @keyframes rise { to { opacity: 0; transform: translate(-50%, -46px); } }
+
+      .empty-note { padding: 18px; text-align: center; color: #6d6d6d; font-size: 13px; }
+
+      footer.legal {
+        margin-top: 18px;
+        text-align: center;
+        font-size: 12px;
+        color: #2f4a29;
+        text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+      }
+
+      @media (max-width: 560px) {
+        .stat { min-width: 88px; padding: 7px 11px; }
+        .stat strong { font-size: 22px; }
+        .play-area { grid-template-columns: 1fr; }
+        .seeds-side .seedbelt { flex-direction: row; overflow-x: auto; }
+        .seeds-side .seed-chip { min-width: 132px; width: auto; }
+        .tools-side .rail { flex-direction: row; flex-wrap: wrap; }
+        .tools-side .tool { width: auto; flex: 1 1 46%; }
+        .plots { grid-template-columns: repeat(auto-fill, minmax(114px, 1fr)); gap: 10px; }
+        .field { padding: 116px 12px 16px; }
+        .scene { height: 106px; }
+        .field::after { top: 88px; height: 18px; }
+        .field .fence::before, .field .fence::after { height: 26px; }
+        .card { padding: 14px; }
+        .title-block { transform: none; padding: 12px 18px 14px; }
+        .tab { font-size: 21px; min-height: 54px; }
+        .streak { right: 10px; font-size: 24px; padding: 8px 12px; }
+        .yard .prop { width: 78px; height: 78px; }
+        .yard .prop.barn-prop { width: 96px; height: 96px; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .plant, .plot.ready .plant, .critter, .critter .wing, .plot.golden svg.crop { animation: none; }
+        .flash.strike { animation-duration: 0.01s; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="world" id="world">
+      <div class="sun" id="sun"></div>
+      <svg class="hills" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M0 200 L0 120 Q150 40 320 105 Q470 165 620 95 Q780 20 950 100 Q1080 160 1200 110 L1200 200 Z" fill="#7fb85f" opacity="0.85" />
+        <path d="M0 200 L0 150 Q180 95 360 145 Q540 195 720 140 Q900 85 1080 145 L1200 165 L1200 200 Z" fill="#69a94d" />
+      </svg>
+      <div class="field-far"></div>
+      <div class="rain"></div>
+      <div class="rainbow" id="rainbow"></div>
+    </div>
+
+    <div class="flash" id="flash"></div>
+    <div class="fx" id="fx"></div>
+    <div class="streak" id="streak" aria-hidden="true"></div>
+
+    <div class="page">
+      <div class="topbar">
+        <div class="title-block">
+          <h1>Flashback Farm</h1>
+          <p>Buy seeds at the store, grow them on the farm, sell the harvest at market.</p>
+        </div>
+        <div class="hud">
+          <div class="stat coins"><span>Coins</span><strong id="hud-coins">0</strong></div>
+          <div class="stat"><span>Day</span><strong id="hud-day">1</strong></div>
+          <div class="stat level">
+            <span>Level</span><strong id="hud-level">1</strong>
+            <div class="xpbar"><i id="hud-xp"></i></div>
+          </div>
+          <button class="mute" id="mute" aria-pressed="false" aria-label="Toggle sound"></button>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-farm" aria-selected="true" data-panel="farm">Farm</button>
+        <button class="tab" role="tab" id="tab-store" aria-selected="false" data-panel="store">Store</button>
+        <button class="tab" role="tab" id="tab-market" aria-selected="false" data-panel="market">Market</button>
+      </div>
+
+      <!-- ============ FARM ============ -->
+      <section class="panel active" id="panel-farm" role="tabpanel" aria-labelledby="tab-farm">
+        <div class="card">
+          <div class="weather-strip">
+            <span class="wicon" id="weather-icon"></span>
+            <span id="weather-text">Clear skies</span>
+            <span class="clockwrap">
+              <span class="daybar"><i id="daybar-fill"></i></span>
+              <span id="clock-text">Morning</span>
+            </span>
+          </div>
+
+          <div class="play-area">
+            <aside class="side seeds-side">
+              <h3 class="side-title">Seeds</h3>
+              <div class="seedbelt" id="seedbelt"></div>
+            </aside>
+
+            <div class="field">
+              <div class="scene" id="scene"></div>
+              <div class="fence"></div>
+              <div class="rails"></div>
+              <div class="plots" id="plots"></div>
+              <div class="yard" id="yard"></div>
+            </div>
+
+            <aside class="side tools-side">
+              <h3 class="side-title">Tools</h3>
+              <div class="rail" id="toolrail">
+                <button class="tool" id="tool-water" aria-pressed="false"><span>Watering Can</span> <small id="can-text">0/0</small></button>
+                <button class="tool" id="tool-refill"><span>Fill at Well</span></button>
+                <button class="tool" id="tool-hoe" aria-pressed="false"><span>Hoe</span> <small>weeds</small></button>
+                <button class="tool" id="tool-shovel" aria-pressed="false"><span>Shovel</span> <small>dig up</small></button>
+                <button class="tool" id="tool-fert" aria-pressed="false"><span>Fertilizer</span> <small id="fert-text">x0</small></button>
+                <button class="tool" id="tool-harvest-all"><span>Harvest All</span></button>
+              </div>
+            </aside>
+          </div>
+
+          <p class="hint" style="margin: 12px 0 0;">
+            Tap an empty bed to plant the selected seed. Tap a growing crop to water it, a golden
+            crop to harvest, and a weedy bed to pull the weeds. Dry soil grows nothing and kills crops.
+            Most harvests also hand you a seed or two back — fertilized beds do it more often.
+          </p>
+        </div>
+
+        <div class="card">
+          <h2>Barn</h2>
+          <p class="hint">Everything you have harvested. Take it to the Market tab to sell.</p>
+          <div class="grid" id="barn"></div>
+        </div>
+      </section>
+
+      <!-- ============ STORE ============ -->
+      <section class="panel" id="panel-store" role="tabpanel" aria-labelledby="tab-store">
+        <div class="card">
+          <div class="shopfront">
+            <div class="awning"></div>
+            <div class="shop-sign" id="shop-sign-seeds">Seed Rack <span>fresh stock daily</span></div>
+          </div>
+          <p class="hint">Seed prices never change. New varieties unlock as you level up from harvesting.</p>
+          <div class="shelf" id="store-seeds"></div>
+        </div>
+
+        <div class="card">
+          <h2>Supplies &amp; Upgrades</h2>
+          <p class="hint">Permanent upgrades are bought once and show up out on your farm. Fertilizer is a consumable.</p>
+          <div class="shelf" id="store-goods"></div>
+        </div>
+      </section>
+
+      <!-- ============ MARKET ============ -->
+      <section class="panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market">
+        <div class="card">
+          <div class="board">
+            <h3>Produce Market</h3>
+            <div class="total">
+              <span>Barn value today</span>
+              <strong id="barn-value">0c</strong>
+            </div>
+          </div>
+          <p class="hint">Prices move every day — the line under each price is the last week. Hold through a slump and sell into a spike.</p>
+          <div class="stalls" id="market-list"></div>
+          <div class="toolbar-actions">
+            <button class="ghost" id="sell-all">Sell Everything</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Records</h2>
+          <div class="grid" id="records"></div>
+          <div class="toolbar-actions">
+            <button class="ghost danger" id="reset-game">Reset Farm</button>
+          </div>
+        </div>
+      </section>
+
+      <footer class="legal">Progress saves automatically in this browser.</footer>
+    </div>
+
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+
+    <script>
+      (function () {
+        "use strict";
+
+        /* ================================================================== *
+         * Data
+         * ================================================================== */
+
+        // growSec = seconds of fully-watered growth needed to reach harvest.
+        var CROPS = [
+          { id: "radish",     name: "Radish",     seed: 8,   growSec: 18,  price: 17,   level: 1,  stem: "#4d8a3a", leaf: "#6cb352", fruit: "#d94f6a" },
+          { id: "carrot",     name: "Carrot",     seed: 15,  growSec: 26,  price: 34,   level: 1,  stem: "#3f7a33", leaf: "#5fa84c", fruit: "#e8802c" },
+          { id: "potato",     name: "Potato",     seed: 24,  growSec: 34,  price: 54,   level: 2,  stem: "#4f8a3a", leaf: "#6cb352", fruit: "#c99b5e" },
+          { id: "lettuce",    name: "Lettuce",    seed: 34,  growSec: 42,  price: 76,   level: 3,  stem: "#54913f", leaf: "#7fc266", fruit: "#8fd06a" },
+          { id: "cucumber",   name: "Cucumber",   seed: 48,  growSec: 52,  price: 108,  level: 4,  stem: "#3f7a33", leaf: "#62ab4b", fruit: "#4f9b3d" },
+          { id: "tomato",     name: "Tomato",     seed: 68,  growSec: 62,  price: 152,  level: 5,  stem: "#3d7a34", leaf: "#5aa347", fruit: "#d13a2c" },
+          { id: "corn",       name: "Corn",       seed: 95,  growSec: 74,  price: 212,  level: 6,  stem: "#5d8f31", leaf: "#86bb45", fruit: "#f2c53d" },
+          { id: "strawberry", name: "Strawberry", seed: 135, growSec: 88,  price: 300,  level: 8,  stem: "#3f7a33", leaf: "#63ac4c", fruit: "#e0324a" },
+          { id: "blueberry",  name: "Blueberry",  seed: 185, growSec: 102, price: 410,  level: 9,  stem: "#4a7a3a", leaf: "#6cb352", fruit: "#5f6fd0" },
+          { id: "pumpkin",    name: "Pumpkin",    seed: 250, growSec: 120, price: 552,  level: 10, stem: "#4a7d2c", leaf: "#6fae3f", fruit: "#e07a1f" },
+          { id: "melon",      name: "Watermelon", seed: 340, growSec: 142, price: 750,  level: 12, stem: "#3f7a33", leaf: "#5fa84c", fruit: "#2f8f4a" },
+          { id: "grapes",     name: "Grapes",     seed: 470, growSec: 168, price: 1030, level: 14, stem: "#5c7d3a", leaf: "#7cb342", fruit: "#7a4fb0" },
+          { id: "pineapple",  name: "Pineapple",  seed: 640, growSec: 196, price: 1400, level: 16, stem: "#6b8f3a", leaf: "#86bb45", fruit: "#f0b429" },
+          { id: "bluelotus",  name: "Blue Lotus", seed: 950, growSec: 240, price: 2600, level: 18, stem: "#4f9b6a", leaf: "#5fae7a", fruit: "#5b8cff" }
+        ];
+
+        var CROP_BY_ID = {};
+        CROPS.forEach(function (c) { CROP_BY_ID[c.id] = c; });
+
+        var UPGRADES = [
+          { id: "can2", name: "Bigger Watering Can", cost: 120, desc: "Watering can holds 10 pours instead of 5.", desc2: "In the shed — 10 pours per fill.", apply: function (s) { s.canMax = 10; } },
+          { id: "sprinkler", name: "Sprinkler Line", cost: 900, desc: "Soil never drops below 35% moisture on its own.", desc2: "Running — beds stay damp on their own." },
+          { id: "greenhouse", name: "Greenhouse Glass", cost: 1800, desc: "+30% growth speed on every plot, rain or shine.", desc2: "Built — crops grow 30% faster." },
+          { id: "scarecrow", name: "Scarecrow", cost: 650, desc: "Keeps crows from tearing up your crops.", desc2: "Standing guard — no more crow raids." },
+          { id: "stand", name: "Roadside Stand", cost: 2600, desc: "All produce sells for 20% more, forever.", desc2: "Open for business — +20% sale prices." },
+          { id: "compost", name: "Compost Heap", cost: 480, desc: "Fertilizer costs 30c a bag instead of 55c.", desc2: "Cooking down — fertilizer is 30c a bag." },
+          { id: "beehive", name: "Beehive", cost: 1400, desc: "Pollination: every harvest yields one extra crop.", desc2: "Buzzing — every harvest yields one extra." },
+          { id: "hoe", name: "Weeding Hoe", cost: 760, desc: "Weeds take hold half as often across the whole farm.", desc2: "Sharpened — weeds sprout half as often." },
+          { id: "trowel", name: "Lucky Trowel", cost: 3200, desc: "Doubles the chance a seed comes up golden.", desc2: "Polished — double the golden crop chance." },
+          { id: "cart", name: "Delivery Cart", cost: 4200, desc: "Market prices never dip below the base rate.", desc2: "On the road — prices never dip below base." }
+        ];
+
+        var WEATHERS = [
+          { id: "sun",   name: "Clear skies",  text: "Soil dries fast. Keep the can full.",      dry: 1.0, growth: 1.0,  rain: 0,  sky: ["#6fc3f7", "#cdefff"], clouds: 2, wet: false },
+          { id: "cloud", name: "Overcast",     text: "Mild day. Soil holds moisture longer.",    dry: 0.6, growth: 1.0,  rain: 0,  sky: ["#9fb3c4", "#dfe7ec"], clouds: 6, wet: false },
+          { id: "rain",  name: "Rainy",        text: "Free watering all day long.",              dry: 0,   growth: 1.05, rain: 14, sky: ["#7d93a8", "#c3d2dc"], clouds: 7, wet: true },
+          { id: "heat",  name: "Heat wave",    text: "Crops grow fast but the soil bakes dry.",  dry: 1.9, growth: 1.25, rain: 0,  sky: ["#ffb85c", "#ffe6bd"], clouds: 1, wet: false },
+          { id: "storm", name: "Thunderstorm", text: "Soaking rain, but growth stalls a little.", dry: 0,  growth: 0.85, rain: 22, sky: ["#59627a", "#98a6b5"], clouds: 8, wet: true }
+        ];
+
+        var DAY_SECONDS = 100;
+        var START_PLOTS = 6;
+        var MAX_PLOTS = 24;
+        var SAVE_KEY = "flashback-farm-v1";
+
+        /* ================================================================== *
+         * State
+         * ================================================================== */
+
+        var state = null;
+
+        function freshState() {
+          var plots = [];
+          for (var i = 0; i < MAX_PLOTS; i++) {
+            plots.push({ unlocked: i < START_PLOTS, crop: null, growth: 0, water: 55, weeds: false, fert: false, dead: false, dryTime: 0 });
+          }
+          var st = {
+            plots: plots,
+            muted: false,
+            streak: 0,
+            coins: 120,
+            day: 1,
+            dayT: 0.28,
+            level: 1,
+            xp: 0,
+            weather: "sun",
+            canMax: 5,
+            can: 5,
+            fertilizer: 0,
+            seeds: { radish: 3 },
+            barn: {},
+            upgrades: {},
+            prices: {},
+            prevPrices: {},
+            history: {},
+            selectedSeed: "radish",
+            tool: null,
+            stats: { harvested: 0, earned: 0, spent: 0, wilted: 0, saved: 0, golden: 0 },
+            eventTimer: 45
+          };
+          rollPrices(st);
+          st.prevPrices = Object.assign({}, st.prices);
+          return st;
+        }
+
+        function rollPrices(st) {
+          st.prevPrices = Object.assign({}, st.prices);
+          if (!st.history) st.history = {};
+          CROPS.forEach(function (c) {
+            var mult = 0.72 + Math.random() * 0.68;
+            st.prices[c.id] = Math.max(1, Math.round(c.price * mult));
+            var h = st.history[c.id] || [];
+            h.push(st.prices[c.id]);
+            if (h.length > 8) h.shift();
+            st.history[c.id] = h;
+          });
+        }
+
+        // Early levels come fast so the good seeds unlock quickly; the curve
+        // steepens later once crops are worth real XP.
+        function xpForLevel(lv) { return Math.round(13 * Math.pow(lv, 1.7)); }
+
+        function plotCost(index) {
+          var bought = index - START_PLOTS + 1;
+          return Math.round(180 * Math.pow(1.55, bought - 1));
+        }
+
+        function weather() {
+          for (var i = 0; i < WEATHERS.length; i++) {
+            if (WEATHERS[i].id === state.weather) return WEATHERS[i];
+          }
+          return WEATHERS[0];
+        }
+
+        function growthMultiplier() {
+          var m = weather().growth;
+          if (state.upgrades.greenhouse) m *= 1.3;
+          return m;
+        }
+
+        function priceOf(cropId) {
+          var p = state.prices[cropId] || CROP_BY_ID[cropId].price;
+          if (state.upgrades.cart) p = Math.max(p, CROP_BY_ID[cropId].price);
+          if (state.upgrades.stand) p = Math.round(p * 1.2);
+          return p;
+        }
+
+        function fertilizerCost() { return state.upgrades.compost ? 30 : 55; }
+
+        /* ================================================================== *
+         * Save / load
+         * ================================================================== */
+
+        function save() {
+          try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* private mode */ }
+        }
+
+        function load() {
+          var raw = null;
+          try { raw = localStorage.getItem(SAVE_KEY); } catch (e) { raw = null; }
+          if (!raw) return freshState();
+          try {
+            var data = JSON.parse(raw);
+            var base = freshState();
+            var merged = Object.assign(base, data);
+            merged.stats = Object.assign(base.stats, data.stats || {});
+            merged.seeds = data.seeds || {};
+            merged.barn = data.barn || {};
+            merged.upgrades = data.upgrades || {};
+            if (!Array.isArray(merged.plots) || merged.plots.length !== MAX_PLOTS) merged.plots = base.plots;
+
+            // A save from an older crop roster can name crops that no longer exist —
+            // drop those so nothing renders against a missing definition.
+            ["seeds", "barn"].forEach(function (bag) {
+              Object.keys(merged[bag]).forEach(function (id) {
+                if (!CROP_BY_ID[id]) delete merged[bag][id];
+              });
+            });
+            merged.plots.forEach(function (plot) {
+              if (plot.crop && !CROP_BY_ID[plot.crop]) {
+                plot.crop = null; plot.growth = 0; plot.dead = false; plot.golden = false;
+              }
+            });
+            if (!CROP_BY_ID[merged.selectedSeed]) merged.selectedSeed = CROPS[0].id;
+
+            if (!merged.prices || Object.keys(merged.prices).length !== CROPS.length) rollPrices(merged);
+            if (!merged.history) merged.history = {};
+            return merged;
+          } catch (e) {
+            return freshState();
+          }
+        }
+
+        /* ================================================================== *
+         * Feedback helpers
+         * ================================================================== */
+
+        var toastBox = document.getElementById("toasts");
+
+        function toast(msg, kind) {
+          var node = document.createElement("div");
+          node.className = "toast" + (kind ? " " + kind : "");
+          node.textContent = msg;
+          toastBox.appendChild(node);
+          if (toastBox.children.length > 4) toastBox.removeChild(toastBox.firstChild);
+          setTimeout(function () {
+            if (node.parentNode) node.parentNode.removeChild(node);
+          }, 2400);
+        }
+
+        /* ---- sound: a tiny synth, no files ---------------------------------- */
+
+        var audio = { ctx: null };
+
+        function tone(freq, dur, type, vol, slideTo) {
+          if (state && state.muted) return;
+          try {
+            if (!audio.ctx) audio.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            var ctx = audio.ctx;
+            if (ctx.state === "suspended") ctx.resume();
+            var osc = ctx.createOscillator();
+            var gain = ctx.createGain();
+            osc.type = type || "sine";
+            osc.frequency.setValueAtTime(freq, ctx.currentTime);
+            if (slideTo) osc.frequency.exponentialRampToValueAtTime(slideTo, ctx.currentTime + dur);
+            gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(vol || 0.12, ctx.currentTime + 0.012);
+            gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start();
+            osc.stop(ctx.currentTime + dur + 0.02);
+          } catch (e) { /* audio unavailable */ }
+        }
+
+        function chord(notes, gap, dur, type, vol) {
+          notes.forEach(function (n, i) {
+            setTimeout(function () { tone(n, dur || 0.16, type || "triangle", vol || 0.1); }, i * (gap || 70));
+          });
+        }
+
+        var SFX = {
+          plant: function () { tone(210, 0.11, "triangle", 0.09, 320); },
+          water: function () { tone(680, 0.16, "sine", 0.07, 240); },
+          harvest: function () { chord([520, 780], 55, 0.14, "triangle", 0.1); },
+          sell: function () { chord([880, 1170, 1560], 55, 0.13, "square", 0.055); },
+          levelup: function () { chord([523, 659, 784, 1047], 90, 0.22, "triangle", 0.1); },
+          golden: function () { chord([784, 1047, 1319, 1568, 2093], 60, 0.2, "sine", 0.085); },
+          weeds: function () { tone(150, 0.18, "sawtooth", 0.05, 90); },
+          nope: function () { tone(140, 0.14, "square", 0.05, 90); },
+          thunder: function () { tone(70, 0.7, "sawtooth", 0.09, 38); },
+          streak: function (n) { tone(440 + Math.min(n, 10) * 60, 0.12, "square", 0.06); }
+        };
+
+        /* ---- particles ------------------------------------------------------ */
+
+        var fxLayer = document.getElementById("fx");
+
+        // A burst of coloured bits arcing out from a point on screen.
+        function burst(x, y, opts) {
+          opts = opts || {};
+          var count = opts.count || 14;
+          var colors = opts.colors || ["#ffd76a", "#f0b429", "#fff3c4"];
+          var spread = opts.spread || 80;
+          var shape = opts.shape || "";
+          for (var i = 0; i < count; i++) {
+            var p = document.createElement("div");
+            p.className = "particle " + shape;
+            var size = (opts.size || 12) * (0.55 + Math.random() * 0.85);
+            p.style.width = p.style.height = size.toFixed(1) + "px";
+            p.style.margin = (-size / 2).toFixed(1) + "px 0 0 " + (-size / 2).toFixed(1) + "px";
+            p.style.left = x + "px";
+            p.style.top = y + "px";
+            p.style.background = colors[Math.floor(Math.random() * colors.length)];
+            fxLayer.appendChild(p);
+
+            var angle = (opts.up ? -Math.PI / 2 : 0) + (Math.random() - 0.5) * (opts.arc || Math.PI * 2);
+            var dist = spread * (0.4 + Math.random() * 0.9);
+            var dx = Math.cos(angle) * dist;
+            var dy = Math.sin(angle) * dist - (opts.up ? 30 : 0);
+            var fallDur = 620 + Math.random() * 520;
+
+            (function (node) {
+              var anim = node.animate([
+                { transform: "translate(0,0) scale(1) rotate(0deg)", opacity: 1 },
+                { transform: "translate(" + dx * 0.7 + "px," + (dy - 26) + "px) scale(1.05) rotate(140deg)", opacity: 1, offset: 0.55 },
+                { transform: "translate(" + dx + "px," + (dy + 58) + "px) scale(0.25) rotate(280deg)", opacity: 0 }
+              ], { duration: fallDur, easing: "cubic-bezier(.25,.7,.4,1)" });
+              anim.onfinish = function () { if (node.parentNode) node.parentNode.removeChild(node); };
+            })(p);
+          }
+        }
+
+        // Coins that fly from a point up to the coin counter.
+        function coinFly(x, y, count) {
+          var target = el.coins.getBoundingClientRect();
+          var tx = target.left + target.width / 2;
+          var ty = target.top + target.height / 2;
+          for (var i = 0; i < count; i++) {
+            var c = document.createElement("div");
+            c.style.cssText = "position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;left:" + x + "px;top:" + y + "px;";
+            c.innerHTML = PROP.coin();
+            c.firstChild.style.width = "100%";
+            c.firstChild.style.height = "100%";
+            fxLayer.appendChild(c);
+            (function (node, delay) {
+              var anim = node.animate([
+                { transform: "translate(0,0) scale(0.6)", opacity: 0 },
+                { transform: "translate(" + (Math.random() - 0.5) * 90 + "px,-52px) scale(1.15)", opacity: 1, offset: 0.3 },
+                { transform: "translate(" + (tx - x) + "px," + (ty - y) + "px) scale(0.45)", opacity: 0.9 }
+              ], { duration: 700 + Math.random() * 200, delay: delay, easing: "cubic-bezier(.3,.1,.2,1)", fill: "forwards" });
+              anim.onfinish = function () { if (node.parentNode) node.parentNode.removeChild(node); };
+            })(c, i * 65);
+          }
+          setTimeout(function () {
+            el.coins.parentNode.classList.add("pop");
+            setTimeout(function () { el.coins.parentNode.classList.remove("pop"); }, 160);
+          }, 640);
+        }
+
+        // Big centre-screen announcement.
+        function banner(text, sub) {
+          var node = document.createElement("div");
+          node.className = "banner";
+          node.innerHTML = text + (sub ? "<small>" + sub + "</small>" : "");
+          document.body.appendChild(node);
+          setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 1950);
+        }
+
+        function confetti() {
+          var w = window.innerWidth;
+          for (var i = 0; i < 3; i++) {
+            burst(w * (0.25 + i * 0.25), window.innerHeight * 0.3, {
+              count: 20, spread: 190, size: 14, shape: "bit",
+              colors: ["#e0384c", "#f5c518", "#4fae4f", "#3f7fd0", "#ffffff", "#ff8a3d"]
+            });
+          }
+        }
+
+        // Droplets falling onto a bed you just watered.
+        function splash(idx) {
+          var node = plotNodes[idx];
+          if (!node) return;
+          SFX.water();
+          var box = document.createElement("div");
+          box.className = "splash";
+          var drops = "";
+          for (var i = 0; i < 6; i++) {
+            drops += '<i style="left:' + (13 + i * 15) + "%;animation-delay:" + (i * 55) + 'ms"></i>';
+          }
+          // ripples spreading where the water lands
+          for (var k = 0; k < 3; k++) {
+            drops += '<u style="left:' + (26 + k * 24) + "%;animation-delay:" + (260 + k * 90) + 'ms"></u>';
+          }
+          box.innerHTML = drops;
+          node.appendChild(box);
+          setTimeout(function () { if (box.parentNode) box.parentNode.removeChild(box); }, 950);
+        }
+
+        // A seed tumbling into freshly turned soil.
+        function seedFall(idx) {
+          var node = plotNodes[idx];
+          if (!node) return;
+          var seed = document.createElement("div");
+          seed.className = "seedfall";
+          node.appendChild(seed);
+          setTimeout(function () { if (seed.parentNode) seed.parentNode.removeChild(seed); }, 620);
+        }
+
+        // The harvested item pops out of the bed and arcs away.
+        function flyProduce(cropId, x, y) {
+          var node = document.createElement("div");
+          node.className = "flyer";
+          node.style.left = x + "px";
+          node.style.top = y + "px";
+          node.innerHTML = produceArt(cropId);
+          document.body.appendChild(node);
+          setTimeout(function () { if (node.parentNode) node.parentNode.removeChild(node); }, 900);
+        }
+
+        function floatText(text, x, y, color) {
+          var node = document.createElement("div");
+          node.className = "float";
+          node.textContent = text;
+          node.style.left = x + "px";
+          node.style.top = y + "px";
+          node.style.transform = "translate(-50%, 0)";
+          if (color) node.style.color = color;
+          document.body.appendChild(node);
+          setTimeout(function () {
+            if (node.parentNode) node.parentNode.removeChild(node);
+          }, 950);
+        }
+
+        /* ================================================================== *
+         * Artwork — produce models
+         *
+         * Every model draws inside a 0 0 100 100 box. `soil level` is y = 88.
+         * Each SHAPE draws one harvested item centred on (cx, cy) at size r.
+         * ================================================================== */
+
+        function svg(inner, cls, viewBox) {
+          return '<svg viewBox="' + (viewBox || "0 0 100 100") + '" aria-hidden="true"' +
+            (cls ? ' class="' + cls + '"' : "") + ">" + inner + "</svg>";
+        }
+
+        // Beds crop in on the part of the canvas where the plant actually lives,
+        // so crops read big inside a small tile.
+        var BED_VIEW = "13 24 74 70";
+
+        function gloss(cx, cy, r, rot) {
+          return '<ellipse cx="' + (cx - r * 0.32) + '" cy="' + (cy - r * 0.38) + '" rx="' + (r * 0.2) + '" ry="' + (r * 0.32) +
+            '" fill="#ffffff" opacity="0.45" transform="rotate(' + (rot || -20) + ' ' + cx + ' ' + cy + ')"/>';
+        }
+
+        // A single leaf lying along +x from the origin, then rotated into place.
+        function leaf(cx, cy, len, rot, color, vein) {
+          var w = len * 0.42;
+          var out = '<g transform="translate(' + cx + ' ' + cy + ') rotate(' + rot + ')">' +
+            '<path d="M0 0 C ' + len * 0.3 + ' ' + -w + ', ' + len * 0.75 + ' ' + -w * 0.8 + ', ' + len + ' 0 C ' +
+            len * 0.75 + ' ' + w * 0.8 + ', ' + len * 0.3 + ' ' + w + ', 0 0 Z" fill="' + color + '"/>';
+          if (vein !== false) {
+            out += '<path d="M2 0 L' + (len - 2) + ' 0" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1" fill="none"/>';
+          }
+          return out + "</g>";
+        }
+
+        var SHAPE = {
+          radish: function (cx, cy, r) {
+            return '<path d="M' + cx + ' ' + (cy + r * 0.9) + ' q' + r * 0.35 + ' ' + r * 0.7 + ', ' + r * 0.05 + ' ' + r * 1.35 +
+                '" stroke="#f0e2d0" stroke-width="' + Math.max(1.4, r * 0.14) + '" fill="none" stroke-linecap="round"/>' +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r + '" ry="' + r * 0.98 + '" fill="#d94f6a"/>' +
+              '<path d="M' + (cx - r) + ' ' + (cy + r * 0.35) + ' a' + r + ' ' + r + ' 0 0 0 ' + r * 2 + ' 0 z" fill="#f4e3e0" opacity="0.85"/>' +
+              gloss(cx, cy, r);
+          },
+          carrot: function (cx, cy, r) {
+            var h = r * 2.3;
+            return '<path d="M' + (cx - r * 0.72) + ' ' + (cy - h * 0.42) + ' L' + (cx + r * 0.72) + ' ' + (cy - h * 0.42) +
+                ' L' + cx + ' ' + (cy + h * 0.58) + ' Z" fill="#e8802c"/>' +
+              '<path d="M' + (cx - r * 0.45) + ' ' + (cy - h * 0.16) + ' L' + (cx + r * 0.3) + ' ' + (cy - h * 0.22) +
+                ' M' + (cx - r * 0.3) + ' ' + (cy + h * 0.08) + ' L' + (cx + r * 0.22) + ' ' + (cy + h * 0.02) +
+                '" stroke="#c4631a" stroke-width="' + Math.max(1, r * 0.13) + '" fill="none" opacity="0.7"/>' +
+              gloss(cx - r * 0.1, cy - h * 0.16, r * 0.7);
+          },
+          lettuce: function (cx, cy, r) {
+            var out = "";
+            for (var i = 0; i < 6; i++) {
+              var a = (i / 6) * Math.PI * 2;
+              out += '<ellipse cx="' + (cx + Math.cos(a) * r * 0.45) + '" cy="' + (cy + Math.sin(a) * r * 0.38) +
+                '" rx="' + r * 0.62 + '" ry="' + r * 0.54 + '" fill="#6cb352"/>';
+            }
+            return out +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.6 + '" fill="#8fd06a"/>' +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.36 + '" ry="' + r * 0.3 + '" fill="#b6e392"/>';
+          },
+          tomato: function (cx, cy, r) {
+            return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#d13a2c"/>' +
+              '<path d="M' + cx + ' ' + (cy - r * 0.85) + ' l' + r * 0.5 + ' -' + r * 0.15 + ' l-' + r * 0.28 + ' ' + r * 0.42 +
+                ' l' + r * 0.42 + ' ' + r * 0.12 + ' l-' + r * 0.64 + ' ' + r * 0.16 + ' l-' + r * 0.64 + ' -' + r * 0.16 +
+                ' l' + r * 0.42 + ' -' + r * 0.12 + ' l-' + r * 0.28 + ' -' + r * 0.42 + ' z" fill="#3f8f38"/>' +
+              '<rect x="' + (cx - r * 0.09) + '" y="' + (cy - r * 1.28) + '" width="' + r * 0.18 + '" height="' + r * 0.42 + '" fill="#3f8f38"/>' +
+              gloss(cx, cy, r);
+          },
+          corn: function (cx, cy, r) {
+            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.66 + '" ry="' + r * 1.25 + '" fill="#f2c53d"/>';
+            for (var row = -3; row <= 3; row++) {
+              for (var col = -1; col <= 1; col++) {
+                out += '<circle cx="' + (cx + col * r * 0.32) + '" cy="' + (cy + row * r * 0.3) + '" r="' + r * 0.12 + '" fill="#d8a417" opacity="0.75"/>';
+              }
+            }
+            out += '<path d="M' + (cx - r * 0.6) + ' ' + (cy - r * 1.1) + ' q-' + r * 0.7 + ' ' + r * 1.1 + ', -' + r * 0.1 + ' ' + r * 2.1 +
+              ' q' + r * 0.45 + ' -' + r * 1.1 + ', ' + r * 0.5 + ' -' + r * 2 + ' z" fill="#7cb342"/>';
+            out += '<path d="M' + (cx + r * 0.6) + ' ' + (cy - r * 1.1) + ' q' + r * 0.7 + ' ' + r * 1.1 + ', ' + r * 0.1 + ' ' + r * 2.1 +
+              ' q-' + r * 0.45 + ' -' + r * 1.1 + ', -' + r * 0.5 + ' -' + r * 2 + ' z" fill="#8cc351"/>';
+            return out;
+          },
+          strawberry: function (cx, cy, r) {
+            var out = '<path d="M' + cx + ' ' + (cy + r * 1.15) + ' C' + (cx - r * 1.1) + ' ' + (cy + r * 0.35) + ', ' +
+              (cx - r) + ' ' + (cy - r * 0.75) + ', ' + cx + ' ' + (cy - r * 0.75) + ' C' + (cx + r) + ' ' + (cy - r * 0.75) + ', ' +
+              (cx + r * 1.1) + ' ' + (cy + r * 0.35) + ', ' + cx + ' ' + (cy + r * 1.15) + ' z" fill="#e0324a"/>';
+            for (var i = 0; i < 7; i++) {
+              var sx = cx + (((i * 37) % 10) / 10 - 0.45) * r * 1.3;
+              var sy = cy - r * 0.4 + ((i * 53) % 10) / 10 * r * 1.2;
+              out += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + r * 0.09 + '" fill="#ffe08a"/>';
+            }
+            for (var k = 0; k < 5; k++) {
+              out += leaf(cx, cy - r * 0.72, r * 0.72, 200 + k * 35, "#3f8f38", false);
+            }
+            return out + '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.25) + '" width="' + r * 0.16 + '" height="' + r * 0.4 + '" fill="#3f8f38"/>' + gloss(cx, cy, r * 0.9);
+          },
+          pumpkin: function (cx, cy, r) {
+            return '<ellipse cx="' + (cx - r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="#c9660f"/>' +
+              '<ellipse cx="' + (cx + r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="#c9660f"/>' +
+              '<ellipse cx="' + (cx - r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="#e07a1f"/>' +
+              '<ellipse cx="' + (cx + r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="#e07a1f"/>' +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.72 + '" ry="' + r + '" fill="#f08c26"/>' +
+              '<rect x="' + (cx - r * 0.12) + '" y="' + (cy - r * 1.3) + '" width="' + r * 0.24 + '" height="' + r * 0.36 + '" rx="' + r * 0.08 + '" fill="#5f7a2a"/>' +
+              '<path d="M' + (cx + r * 0.1) + ' ' + (cy - r * 1.2) + ' q' + r * 0.6 + ' -' + r * 0.4 + ', ' + r * 0.15 + ' -' + r * 0.7 +
+                '" stroke="#5f7a2a" stroke-width="' + Math.max(1.2, r * 0.1) + '" fill="none"/>';
+          },
+          melon: function (cx, cy, r) {
+            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 1.12 + '" ry="' + r * 0.9 + '" fill="#2f8f4a"/>';
+            for (var i = -2; i <= 2; i++) {
+              out += '<path d="M' + (cx + i * r * 0.42) + ' ' + (cy - r * 0.88) + ' q' + (i * r * 0.16) + ' ' + r * 0.9 + ', 0 ' + r * 1.76 +
+                '" stroke="#1d6b34" stroke-width="' + Math.max(1.4, r * 0.16) + '" fill="none" opacity="0.85"/>';
+            }
+            return out + '<ellipse cx="' + (cx - r * 0.4) + '" cy="' + (cy - r * 0.42) + '" rx="' + r * 0.22 + '" ry="' + r * 0.13 +
+              '" fill="#ffffff" opacity="0.35" transform="rotate(-25 ' + cx + ' ' + cy + ')"/>';
+          },
+          potato: function (cx, cy, r) {
+            var out = '<path d="M' + (cx - r) + ' ' + cy + ' q' + r * 0.1 + ' -' + r * 0.95 + ', ' + r + ' -' + r * 0.82 +
+              ' q' + r + ' -' + r * 0.16 + ', ' + r + ' ' + r * 0.72 + ' q0 ' + r * 0.9 + ', -' + r + ' ' + r * 0.82 +
+              ' q-' + r + ' ' + r * 0.1 + ', -' + r + ' -' + r * 0.72 + ' z" fill="#c99b5e" stroke="#8a6535" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>';
+            [[-0.4, -0.25], [0.25, -0.4], [0.42, 0.22], [-0.2, 0.35]].forEach(function (p) {
+              out += '<ellipse cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" rx="' + r * 0.11 + '" ry="' + r * 0.08 +
+                '" fill="#8a6535" opacity="0.75"/>';
+            });
+            return out + gloss(cx - r * 0.15, cy - r * 0.2, r * 0.7);
+          },
+          cucumber: function (cx, cy, r) {
+            var out = '<g transform="rotate(-18 ' + cx + " " + cy + ')">' +
+              '<rect x="' + (cx - r * 0.42) + '" y="' + (cy - r * 1.15) + '" width="' + r * 0.84 + '" height="' + r * 2.3 +
+              '" rx="' + r * 0.42 + '" fill="#4f9b3d" stroke="#2f6b26" stroke-width="' + Math.max(1.4, r * 0.11) + '"/>';
+            for (var i = -3; i <= 3; i++) {
+              out += '<circle cx="' + (cx + (i % 2 ? r * 0.16 : -r * 0.16)) + '" cy="' + (cy + i * r * 0.28) + '" r="' + r * 0.08 + '" fill="#3d8230"/>';
+            }
+            out += '<path d="M' + (cx - r * 0.22) + ' ' + (cy - r * 0.8) + ' v' + r * 1.5 + '" stroke="#7fc266" stroke-width="' + Math.max(1.2, r * 0.1) + '" opacity="0.8"/>';
+            out += '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.35) + '" width="' + r * 0.16 + '" height="' + r * 0.24 + '" fill="#3f7a33"/>';
+            return out + "</g>";
+          },
+          blueberry: function (cx, cy, r) {
+            var out = "";
+            [[-0.5, 0.18, 0.62], [0.5, 0.24, 0.58], [0, -0.3, 0.72]].forEach(function (p) {
+              var br = r * p[2];
+              out += '<circle cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" r="' + br + '" fill="#5f6fd0"/>' +
+                '<circle cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" r="' + br * 0.62 + '" fill="#6f80e0" opacity="0.7"/>' +
+                '<path d="M' + (cx + p[0] * r - br * 0.3) + ' ' + (cy + p[1] * r - br * 0.55) + ' l' + br * 0.3 + ' ' + br * 0.28 +
+                  ' l' + br * 0.3 + ' -' + br * 0.28 + '" fill="none" stroke="#3f4aa0" stroke-width="' + Math.max(1, r * 0.07) + '"/>' +
+                '<circle cx="' + (cx + p[0] * r - br * 0.3) + '" cy="' + (cy + p[1] * r - br * 0.35) + '" r="' + br * 0.16 + '" fill="#ffffff" opacity="0.45"/>';
+            });
+            return out;
+          },
+          grapes: function (cx, cy, r) {
+            var out = '<path d="M' + cx + ' ' + (cy - r * 1.15) + ' q' + r * 0.3 + ' -' + r * 0.3 + ', ' + r * 0.6 + ' -' + r * 0.1 +
+              '" fill="none" stroke="#6b4a2f" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>' +
+              leaf(cx + r * 0.15, cy - r * 1.1, r * 0.75, -35, "#7cb342");
+            var rows = [3, 3, 2, 1];
+            var br = r * 0.3;
+            rows.forEach(function (n, row) {
+              for (var i = 0; i < n; i++) {
+                var gx = cx + (i - (n - 1) / 2) * br * 1.85;
+                var gy = cy - r * 0.6 + row * br * 1.62;
+                out += '<circle cx="' + gx.toFixed(1) + '" cy="' + gy.toFixed(1) + '" r="' + br + '" fill="' + (row % 2 ? "#7a4fb0" : "#8b5cc4") + '"/>' +
+                  '<circle cx="' + (gx - br * 0.3).toFixed(1) + '" cy="' + (gy - br * 0.32).toFixed(1) + '" r="' + br * 0.22 + '" fill="#ffffff" opacity="0.4"/>';
+              }
+            });
+            return out;
+          },
+          pineapple: function (cx, cy, r) {
+            var out = "";
+            for (var c = 0; c < 5; c++) {
+              var lean = (c - 2) * 16;
+              out += '<path d="M' + cx + ' ' + (cy - r * 0.72) + ' q' + lean * 0.3 + ' -' + r * 0.7 + ', ' + lean * 0.5 + ' -' + r * 1.05 +
+                ' q' + (10 - Math.abs(lean) * 0.2) + ' ' + r * 0.55 + ', ' + (-lean * 0.5 + 6) + ' ' + r * 1.05 + ' z" fill="#5da743" stroke="#3f7a33" stroke-width="2"/>';
+            }
+            out += '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.2) + '" rx="' + r * 0.82 + '" ry="' + r * 1.02 + '" fill="#f0b429" stroke="#b5822a" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>';
+            for (var a = -2; a <= 2; a++) {
+              out += '<path d="M' + (cx - r * 0.8) + ' ' + (cy + r * 0.2 + a * r * 0.34) + ' q' + r * 0.8 + ' ' + r * 0.22 + ', ' + r * 1.6 + ' 0" fill="none" stroke="#c88f18" stroke-width="' + Math.max(1, r * 0.07) + '"/>' +
+                '<path d="M' + (cx - r * 0.5 + a * r * 0.3) + ' ' + (cy - r * 0.75) + ' q' + r * 0.2 + ' ' + r * 1 + ', 0 ' + r * 2 + '" fill="none" stroke="#c88f18" stroke-width="' + Math.max(1, r * 0.07) + '"/>';
+            }
+            return out;
+          },
+          bluelotus: function (cx, cy, r) {
+            var out = '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.5) + '" rx="' + r * 1.25 + '" ry="' + r * 0.4 + '" fill="#3f8f6a" opacity="0.55"/>';
+            for (var ring = 0; ring < 2; ring++) {
+              var petals = ring ? 6 : 7;
+              var len = ring ? r * 0.78 : r * 1.15;
+              for (var i = 0; i < petals; i++) {
+                var a = (i / petals) * 360 + (ring ? 26 : 0);
+                out += '<path d="M' + cx + ' ' + cy + ' Q' + (cx - len * 0.42) + ' ' + (cy - len * 0.7) + ', ' + cx + ' ' + (cy - len) +
+                  ' Q' + (cx + len * 0.42) + ' ' + (cy - len * 0.7) + ', ' + cx + ' ' + cy + ' z" fill="' + (ring ? "#8fb4ff" : "#5b8cff") +
+                  '" stroke="#3f63c4" stroke-width="1.5" transform="rotate(' + a + " " + cx + " " + cy + ')"/>';
+              }
+            }
+            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.3 + '" fill="#fff3c4"/>';
+            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.17 + '" fill="#ffd54a"/>';
+            return out;
+          }
+        };
+
+        /* ---- growing plants (what you see in a bed) ---------------------- */
+
+        var GROUND = 88;
+
+        // A raised dirt bed in a wooden frame, with grass tufts and clods of earth.
+        function bedArt() {
+          var clods = "";
+          var spots = [[24, 46], [70, 40], [38, 66], [62, 72], [50, 34], [80, 60], [18, 70]];
+          spots.forEach(function (p, i) {
+            clods += '<ellipse cx="' + p[0] + '" cy="' + p[1] + '" rx="' + (2.6 + (i % 3)) + '" ry="' + (1.6 + (i % 2)) +
+              '" fill="' + (i % 2 ? "#5a3d24" : "#8a6039") + '" opacity="0.55"/>';
+          });
+
+          var furrows = "";
+          for (var f = 0; f < 4; f++) {
+            var y = 34 + f * 14;
+            furrows += '<path d="M12 ' + y + ' Q50 ' + (y - 4) + ' 88 ' + y + '" stroke="#553823" stroke-width="3" fill="none" opacity="0.45"/>';
+          }
+
+          return '<svg class="bed" viewBox="0 0 100 100" aria-hidden="true">' +
+            // soil mound
+            '<path d="M6 26 Q50 14 94 26 L96 90 Q50 98 4 90 Z" fill="#7d5735"/>' +
+            '<path d="M6 26 Q50 14 94 26 L94 36 Q50 26 6 36 Z" fill="#916440"/>' +
+            '<path d="M4 74 Q50 84 96 74 L96 90 Q50 98 4 90 Z" fill="#5f4127"/>' +
+            furrows + clods +
+            // wooden frame: side rails, then front and back planks
+            '<rect x="0" y="20" width="10" height="74" rx="4" fill="#b98550" stroke="#4e3018" stroke-width="3"/>' +
+            '<rect x="90" y="20" width="10" height="74" rx="4" fill="#a9764a" stroke="#4e3018" stroke-width="3"/>' +
+            '<rect x="0" y="14" width="100" height="14" rx="5" fill="#c79a63" stroke="#4e3018" stroke-width="3"/>' +
+            '<rect x="0" y="84" width="100" height="15" rx="5" fill="#b98550" stroke="#4e3018" stroke-width="3"/>' +
+            '<circle cx="9" cy="21" r="1.8" fill="#4e3018"/><circle cx="91" cy="21" r="1.8" fill="#4e3018"/>' +
+            '<circle cx="9" cy="91" r="1.8" fill="#4e3018"/><circle cx="91" cy="91" r="1.8" fill="#4e3018"/>' +
+            // grass tufts poking over the back plank
+            '<path d="M14 15 q3 -9 6 0 M22 15 q2 -6 5 0 M74 15 q3 -8 6 0 M83 15 q2 -6 4 0" fill="none" stroke="#4f9640" stroke-width="3" stroke-linecap="round"/>' +
+            "</svg>";
+        }
+
+        function seedMound(s) {
+          return '<ellipse cx="50" cy="' + (GROUND - 1) + '" rx="' + (8 + s * 3) + '" ry="' + (4 + s) + '" fill="#4a3320"/>' +
+            '<circle cx="47" cy="' + (GROUND - 3) + '" r="2" fill="#c8a870"/>' +
+            '<circle cx="53" cy="' + (GROUND - 2) + '" r="1.7" fill="#b3925c"/>';
+        }
+
+        function sprout(crop, s) {
+          var h = 7 + 12 * s;
+          return '<path d="M50 ' + GROUND + ' L50 ' + (GROUND - h) + '" stroke="' + crop.stem + '" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+            leaf(50, GROUND - h + 1, 8 + 7 * s, -150, crop.leaf) +
+            leaf(50, GROUND - h + 1, 8 + 7 * s, -30, crop.leaf);
+        }
+
+        function wilted() {
+          return '<path d="M50 ' + GROUND + ' C50 78, 54 72, 62 70" stroke="#8a7d6a" stroke-width="3.4" fill="none" stroke-linecap="round"/>' +
+            leaf(56, 74, 13, 35, "#a2957f") + leaf(50, 80, 12, 160, "#96896f") +
+            '<ellipse cx="36" cy="' + (GROUND - 1) + '" rx="7" ry="2.6" fill="#a2957f" opacity="0.8" transform="rotate(-12 36 87)"/>';
+        }
+
+        // The full growing plant for a crop at progress p (0..1).
+        function cropArt(cropId, p, dead) {
+          var crop = CROP_BY_ID[cropId];
+          var shadow = '<ellipse cx="50" cy="' + (GROUND + 2) + '" rx="17" ry="4" fill="#000000" opacity="0.22"/>';
+          if (dead) return svg(shadow + '<g class="plant">' + wilted() + "</g>", "crop", BED_VIEW);
+          if (p < 0.09) return svg(shadow + '<g class="grow">' + seedMound(p / 0.09) + "</g>", "crop", BED_VIEW);
+          if (p < 0.3) return svg(shadow + '<g class="grow"><g class="plant">' + sprout(crop, (p - 0.09) / 0.21) + "</g></g>", "crop", BED_VIEW);
+
+          var s = (p - 0.3) / 0.7;          // maturity 0..1
+          var ripe = Math.max(0, (p - 0.62) / 0.38); // fruit appears late
+          var body = "";
+
+          switch (cropId) {
+            case "radish": {
+              var rr = 4 + 7 * s;
+              for (var i = 0; i < 5; i++) body += leaf(50, GROUND - rr * 1.1, 12 + 11 * s, -160 + i * 30, crop.leaf);
+              if (ripe > 0) body += SHAPE.radish(50, GROUND - rr * 0.55, rr * (0.55 + 0.45 * ripe));
+              break;
+            }
+            case "carrot": {
+              for (var f = 0; f < 6; f++) {
+                var lean = -22 + f * 9;
+                var fh = 20 + 26 * s;
+                body += '<path d="M50 ' + GROUND + ' Q' + (50 + lean * 0.5) + ' ' + (GROUND - fh * 0.6) + ', ' + (50 + lean) + ' ' + (GROUND - fh) +
+                  '" stroke="' + crop.stem + '" stroke-width="2.2" fill="none" stroke-linecap="round"/>' +
+                  '<circle cx="' + (50 + lean) + '" cy="' + (GROUND - fh) + '" r="2.4" fill="' + crop.leaf + '"/>';
+              }
+              if (ripe > 0) {
+                var cw = 4 + 5 * ripe;
+                body += '<path d="M' + (50 - cw) + ' ' + (GROUND - 1) + ' Q50 ' + (GROUND - 7 - 5 * ripe) + ', ' + (50 + cw) + ' ' + (GROUND - 1) + ' z" fill="#e8802c"/>' +
+                  '<path d="M' + (50 - cw * 0.5) + ' ' + (GROUND - 3) + ' L' + (50 + cw * 0.5) + ' ' + (GROUND - 3.6) + '" stroke="#c4631a" stroke-width="1.2"/>';
+              }
+              break;
+            }
+            case "lettuce":
+              body += SHAPE.lettuce(50, GROUND - 9 - 7 * s, 9 + 12 * s);
+              break;
+            case "tomato": {
+              var th = 26 + 30 * s;
+              body += '<rect x="62" y="' + (GROUND - th - 4) + '" width="3" height="' + (th + 4) + '" rx="1.5" fill="#a97c4c"/>' +
+                '<path d="M50 ' + GROUND + " C48 " + (GROUND - th * 0.5) + ", 54 " + (GROUND - th * 0.7) + ", 52 " + (GROUND - th) +
+                '" stroke="' + crop.stem + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+              body += leaf(51, GROUND - th * 0.35, 15 + 7 * s, 195, crop.leaf) +
+                leaf(51, GROUND - th * 0.6, 14 + 7 * s, -20, crop.leaf) +
+                leaf(52, GROUND - th * 0.88, 12 + 6 * s, 200, crop.leaf);
+              if (ripe > 0) {
+                var tr = 3 + 4.5 * ripe;
+                body += SHAPE.tomato(41, GROUND - th * 0.55, tr) + SHAPE.tomato(60, GROUND - th * 0.75, tr * 0.92);
+                if (ripe > 0.6) body += SHAPE.tomato(47, GROUND - th * 0.3, tr * 0.8);
+              }
+              break;
+            }
+            case "corn": {
+              var ch = 34 + 34 * s;
+              body += '<rect x="48.4" y="' + (GROUND - ch) + '" width="3.2" height="' + ch + '" fill="' + crop.stem + '"/>';
+              for (var L = 0; L < 4; L++) {
+                var ly = GROUND - ch * (0.3 + L * 0.19);
+                var dir = L % 2 === 0 ? -1 : 1;
+                body += '<path d="M50 ' + ly + ' q' + dir * 16 + ' -9, ' + dir * (22 + 8 * s) + ' 5 q-' + dir * 12 + ' -2, -' + dir * (22 + 8 * s) + ' -5 z" fill="' + crop.leaf + '"/>';
+              }
+              body += '<path d="M50 ' + (GROUND - ch) + ' l-5 -8 M50 ' + (GROUND - ch) + ' l0 -10 M50 ' + (GROUND - ch) + ' l5 -8" stroke="#d9bf72" stroke-width="1.8" fill="none"/>';
+              if (ripe > 0) {
+                body += SHAPE.corn(42, GROUND - ch * 0.52, 4 + 4 * ripe);
+                if (ripe > 0.5) body += SHAPE.corn(58, GROUND - ch * 0.38, 3.6 + 3.6 * ripe);
+              }
+              break;
+            }
+            case "strawberry": {
+              for (var sl = 0; sl < 5; sl++) body += leaf(50, GROUND - 6 - 4 * s, 11 + 9 * s, -165 + sl * 33, crop.leaf);
+              if (ripe < 0.5) {
+                body += '<circle cx="43" cy="' + (GROUND - 13) + '" r="3" fill="#ffffff"/><circle cx="43" cy="' + (GROUND - 13) + '" r="1.2" fill="#f5c518"/>' +
+                  '<circle cx="58" cy="' + (GROUND - 10) + '" r="2.6" fill="#ffffff"/><circle cx="58" cy="' + (GROUND - 10) + '" r="1" fill="#f5c518"/>';
+              }
+              if (ripe > 0) {
+                var br = 3 + 4 * ripe;
+                body += SHAPE.strawberry(41, GROUND - 8 - br * 0.4, br) + SHAPE.strawberry(59, GROUND - 6 - br * 0.4, br * 0.9);
+              }
+              break;
+            }
+            case "pumpkin": {
+              body += '<path d="M50 ' + GROUND + ' q-16 -6, -26 2" stroke="' + crop.stem + '" stroke-width="2.6" fill="none"/>' +
+                leaf(38, GROUND - 6, 15 + 8 * s, 200, crop.leaf) + leaf(62, GROUND - 5, 14 + 8 * s, -25, crop.leaf);
+              if (ripe > 0) {
+                var pr = 7 + 12 * ripe;
+                body += SHAPE.pumpkin(50, GROUND - pr * 0.95, pr);
+              }
+              break;
+            }
+            case "melon": {
+              body += '<path d="M50 ' + GROUND + ' q-18 -5, -28 3" stroke="' + crop.stem + '" stroke-width="2.6" fill="none"/>' +
+                leaf(34, GROUND - 7, 16 + 7 * s, 205, crop.leaf) + leaf(66, GROUND - 6, 15 + 7 * s, -30, crop.leaf);
+              if (ripe > 0) {
+                var mr = 7 + 11 * ripe;
+                body += SHAPE.melon(50, GROUND - mr * 0.85, mr);
+              }
+              break;
+            }
+            case "potato": {
+              var ph = 16 + 16 * s;
+              body += '<path d="M50 ' + GROUND + ' L50 ' + (GROUND - ph) + '" stroke="' + crop.stem + '" stroke-width="3" stroke-linecap="round" fill="none"/>';
+              for (var pl = 0; pl < 5; pl++) body += leaf(50, GROUND - ph * (0.4 + (pl % 3) * 0.22), 12 + 9 * s, -160 + pl * 32, crop.leaf);
+              if (ripe > 0) {
+                body += SHAPE.potato(38, GROUND - 3 - 3 * ripe, 4 + 5 * ripe);
+                body += SHAPE.potato(62, GROUND - 2 - 3 * ripe, 3.6 + 4.6 * ripe);
+              }
+              break;
+            }
+            case "cucumber": {
+              body += '<path d="M50 ' + GROUND + ' q-6 -22, 2 -34" stroke="' + crop.stem + '" stroke-width="3.2" fill="none" stroke-linecap="round"/>' +
+                leaf(48, GROUND - 14, 17 + 9 * s, 198, crop.leaf) +
+                leaf(52, GROUND - 30 * s - 8, 16 + 9 * s, -24, crop.leaf) +
+                '<path d="M56 ' + (GROUND - 30) + ' q9 -6, 12 2" fill="none" stroke="' + crop.stem + '" stroke-width="2"/>';
+              if (ripe > 0) body += SHAPE.cucumber(60, GROUND - 20 - 6 * ripe, 5 + 6 * ripe);
+              break;
+            }
+            case "blueberry": {
+              var bh = 22 + 20 * s;
+              body += '<path d="M50 ' + GROUND + ' L50 ' + (GROUND - bh) + ' M50 ' + (GROUND - bh * 0.5) + ' l-11 -9 M50 ' + (GROUND - bh * 0.7) + ' l12 -9" ' +
+                'stroke="' + crop.stem + '" stroke-width="3" fill="none" stroke-linecap="round"/>';
+              for (var bl = 0; bl < 5; bl++) body += leaf(50, GROUND - bh * (0.45 + (bl % 3) * 0.2), 11 + 8 * s, -158 + bl * 33, crop.leaf);
+              if (ripe > 0) {
+                body += SHAPE.blueberry(38, GROUND - bh * 0.55, 3 + 3.4 * ripe);
+                body += SHAPE.blueberry(62, GROUND - bh * 0.75, 2.8 + 3.2 * ripe);
+              }
+              break;
+            }
+            case "grapes": {
+              var vh = 30 + 30 * s;
+              // trellis the vine climbs
+              body += '<rect x="30" y="' + (GROUND - vh - 6) + '" width="3" height="' + (vh + 6) + '" rx="1.5" fill="#a97c4c"/>' +
+                '<rect x="67" y="' + (GROUND - vh - 6) + '" width="3" height="' + (vh + 6) + '" rx="1.5" fill="#a97c4c"/>' +
+                '<rect x="30" y="' + (GROUND - vh - 6) + '" width="40" height="3" rx="1.5" fill="#c08b4c"/>' +
+                '<path d="M50 ' + GROUND + ' C44 ' + (GROUND - vh * 0.5) + ", 56 " + (GROUND - vh * 0.7) + ", 50 " + (GROUND - vh) +
+                '" stroke="' + crop.stem + '" stroke-width="3.4" fill="none" stroke-linecap="round"/>' +
+                leaf(50, GROUND - vh * 0.45, 15 + 8 * s, 200, crop.leaf) +
+                leaf(50, GROUND - vh * 0.78, 14 + 8 * s, -22, crop.leaf);
+              if (ripe > 0) body += SHAPE.grapes(50, GROUND - vh * 0.55, 6 + 7 * ripe);
+              break;
+            }
+            case "pineapple": {
+              for (var pf = 0; pf < 7; pf++) {
+                var plean = -30 + pf * 10;
+                var pfh = 22 + 24 * s;
+                body += '<path d="M50 ' + GROUND + ' Q' + (50 + plean * 0.4) + ' ' + (GROUND - pfh * 0.6) + ', ' + (50 + plean) + ' ' + (GROUND - pfh) +
+                  '" stroke="' + crop.leaf + '" stroke-width="3.4" fill="none" stroke-linecap="round"/>';
+              }
+              if (ripe > 0) body += SHAPE.pineapple(50, GROUND - 14 - 10 * ripe, 6 + 9 * ripe);
+              break;
+            }
+            case "bluelotus": {
+              // grows out of a little pool rather than dry soil
+              body += '<ellipse cx="50" cy="' + (GROUND - 2) + '" rx="30" ry="8" fill="#3f7fd0" opacity="0.55"/>' +
+                '<ellipse cx="34" cy="' + (GROUND - 4) + '" rx="' + (8 + 5 * s) + '" ry="' + (3 + 2 * s) + '" fill="' + crop.leaf + '"/>' +
+                '<ellipse cx="66" cy="' + (GROUND - 3) + '" rx="' + (7 + 5 * s) + '" ry="' + (3 + 2 * s) + '" fill="#4f9b6a"/>';
+              var lh = 22 + 26 * s;
+              body += '<path d="M50 ' + (GROUND - 2) + ' C48 ' + (GROUND - lh * 0.55) + ", 52 " + (GROUND - lh * 0.75) + ", 50 " + (GROUND - lh) +
+                '" stroke="' + crop.stem + '" stroke-width="3.2" fill="none" stroke-linecap="round"/>';
+              if (ripe > 0) {
+                body += SHAPE.bluelotus(50, GROUND - lh - 3, 6 + 9 * ripe);
+                body += '<circle cx="30" cy="' + (GROUND - lh - 8) + '" r="' + (1.6 * ripe).toFixed(1) + '" fill="#dbe9ff"/>' +
+                  '<circle cx="70" cy="' + (GROUND - lh + 4) + '" r="' + (1.3 * ripe).toFixed(1) + '" fill="#dbe9ff"/>';
+              } else {
+                body += '<ellipse cx="50" cy="' + (GROUND - lh - 1) + '" rx="' + (2.6 + 2 * s) + '" ry="' + (5 + 3 * s) + '" fill="#8fb4ff"/>';
+              }
+              break;
+            }
+          }
+
+          return svg(shadow + '<g class="grow"><g class="plant">' + body + "</g></g>", "crop", BED_VIEW);
+        }
+
+        // One harvested item, centred — used for the barn and the market.
+        function produceArt(cropId) {
+          var sizes = {
+            radish: 26, carrot: 22, potato: 27, lettuce: 30, cucumber: 22, tomato: 27, corn: 20,
+            strawberry: 26, blueberry: 22, pumpkin: 27, melon: 30, grapes: 22, pineapple: 24, bluelotus: 26
+          };
+          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 44 : 50;
+          return svg(SHAPE[cropId](50, cy, sizes[cropId]));
+        }
+
+        // Produce sitting in a market crate.
+        function crateArt(cropId) {
+          var sizes = {
+            radish: 21, carrot: 19, potato: 22, lettuce: 24, cucumber: 17, tomato: 22, corn: 17,
+            strawberry: 21, blueberry: 18, pumpkin: 22, melon: 24, grapes: 18, pineapple: 19, bluelotus: 21
+          };
+          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 42 : 48;
+          return svg(
+            // produce first, then the crate front on top of it so it sits inside
+            SHAPE[cropId](50, cy, sizes[cropId]) +
+            '<path d="M14 60 h72 v26 a4 4 0 0 1 -4 4 h-64 a4 4 0 0 1 -4 -4 z" fill="#c08b4c" stroke="#4a3320" stroke-width="3"/>' +
+            '<path d="M14 72 h72 M14 81 h72" stroke="#8a5f2c" stroke-width="2.5"/>' +
+            '<path d="M26 60 v30 M74 60 v30" stroke="#8a5f2c" stroke-width="2.5"/>' +
+            '<path d="M12 58 h76" stroke="#4a3320" stroke-width="4" stroke-linecap="round"/>'
+          );
+        }
+
+        // Seven-day price line for a crop.
+        function sparkline(hist, rising) {
+          if (!hist || hist.length < 2) return '<div class="spark"></div>';
+          var min = Math.min.apply(null, hist);
+          var max = Math.max.apply(null, hist);
+          var span = max - min || 1;
+          var pts = hist.map(function (v, i) {
+            return (2 + (i / (hist.length - 1)) * 96).toFixed(1) + "," + (23 - ((v - min) / span) * 19).toFixed(1);
+          });
+          var color = rising ? "#2f7a34" : "#b0342c";
+          var lastPt = pts[pts.length - 1].split(",");
+          return '<svg class="spark" viewBox="0 0 100 26" preserveAspectRatio="none" aria-hidden="true">' +
+            '<polyline points="' + pts.join(" ") + '" fill="none" stroke="' + color + '" stroke-width="2.5" ' +
+            'stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>' +
+            '<circle cx="' + lastPt[0] + '" cy="' + lastPt[1] + '" r="2.4" fill="' + color + '"/></svg>';
+        }
+
+        // A seed packet with the crop pictured on the label.
+        function seedPacketArt(crop) {
+          return svg(
+            '<rect x="21" y="12" width="58" height="76" rx="5" fill="#f5eeda" stroke="#3a2c1c" stroke-width="3"/>' +
+            '<path d="M21 24 H79" stroke="#3a2c1c" stroke-width="2" opacity="0.45"/>' +
+            '<circle cx="30" cy="18" r="2.4" fill="#3a2c1c" opacity="0.55"/>' +
+            '<rect x="27" y="30" width="46" height="38" rx="4" fill="' + crop.fruit + '" opacity="0.16"/>' +
+            SHAPE[crop.id](50, 49, 15) +
+            '<rect x="27" y="73" width="46" height="4" rx="2" fill="' + crop.stem + '" opacity="0.75"/>' +
+            '<rect x="27" y="80" width="30" height="3" rx="1.5" fill="#3a2c1c" opacity="0.35"/>'
+          );
+        }
+
+        /* ---- props, tools and scenery ------------------------------------ */
+
+        var PROP = {
+          can: function () {
+            return svg('<path d="M28 42 h30 v34 a6 6 0 0 1 -6 6 h-18 a6 6 0 0 1 -6 -6 z" fill="#5b93c7" stroke="#22415e" stroke-width="3"/>' +
+              '<path d="M58 50 l16 -12 l6 4 l-14 14 z" fill="#7fb3dd" stroke="#22415e" stroke-width="3"/>' +
+              '<path d="M32 42 q11 -14 22 0" fill="none" stroke="#22415e" stroke-width="3"/>' +
+              '<circle cx="79" cy="30" r="3" fill="#7fc6f2"/><circle cx="86" cy="38" r="2.4" fill="#7fc6f2"/>');
+          },
+          drop: function (color) {
+            return svg('<path d="M50 14 C70 44, 78 56, 66 70 a22 22 0 0 1 -32 0 C22 56, 30 44, 50 14 z" fill="' + (color || "#4f9ad8") + '" stroke="#22415e" stroke-width="3"/>' +
+              '<ellipse cx="41" cy="58" rx="5" ry="8" fill="#ffffff" opacity="0.4"/>');
+          },
+          fert: function () {
+            return svg('<path d="M30 34 h40 v46 a6 6 0 0 1 -6 6 h-28 a6 6 0 0 1 -6 -6 z" fill="#caa96a" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M30 44 h40" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M36 26 q14 -10 28 0 l6 8 h-40 z" fill="#e0c48c" stroke="#4a3320" stroke-width="3"/>' +
+              leaf(50, 62, 16, -150, "#4f9b3d") + leaf(50, 62, 16, -30, "#4f9b3d"));
+          },
+          basket: function () {
+            return svg('<path d="M18 44 h64 l-8 38 a8 8 0 0 1 -8 6 h-32 a8 8 0 0 1 -8 -6 z" fill="#c08b4c" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M26 56 h48 M30 68 h40" stroke="#8a5f2c" stroke-width="3"/>' +
+              '<path d="M30 44 q20 -26 40 0" fill="none" stroke="#4a3320" stroke-width="3"/>' +
+              '<circle cx="40" cy="40" r="8" fill="#d13a2c"/><circle cx="58" cy="38" r="7" fill="#e8802c"/>');
+          },
+          barn: function () {
+            return svg('<path d="M12 46 L50 20 L88 46 v40 h-76 z" fill="#c0392b" stroke="#4a2018" stroke-width="3"/>' +
+              '<path d="M12 46 L50 20 L88 46" fill="none" stroke="#4a2018" stroke-width="3"/>' +
+              '<rect x="38" y="56" width="24" height="30" fill="#e9d8b8" stroke="#4a2018" stroke-width="3"/>' +
+              '<path d="M38 56 L62 86 M62 56 L38 86" stroke="#4a2018" stroke-width="3"/>' +
+              '<rect x="46" y="34" width="8" height="8" fill="#e9d8b8" stroke="#4a2018" stroke-width="2"/>');
+          },
+          scarecrow: function () {
+            return svg('<rect x="47" y="40" width="6" height="48" fill="#8a5f2c"/>' +
+              '<rect x="24" y="48" width="52" height="5" rx="2" fill="#8a5f2c"/>' +
+              '<path d="M34 52 h32 l-4 26 h-24 z" fill="#c94f3a" stroke="#4a2018" stroke-width="2.5"/>' +
+              '<circle cx="50" cy="32" r="12" fill="#e0b96a" stroke="#4a2018" stroke-width="2.5"/>' +
+              '<path d="M34 26 q16 -12 32 0 z" fill="#8a5f2c" stroke="#4a2018" stroke-width="2.5"/>' +
+              '<path d="M32 22 h36" stroke="#4a2018" stroke-width="3"/>' +
+              '<circle cx="45" cy="32" r="2" fill="#4a2018"/><circle cx="55" cy="32" r="2" fill="#4a2018"/>' +
+              '<path d="M44 38 q6 5 12 0" fill="none" stroke="#4a2018" stroke-width="2"/>' +
+              '<path d="M24 48 l-5 8 M76 48 l5 8" stroke="#d9bf72" stroke-width="3"/>');
+          },
+          sprinkler: function () {
+            return svg('<rect x="46" y="46" width="8" height="40" fill="#7d8b95" stroke="#3b4650" stroke-width="2.5"/>' +
+              '<rect x="34" y="84" width="32" height="6" rx="3" fill="#5c6870" stroke="#3b4650" stroke-width="2.5"/>' +
+              '<circle cx="50" cy="42" r="7" fill="#9aa8b2" stroke="#3b4650" stroke-width="2.5"/>' +
+              '<path d="M50 36 q-22 4, -30 22 M50 36 q22 4, 30 22" fill="none" stroke="#6fc0f0" stroke-width="3" stroke-linecap="round" opacity="0.9"/>' +
+              '<circle cx="18" cy="62" r="3" fill="#6fc0f0"/><circle cx="82" cy="62" r="3" fill="#6fc0f0"/><circle cx="50" cy="24" r="3" fill="#6fc0f0"/>');
+          },
+          greenhouse: function () {
+            return svg('<path d="M14 84 v-30 L50 26 L86 54 v30 z" fill="#cfeaf5" stroke="#41606e" stroke-width="3" opacity="0.92"/>' +
+              '<path d="M50 26 v58 M14 54 h72 M32 40 v44 M68 40 v44" stroke="#41606e" stroke-width="2.5" opacity="0.8"/>' +
+              leaf(32, 74, 12, 200, "#4f9b3d") + leaf(68, 74, 12, -20, "#4f9b3d") +
+              '<rect x="42" y="66" width="16" height="18" fill="#8fd0e6" stroke="#41606e" stroke-width="2.5"/>');
+          },
+          stand: function () {
+            return svg('<rect x="18" y="52" width="64" height="8" fill="#c08b4c" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M14 52 l10 -18 h52 l10 18 z" fill="#e8d3a8" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M24 34 l-4 18 M40 34 l-2 18 M60 34 l2 18 M76 34 l4 18" stroke="#c94f3a" stroke-width="4" opacity="0.85"/>' +
+              '<rect x="24" y="60" width="6" height="26" fill="#8a5f2c"/><rect x="70" y="60" width="6" height="26" fill="#8a5f2c"/>' +
+              '<circle cx="42" cy="46" r="6" fill="#d13a2c"/><circle cx="56" cy="46" r="5" fill="#e8802c"/>');
+          },
+          lock: function () {
+            return svg('<rect x="30" y="46" width="40" height="34" rx="6" fill="#e8d3a8" stroke="#4a3320" stroke-width="4"/>' +
+              '<path d="M38 46 v-8 a12 12 0 0 1 24 0 v8" fill="none" stroke="#4a3320" stroke-width="4"/>' +
+              '<circle cx="50" cy="62" r="5" fill="#4a3320"/>');
+          },
+          shovel: function () {
+            return svg('<rect x="46" y="18" width="8" height="42" rx="3" fill="#a97c4c" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M42 14 h16 v10 h-16 z" fill="#9aa8b2" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M36 58 h28 v14 q0 16 -14 20 q-14 -4 -14 -20 z" fill="#b9c4cd" stroke="#3b4650" stroke-width="3" stroke-linejoin="round"/>' +
+              '<path d="M50 62 v26" stroke="#8d99a3" stroke-width="3"/>');
+          },
+          hoe: function () {
+            return svg('<rect x="40" y="14" width="7" height="66" rx="3" fill="#a97c4c" stroke="#4a3320" stroke-width="3" transform="rotate(12 44 47)"/>' +
+              '<path d="M52 74 h30 v11 h-30 z" fill="#9aa8b2" stroke="#3b4650" stroke-width="3" stroke-linejoin="round"/>' +
+              '<path d="M48 66 q10 4, 8 12" fill="none" stroke="#3b4650" stroke-width="4"/>');
+          },
+          compost: function () {
+            return svg('<path d="M22 46 h56 v34 a6 6 0 0 1 -6 6 h-44 a6 6 0 0 1 -6 -6 z" fill="#8a5f2c" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M22 56 h56 M22 68 h56" stroke="#6b4526" stroke-width="3"/>' +
+              '<path d="M26 46 q10 -14 24 -10 q14 -8 24 10 z" fill="#6b4a2f" stroke="#4a3320" stroke-width="3"/>' +
+              leaf(40, 38, 14, 200, "#4f9b3d") + leaf(60, 36, 13, -22, "#6cb352") +
+              '<circle cx="50" cy="34" r="3" fill="#c99b5e"/>');
+          },
+          beehive: function () {
+            return svg('<ellipse cx="50" cy="80" rx="30" ry="8" fill="#5da743" opacity="0.5"/>' +
+              '<path d="M28 76 h44 v-8 h-48 v-10 h52 v-10 h-48 v-10 h44 q-6 -14 -22 -14 q-16 0 -22 14 z" fill="#f0b429" stroke="#8a6110" stroke-width="3" stroke-linejoin="round"/>' +
+              '<circle cx="50" cy="66" r="6" fill="#4a3320"/>' +
+              '<g><ellipse cx="80" cy="34" rx="6" ry="4" fill="#ffd76a" stroke="#4a3320" stroke-width="2"/>' +
+              '<path d="M76 32 l-4 -4 M84 32 l4 -4" stroke="#4a3320" stroke-width="2"/></g>');
+          },
+          trowel: function () {
+            return svg('<rect x="46" y="14" width="9" height="34" rx="4" fill="#c94f3a" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M34 48 h32 l-6 26 q-10 12 -20 0 z" fill="#ffd76a" stroke="#8a6110" stroke-width="3" stroke-linejoin="round"/>' +
+              '<path d="M50 52 v22" stroke="#c9911a" stroke-width="3"/>' +
+              '<path d="M74 26 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 z" fill="#fff3c4"/>');
+          },
+          cart: function () {
+            return svg('<path d="M20 40 h52 l-6 30 h-40 z" fill="#c08b4c" stroke="#4a3320" stroke-width="3" stroke-linejoin="round"/>' +
+              '<path d="M26 52 h42 M30 62 h34" stroke="#8a5f2c" stroke-width="3"/>' +
+              '<circle cx="32" cy="80" r="9" fill="#6b4a2f" stroke="#3f2a17" stroke-width="3"/>' +
+              '<circle cx="60" cy="80" r="9" fill="#6b4a2f" stroke="#3f2a17" stroke-width="3"/>' +
+              '<path d="M72 40 l14 -8" stroke="#8a5f2c" stroke-width="4" stroke-linecap="round"/>' +
+              '<circle cx="40" cy="34" r="7" fill="#d13a2c"/><circle cx="55" cy="33" r="6" fill="#e8802c"/>');
+          },
+          speaker: function (muted) {
+            return svg('<path d="M22 40 h14 l18 -16 v52 l-18 -16 h-14 z" fill="#4a3320" stroke="#2c1e12" stroke-width="3" stroke-linejoin="round"/>' +
+              (muted
+                ? '<path d="M64 38 l20 24 M84 38 l-20 24" stroke="#b0342c" stroke-width="6" stroke-linecap="round"/>'
+                : '<path d="M62 36 a20 20 0 0 1 0 28 M70 26 a32 32 0 0 1 0 48" fill="none" stroke="#4a3320" stroke-width="5" stroke-linecap="round"/>'));
+          },
+          coin: function () {
+            return svg('<circle cx="50" cy="50" r="30" fill="#f0b429" stroke="#8a6110" stroke-width="4"/>' +
+              '<circle cx="50" cy="50" r="21" fill="#ffd76a" stroke="#8a6110" stroke-width="2"/>' +
+              '<path d="M50 36 v28 M43 43 h14 M43 57 h14" stroke="#8a6110" stroke-width="4" stroke-linecap="round"/>');
+          },
+          shop: function () {
+            return svg('<rect x="18" y="46" width="64" height="40" fill="#e8d3a8" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M14 46 l8 -16 h56 l8 16 z" fill="#c94f3a" stroke="#4a3320" stroke-width="3"/>' +
+              '<rect x="38" y="60" width="24" height="26" fill="#8a5f2c" stroke="#4a3320" stroke-width="3"/>');
+          },
+          sprout: function () {
+            return svg('<path d="M50 88 L50 52" stroke="#4f9b3d" stroke-width="5" stroke-linecap="round"/>' +
+              leaf(50, 54, 22, -155, "#6cb352") + leaf(50, 58, 20, -25, "#8fd06a"));
+          },
+          sunny: function () {
+            return svg('<circle cx="50" cy="50" r="20" fill="#ffd54a" stroke="#c9911a" stroke-width="3"/>' +
+              '<g stroke="#ffb300" stroke-width="5" stroke-linecap="round"><path d="M50 12 v10 M50 78 v10 M12 50 h10 M78 50 h10 M23 23 l7 7 M70 70 l7 7 M77 23 l-7 7 M30 70 l-7 7"/></g>');
+          },
+          cloudy: function () {
+            return svg('<circle cx="50" cy="46" r="16" fill="#ffd54a" opacity="0.9"/>' +
+              '<path d="M26 72 a14 14 0 0 1 4 -27 a18 18 0 0 1 34 -4 a13 13 0 0 1 8 31 z" fill="#ffffff" stroke="#8b9aa5" stroke-width="3"/>');
+          },
+          rainy: function () {
+            return svg('<path d="M26 62 a14 14 0 0 1 4 -27 a18 18 0 0 1 34 -4 a13 13 0 0 1 8 31 z" fill="#dbe4ea" stroke="#6c7d8a" stroke-width="3"/>' +
+              '<g stroke="#4f9ad8" stroke-width="4" stroke-linecap="round"><path d="M34 70 l-4 12 M50 70 l-4 14 M66 70 l-4 12"/></g>');
+          },
+          stormy: function () {
+            return svg('<path d="M26 58 a14 14 0 0 1 4 -27 a18 18 0 0 1 34 -4 a13 13 0 0 1 8 31 z" fill="#b9c4cd" stroke="#4d5b66" stroke-width="3"/>' +
+              '<path d="M50 60 l-12 18 h10 l-6 16 l20 -22 h-10 l8 -12 z" fill="#ffd54a" stroke="#a8791a" stroke-width="2.5"/>');
+          },
+          hot: function () {
+            return svg('<circle cx="50" cy="44" r="19" fill="#ff9d3d" stroke="#c9550f" stroke-width="3"/>' +
+              '<g stroke="#ff7a1a" stroke-width="5" stroke-linecap="round"><path d="M50 10 v9 M16 44 h9 M75 44 h9 M25 20 l6 6 M75 20 l-6 6"/></g>' +
+              '<path d="M24 76 q8 -8 16 0 t16 0 t16 0" fill="none" stroke="#e2711d" stroke-width="4" stroke-linecap="round"/>');
+          }
+        };
+
+        // The illustrated backdrop behind the beds: hills, treeline, barn, silo,
+        // windmill and a distant fence. Drawn once, stretched across the field.
+        function sceneArt() {
+          var tree = function (x, y, s, dark) {
+            return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">' +
+              '<rect x="-4" y="0" width="8" height="20" rx="3" fill="#7a5228"/>' +
+              '<circle cx="0" cy="-14" r="20" fill="' + (dark ? "#3f7a33" : "#4f9640") + '"/>' +
+              '<circle cx="-14" cy="-4" r="14" fill="' + (dark ? "#356b2b" : "#458537") + '"/>' +
+              '<circle cx="14" cy="-4" r="14" fill="' + (dark ? "#458537" : "#59a648") + '"/>' +
+              '<circle cx="-4" cy="-24" r="12" fill="' + (dark ? "#59a648" : "#6cb352") + '"/>' +
+              "</g>";
+          };
+
+          return '<svg viewBox="0 0 1000 152" preserveAspectRatio="xMidYMax slice" aria-hidden="true">' +
+            // rolling hills
+            '<path d="M0 152 V96 Q120 60 250 92 Q380 122 520 88 Q660 52 800 90 Q900 116 1000 92 V152 Z" fill="#82c163"/>' +
+            '<path d="M0 152 V116 Q160 92 320 118 Q500 148 680 116 Q840 88 1000 118 V152 Z" fill="#6fb350"/>' +
+            // distant crop rows
+            '<path d="M0 138 H1000" stroke="#5da743" stroke-width="6" opacity="0.5"/>' +
+            // treeline
+            tree(70, 128, 1, true) + tree(140, 132, 0.8) + tree(905, 126, 1.05, true) + tree(960, 133, 0.75) +
+            // windmill
+            '<g transform="translate(300 60)">' +
+              '<path d="M-13 78 L-7 0 L7 0 L13 78 Z" fill="#e8d3a8" stroke="#5e3c22" stroke-width="4"/>' +
+              '<path d="M-11 46 H11" stroke="#5e3c22" stroke-width="3"/>' +
+              '<circle cx="0" cy="-2" r="6" fill="#c94f3a" stroke="#5e3c22" stroke-width="3"/>' +
+              '<g class="blades">' +
+                '<path d="M0 -2 L-6 -44 L6 -46 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
+                '<path d="M0 -2 L42 -8 L44 4 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
+                '<path d="M0 -2 L6 40 L-6 42 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
+                '<path d="M0 -2 L-42 2 L-44 -10 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
+              "</g>" +
+            "</g>" +
+            // silo
+            '<g transform="translate(690 44)">' +
+              '<rect x="-24" y="16" width="48" height="78" rx="6" fill="#d8d2c4" stroke="#5e3c22" stroke-width="4"/>' +
+              '<path d="M-26 18 Q0 -12 26 18 Z" fill="#9aa3ab" stroke="#5e3c22" stroke-width="4"/>' +
+              '<path d="M-24 40 H24 M-24 62 H24" stroke="#b3ab9b" stroke-width="4"/>' +
+            "</g>" +
+            // the big barn
+            '<g transform="translate(790 34)">' +
+              '<path d="M-70 40 L0 -6 L70 40 V104 H-70 Z" fill="#c0392b" stroke="#4a2018" stroke-width="5" stroke-linejoin="round"/>' +
+              '<path d="M-70 40 L0 -6 L70 40" fill="none" stroke="#8c2a1f" stroke-width="5"/>' +
+              '<rect x="-26" y="52" width="52" height="52" fill="#e9d8b8" stroke="#4a2018" stroke-width="5"/>' +
+              '<path d="M-26 52 L26 104 M26 52 L-26 104 M0 52 V104" stroke="#4a2018" stroke-width="4"/>' +
+              '<rect x="-9" y="16" width="18" height="16" fill="#e9d8b8" stroke="#4a2018" stroke-width="4"/>' +
+            "</g>" +
+            // fence line along the horizon
+            '<g opacity="0.85">' +
+              '<path d="M0 128 H1000" stroke="#c79a63" stroke-width="5"/>' +
+              '<path d="M0 138 H1000" stroke="#b08a52" stroke-width="5"/>' +
+            "</g>" +
+            "</svg>";
+        }
+
+        var WEATHER_ICON = { sun: "sunny", cloud: "cloudy", rain: "rainy", storm: "stormy", heat: "hot" };
+        var UPGRADE_PROP = {
+          can2: "can", sprinkler: "sprinkler", greenhouse: "greenhouse", scarecrow: "scarecrow", stand: "stand",
+          compost: "compost", beehive: "beehive", hoe: "hoe", trowel: "trowel", cart: "cart"
+        };
+
+        // which upgrades actually stand out in the farmyard
+        var YARD_PROPS = ["sprinkler", "greenhouse", "scarecrow", "stand", "compost", "beehive", "cart"];
+
+        /* ================================================================== *
+         * Actions
+         * ================================================================== */
+
+        var harvestClock = 0;
+        var streakTimer = null;
+
+        function showStreak(n, bonus) {
+          var box = el.streak;
+          if (n < 2) { box.classList.remove("on"); return; }
+          box.innerHTML = "x" + n + " Streak" + (bonus ? "<small>+" + bonus.toLocaleString() + " coins</small>" : "<small>keep going</small>");
+          box.classList.remove("on");
+          void box.offsetWidth;   // restart the pop
+          box.classList.add("on");
+          SFX.streak(n);
+          clearTimeout(streakTimer);
+          streakTimer = setTimeout(function () {
+            box.classList.remove("on");
+            state.streak = 0;
+          }, 4200);
+        }
+
+        // A card that names the level and shows off whatever it just unlocked.
+        function levelUpCard(level) {
+          var crops = CROPS.filter(function (c) { return c.level === level; });
+          var plots = level % 3 === 0;   // flavour line for the steady drip of new ground
+
+          var card = document.createElement("div");
+          card.className = "levelup";
+          var html = '<span class="ribbon">Level Up</span><h4>Level ' + level + "</h4>";
+
+          if (crops.length) {
+            html += '<div class="unlocks">' + crops.map(function (c) {
+              return '<div class="unlock">' + seedPacketArt(c) + "<b>" + c.name + "</b><small>" + c.seed + "c a seed</small></div>";
+            }).join("") + "</div>";
+          } else {
+            html += '<p class="none">' + (plots
+              ? "Bigger harvests, faster coins — new seeds are close."
+              : "Nothing new in the shop yet, but every crop is worth more XP than the last.") + "</p>";
+          }
+
+          card.innerHTML = html;
+          document.body.appendChild(card);
+          setTimeout(function () { if (card.parentNode) card.parentNode.removeChild(card); }, 3700);
+
+          toast(crops.length
+            ? "Level " + level + "! " + crops.map(function (c) { return c.name; }).join(", ") + " unlocked at the store."
+            : "Level " + level + "!", "good");
+        }
+
+        function addXP(amount) {
+          state.xp += amount;
+          var need = xpForLevel(state.level);
+          while (state.xp >= need) {
+            state.xp -= need;
+            state.level++;
+            need = xpForLevel(state.level);
+            confetti();
+            SFX.levelup();
+            levelUpCard(state.level);
+          }
+        }
+
+        function plant(idx) {
+          var plot = state.plots[idx];
+          var cropId = state.selectedSeed;
+          if (!cropId) { toast("Pick a seed from the belt first.", "bad"); return; }
+          if (!(state.seeds[cropId] > 0)) {
+            toast("No " + CROP_BY_ID[cropId].name + " seeds left — buy more at the store.", "bad");
+            SFX.nope();
+            return;
+          }
+          state.seeds[cropId]--;
+          plot.crop = cropId;
+          plot.growth = 0;
+          plot.weeds = false;
+          plot.fert = false;
+          plot.dead = false;
+          plot.dryTime = 0;
+          // one in fourteen seeds comes up golden — triple harvest, and it glitters
+          plot.golden = Math.random() < (state.upgrades.trowel ? 0.14 : 0.07);
+          if (plot.water < 45) plot.water = 45;
+          if (!(state.seeds[cropId] > 0)) delete state.seeds[cropId];
+          render();
+          seedFall(idx);
+          SFX.plant();
+        }
+
+        function waterPlot(idx, silent) {
+          var plot = state.plots[idx];
+          if (state.can <= 0) {
+            if (!silent) toast("Watering can is empty — tap Fill Can.", "bad");
+            return false;
+          }
+          if (plot.water >= 99) {
+            if (!silent) toast("That soil is already soaked.", null);
+            return false;
+          }
+          state.can--;
+          plot.water = Math.min(100, plot.water + 55);
+          return true;
+        }
+
+        function fertilize(idx) {
+          var plot = state.plots[idx];
+          if (state.fertilizer <= 0) { toast("No fertilizer — grab a bag at the store.", "bad"); return; }
+          if (!plot.crop || plot.dead) { toast("Plant something there first.", "bad"); return; }
+          if (plot.fert) { toast("Already fertilized.", null); return; }
+          state.fertilizer--;
+          plot.fert = true;
+          toast("Fertilized — faster growth and double yield.", "good");
+          render();
+        }
+
+        // The hoe clears weeds and turns the soil, which perks growth up a touch.
+        function useHoe(idx) {
+          var plot = state.plots[idx];
+          var node = plotNodes[idx];
+          var r = node.getBoundingClientRect();
+          if (plot.weeds) {
+            plot.weeds = false;
+            toast("Hoed the weeds out of that bed.", "good");
+            SFX.weeds();
+            burst(r.left + r.width / 2, r.top + r.height * 0.6, { count: 12, spread: 70, size: 11, colors: ["#6fae4b", "#4f8a33", "#a8d68a"] });
+          } else if (plot.crop && !plot.dead) {
+            plot.growth = Math.min(1, plot.growth + 0.04);
+            toast("Turned the soil — that crop perked up.", null);
+            SFX.plant();
+            burst(r.left + r.width / 2, r.top + r.height * 0.72, { count: 8, spread: 52, size: 10, colors: ["#8a6039", "#6b4a2f", "#c99b5e"] });
+          } else {
+            toast("Nothing to hoe in that bed.", null);
+            SFX.nope();
+            return;
+          }
+          render();
+        }
+
+        // The shovel digs a crop out — the way to clear a dud or a dead plant.
+        function useShovel(idx) {
+          var plot = state.plots[idx];
+          if (!plot.crop) { toast("That bed is already bare.", null); SFX.nope(); return; }
+          var crop = CROP_BY_ID[plot.crop];
+          var wasDead = plot.dead;
+          var node = plotNodes[idx];
+          var r = node.getBoundingClientRect();
+
+          // digging up a grown crop still gets you the harvest
+          if (!wasDead && plot.growth >= 1) { harvest(idx, node); return; }
+
+          plot.crop = null; plot.growth = 0; plot.dead = false; plot.fert = false; plot.weeds = false; plot.golden = false; plot.dryTime = 0;
+          burst(r.left + r.width / 2, r.top + r.height * 0.68, { count: 14, spread: 78, size: 12, colors: ["#8a6039", "#6b4a2f", "#553823"] });
+          SFX.weeds();
+          toast(wasDead ? "Dug out the withered " + crop.name.toLowerCase() + "." : "Dug up the " + crop.name.toLowerCase() + ".", null);
+          render();
+        }
+
+        function harvest(idx, node, quiet) {
+          var plot = state.plots[idx];
+          if (!plot.crop) return null;
+          var crop = CROP_BY_ID[plot.crop];
+
+          if (plot.dead) {
+            plot.crop = null; plot.growth = 0; plot.dead = false; plot.fert = false; plot.weeds = false; plot.dryTime = 0;
+            toast("Cleared the withered " + crop.name.toLowerCase() + ".", null);
+            render();
+            return null;
+          }
+
+          var golden = !!plot.golden;
+          var yieldCount = 1 + (plot.fert ? 1 : 0) + (state.upgrades.beehive ? 1 : 0);
+          if (Math.random() < 0.16) yieldCount++;
+          if (golden) yieldCount *= 3;
+
+          // Some crops go to seed — a good harvest hands a packet back.
+          var seedsBack = Math.random() < (plot.fert ? 0.62 : 0.45) ? 1 : 0;
+          if (seedsBack && Math.random() < 0.18) seedsBack = 2;
+          if (golden) seedsBack += 1;
+
+          state.barn[crop.id] = (state.barn[crop.id] || 0) + yieldCount;
+          state.stats.harvested += yieldCount;
+          if (golden) state.stats.golden = (state.stats.golden || 0) + 1;
+          if (seedsBack) {
+            state.seeds[crop.id] = (state.seeds[crop.id] || 0) + seedsBack;
+            state.stats.saved += seedsBack;
+          }
+
+          // Harvesting again quickly keeps a streak alive, and the streak tips coins.
+          var now = Date.now();
+          state.streak = now - (harvestClock || 0) < 4200 ? (state.streak || 0) + 1 : 1;
+          harvestClock = now;
+          var bonus = state.streak > 2 ? Math.round(priceOf(crop.id) * 0.06 * Math.min(state.streak, 12)) : 0;
+          if (bonus) { state.coins += bonus; state.stats.earned += bonus; }
+          showStreak(state.streak, bonus);
+
+          addXP(Math.round(crop.price * 0.12 * yieldCount) + (golden ? 20 : 0));
+
+          plot.crop = null; plot.growth = 0; plot.fert = false; plot.weeds = false; plot.dryTime = 0; plot.golden = false;
+
+          if (node) {
+            var r = node.getBoundingClientRect();
+            var cx = r.left + r.width / 2;
+            var cy = r.top + r.height * 0.45;
+            floatText((golden ? "GOLDEN +" : "+") + yieldCount + " " + crop.name, cx, r.top + 6, golden ? "#c9911a" : null);
+            flyProduce(crop.id, cx, cy);
+            burst(cx, cy, golden
+              ? { count: 26, spread: 130, size: 15, shape: "star", colors: ["#ffd76a", "#fff3c4", "#f0b429", "#ffffff"] }
+              : { count: 12, spread: 76, size: 11, colors: [crop.fruit, crop.leaf, "#fff3c4"] });
+            if (bonus) coinFly(cx, cy, Math.min(4, 1 + Math.floor(state.streak / 3)));
+          }
+          if (golden) {
+            SFX.golden();
+            banner("Golden " + crop.name + "!", "Triple harvest and a free seed");
+          } else {
+            SFX.harvest();
+          }
+          if (seedsBack && !quiet) {
+            toast("Saved " + seedsBack + " " + crop.name + " seed" + (seedsBack === 1 ? "" : "s") + " from the harvest.", "good");
+          }
+          render();
+          return { count: yieldCount, seeds: seedsBack, golden: golden, bonus: bonus };
+        }
+
+        function plotClick(idx, evt) {
+          var plot = state.plots[idx];
+
+          if (!plot.unlocked) {
+            var cost = plotCost(idx);
+            if (state.coins < cost) { toast("Need " + cost + " coins to clear that plot.", "bad"); return; }
+            state.coins -= cost;
+            state.stats.spent += cost;
+            plot.unlocked = true;
+            toast("Plot cleared for " + cost + " coins.", "good");
+            render();
+            return;
+          }
+
+          if (state.tool === "fert") { fertilize(idx); return; }
+          if (state.tool === "water") {
+            if (waterPlot(idx)) { render(); splash(idx); }
+            return;
+          }
+          if (state.tool === "hoe") { useHoe(idx); return; }
+          if (state.tool === "shovel") { useShovel(idx); return; }
+
+          if (plot.weeds) {
+            plot.weeds = false;
+            toast("Weeds pulled.", "good");
+            SFX.weeds();
+            var wr = plotNodes[idx].getBoundingClientRect();
+            burst(wr.left + wr.width / 2, wr.top + wr.height * 0.6, {
+              count: 10, spread: 60, size: 10, colors: ["#6fae4b", "#4f8a33", "#a8d68a"]
+            });
+            render();
+            return;
+          }
+
+          var node = evt && evt.currentTarget;
+          if (!plot.crop) { plant(idx); return; }
+          if (plot.dead) { harvest(idx, node); return; }
+          if (plot.growth >= 1) { harvest(idx, node); return; }
+
+          if (waterPlot(idx)) { render(); splash(idx); }
+        }
+
+        function harvestAll() {
+          var total = 0, seeds = 0, bonus = 0, golds = 0;
+          state.plots.forEach(function (plot, i) {
+            if (plot.unlocked && plot.crop && !plot.dead && plot.growth >= 1) {
+              var got = harvest(i, plotNodes[i], true);
+              if (got) { total += got.count; seeds += got.seeds; bonus += got.bonus; if (got.golden) golds++; }
+            }
+          });
+          if (total) {
+            toast("Harvested " + total + " crop" + (total === 1 ? "" : "s") + " into the barn" +
+              (seeds ? ", saved " + seeds + " seed" + (seeds === 1 ? "" : "s") : "") +
+              (bonus ? ", +" + bonus.toLocaleString() + "c streak bonus" : "") + ".", "good");
+            if (golds) banner(golds + " Golden Crop" + (golds === 1 ? "" : "s") + "!", "Tripled harvest");
+          } else {
+            toast("Nothing is ready yet.", null);
+            SFX.nope();
+          }
+        }
+
+        function refillCan() {
+          if (state.can >= state.canMax) { toast("Can is already full.", null); return; }
+          state.can = state.canMax;
+          toast("Watering can filled at the well.", null);
+          render();
+        }
+
+        function buySeed(cropId, qty) {
+          var crop = CROP_BY_ID[cropId];
+          var cost = crop.seed * qty;
+          if (state.level < crop.level) { toast("Unlocks at level " + crop.level + ".", "bad"); return; }
+          if (state.coins < cost) { toast("Not enough coins.", "bad"); return; }
+          state.coins -= cost;
+          state.stats.spent += cost;
+          state.seeds[cropId] = (state.seeds[cropId] || 0) + qty;
+          if (!state.selectedSeed || !state.seeds[state.selectedSeed]) state.selectedSeed = cropId;
+          toast("Bought " + qty + " " + crop.name + " seed" + (qty === 1 ? "" : "s") + ".", null);
+          render();
+        }
+
+        function buyFertilizer(qty) {
+          var cost = fertilizerCost() * qty;
+          if (state.coins < cost) { toast("Not enough coins.", "bad"); return; }
+          state.coins -= cost;
+          state.stats.spent += cost;
+          state.fertilizer += qty;
+          toast("Bought " + qty + " bag" + (qty === 1 ? "" : "s") + " of fertilizer.", null);
+          render();
+        }
+
+        function buyUpgrade(up) {
+          if (state.upgrades[up.id]) return;
+          if (state.coins < up.cost) { toast("Not enough coins.", "bad"); return; }
+          state.coins -= up.cost;
+          state.stats.spent += up.cost;
+          state.upgrades[up.id] = true;
+          if (up.apply) up.apply(state);
+          toast(up.name + " purchased.", "good");
+          render();
+        }
+
+        function sell(cropId, qty, fromNode) {
+          var have = state.barn[cropId] || 0;
+          qty = Math.min(qty, have);
+          if (qty <= 0) return 0;
+          var gross = priceOf(cropId) * qty;
+          state.barn[cropId] = have - qty;
+          if (state.barn[cropId] <= 0) delete state.barn[cropId];
+          state.coins += gross;
+          state.stats.earned += gross;
+          SFX.sell();
+          if (fromNode) {
+            var r = fromNode.getBoundingClientRect();
+            coinFly(r.left + r.width / 2, r.top + r.height / 2, Math.min(7, 2 + Math.floor(qty / 2)));
+          }
+          return gross;
+        }
+
+        function sellAll(evt) {
+          var total = 0;
+          Object.keys(state.barn).slice().forEach(function (id) {
+            total += sell(id, state.barn[id]);
+          });
+          if (total > 0) {
+            toast("Sold the whole barn for " + total.toLocaleString() + " coins.", "cash");
+            var src = evt && evt.currentTarget ? evt.currentTarget.getBoundingClientRect() : { left: window.innerWidth / 2, top: window.innerHeight / 2, width: 0, height: 0 };
+            coinFly(src.left + src.width / 2, src.top + src.height / 2, 9);
+            burst(src.left + src.width / 2, src.top + src.height / 2, { count: 18, spread: 110, size: 13, shape: "star" });
+          } else {
+            toast("The barn is empty.", null);
+            SFX.nope();
+          }
+          render();
+        }
+
+        /* ================================================================== *
+         * Simulation
+         * ================================================================== */
+
+        function newDay() {
+          state.day++;
+          rollPrices(state);
+          var wasWet = weather().wet;
+          var pick = WEATHERS[Math.floor(Math.random() * WEATHERS.length)];
+          state.weather = pick.id;
+          state.can = state.canMax;
+          toast("Day " + state.day + " — " + pick.name + ". " + pick.text, null);
+
+          // the sun coming out after rain earns a rainbow
+          if (wasWet && !pick.wet) showRainbow();
+          renderCritters(true);
+        }
+
+        function showRainbow() {
+          el.rainbow.classList.add("show");
+          setTimeout(function () { el.rainbow.classList.remove("show"); }, 14000);
+        }
+
+        function lightning() {
+          if (weather().id !== "storm") return;
+          el.flash.classList.remove("strike");
+          void el.flash.offsetWidth;
+          el.flash.classList.add("strike");
+          setTimeout(SFX.thunder, 320);
+        }
+
+        function randomEvent() {
+          var candidates = [];
+          state.plots.forEach(function (plot, i) {
+            if (plot.unlocked && plot.crop && !plot.dead) candidates.push(i);
+          });
+          if (!candidates.length) return;
+          var idx = candidates[Math.floor(Math.random() * candidates.length)];
+          var plot = state.plots[idx];
+
+          var roll = Math.random();
+          if (state.upgrades.hoe && roll < 0.6 && Math.random() < 0.5) roll = 0.9;   // the hoe keeps weeds down
+          if (roll < 0.6) {
+            if (!plot.weeds) {
+              plot.weeds = true;
+              toast("Weeds sprouted on a bed — tap it to pull them.", "bad");
+            }
+          } else if (roll < 0.85) {
+            if (state.upgrades.scarecrow) {
+              toast("The scarecrow chased off a crow.", "good");
+            } else if (plot.growth > 0.25) {
+              plot.growth = Math.max(0, plot.growth - 0.3);
+              toast("Crows got at a crop! Growth set back.", "bad");
+            }
+          } else {
+            plot.growth = Math.min(1, plot.growth + 0.18);
+            toast("Perfect sun on one bed — a growth spurt.", "good");
+          }
+        }
+
+        function tick(dt, catchingUp) {
+          var w = weather();
+
+          state.dayT += dt / DAY_SECONDS;
+          while (state.dayT >= 1) { state.dayT -= 1; newDay(); }
+
+          var gMul = growthMultiplier();
+          var floor = state.upgrades.sprinkler ? 35 : 0;
+
+          state.plots.forEach(function (plot) {
+            if (!plot.unlocked) return;
+
+            if (w.rain > 0) plot.water = Math.min(100, plot.water + w.rain * dt);
+            else plot.water = Math.max(floor, plot.water - 1.2 * w.dry * dt);
+            if (plot.water < floor) plot.water = floor;
+
+            if (!plot.crop || plot.dead || plot.growth >= 1) return;
+
+            var crop = CROP_BY_ID[plot.crop];
+            var rate = 1 / crop.growSec;
+            var moistureFactor = plot.water > 25 ? 1 : plot.water > 5 ? 0.35 : 0.08;
+            var weedFactor = plot.weeds ? 0.45 : 1;
+            var fertFactor = plot.fert ? 1.35 : 1;
+
+            plot.growth += rate * gMul * moistureFactor * weedFactor * fertFactor * dt;
+
+            if (plot.water <= 0.5) {
+              // Time made up after you were away parches crops but never kills them.
+              if (!catchingUp) plot.dryTime = (plot.dryTime || 0) + dt;
+              if (plot.dryTime > 60) {
+                plot.dead = true;
+                plot.dryTime = 0;
+                state.stats.wilted++;
+                toast("A crop wilted from drought.", "bad");
+              }
+            } else {
+              plot.dryTime = 0;
+            }
+
+            if (plot.growth >= 1) plot.growth = 1;
+          });
+
+          state.eventTimer -= dt;
+          if (state.eventTimer <= 0) {
+            state.eventTimer = 18 + Math.random() * 22;
+            randomEvent();
+          }
+
+          boltTimer -= dt;
+          if (boltTimer <= 0) {
+            boltTimer = 7 + Math.random() * 11;
+            lightning();
+          }
+
+          // ripe crops throw off the odd sparkle
+          sparkleTimer -= dt;
+          if (sparkleTimer <= 0) {
+            sparkleTimer = 1.6 + Math.random() * 2.2;
+            sparkleReady();
+          }
+        }
+
+        var boltTimer = 9;
+        var sparkleTimer = 2;
+
+        function sparkleReady() {
+          var ready = [];
+          state.plots.forEach(function (plot, i) {
+            if (plot.unlocked && plot.crop && !plot.dead && plot.growth >= 1) ready.push(i);
+          });
+          if (!ready.length) return;
+          var pick = ready[Math.floor(Math.random() * ready.length)];
+          var node = plotNodes[pick];
+          if (!node || node.offsetParent === null) return;
+          var r = node.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > window.innerHeight) return;
+          var golden = state.plots[pick].golden;
+          burst(r.left + r.width * (0.3 + Math.random() * 0.4), r.top + r.height * (0.25 + Math.random() * 0.3), {
+            count: golden ? 5 : 2,
+            spread: 26,
+            size: golden ? 13 : 10,
+            shape: "star",
+            up: true,
+            arc: Math.PI,
+            colors: golden ? ["#ffd76a", "#fff3c4"] : ["#fff3c4", "#ffe9a8"]
+          });
+        }
+
+        /* ================================================================== *
+         * Rendering
+         * ================================================================== */
+
+        var el = {
+          coins: document.getElementById("hud-coins"),
+          day: document.getElementById("hud-day"),
+          level: document.getElementById("hud-level"),
+          xp: document.getElementById("hud-xp"),
+          weatherIcon: document.getElementById("weather-icon"),
+          weatherText: document.getElementById("weather-text"),
+          daybar: document.getElementById("daybar-fill"),
+          clock: document.getElementById("clock-text"),
+          canText: document.getElementById("can-text"),
+          fertText: document.getElementById("fert-text"),
+          seedbelt: document.getElementById("seedbelt"),
+          plots: document.getElementById("plots"),
+          yard: document.getElementById("yard"),
+          barn: document.getElementById("barn"),
+          storeSeeds: document.getElementById("store-seeds"),
+          storeGoods: document.getElementById("store-goods"),
+          market: document.getElementById("market-list"),
+          barnValue: document.getElementById("barn-value"),
+          records: document.getElementById("records"),
+          toolWater: document.getElementById("tool-water"),
+          toolFert: document.getElementById("tool-fert"),
+          toolHoe: document.getElementById("tool-hoe"),
+          toolShovel: document.getElementById("tool-shovel"),
+          world: document.getElementById("world"),
+          sun: document.getElementById("sun"),
+          field: document.querySelector(".field"),
+          streak: document.getElementById("streak"),
+          flash: document.getElementById("flash"),
+          rainbow: document.getElementById("rainbow"),
+          mute: document.getElementById("mute")
+        };
+
+        var plotNodes = [];
+
+        function buildPlots() {
+          el.plots.innerHTML = "";
+          plotNodes = [];
+          state.plots.forEach(function (plot, i) {
+            var btn = document.createElement("button");
+            btn.className = "plot";
+            btn.type = "button";
+            btn.addEventListener("click", function (evt) { plotClick(i, evt); });
+            el.plots.appendChild(btn);
+            plotNodes.push(btn);
+          });
+        }
+
+        // Only rebuild a bed's artwork when its look actually changes — that keeps
+        // the sway animation smooth and avoids re-parsing SVG five times a second.
+        function plotSignature(plot, i) {
+          if (!plot.unlocked) return "lock:" + plotCost(i);
+          if (!plot.crop) return "empty";
+          return [
+            plot.crop,
+            Math.floor(plot.growth * 16),
+            plot.dead ? "d" : "",
+            plot.weeds ? "w" : "",
+            plot.fert ? "f" : "",
+            plot.water < 12 ? "t" : "",
+            plot.growth >= 1 ? "r" : "",
+            plot.golden ? "g" : ""
+          ].join("-");
+        }
+
+        function renderPlots() {
+          state.plots.forEach(function (plot, i) {
+            var node = plotNodes[i];
+            var sig = plotSignature(plot, i);
+
+            if (!plot.unlocked) {
+              var prev = state.plots[i - 1];
+              if (!(i === 0 || (prev && prev.unlocked))) {
+                node.style.display = "none";
+                return;
+              }
+            }
+            node.style.display = "";
+
+            if (node._sig !== sig) {
+              node._sig = sig;
+              var html = "";
+              var cls = "plot";
+
+              if (!plot.unlocked) {
+                var cost = plotCost(i);
+                cls += " locked";
+                html = '<div class="lock">' + PROP.lock() + "<span>" + cost.toLocaleString() + " coins</span><span>Clear plot</span></div>";
+                node.setAttribute("aria-label", "Overgrown plot, costs " + cost + " coins to clear");
+              } else if (plot.crop) {
+                var crop = CROP_BY_ID[plot.crop];
+                if (plot.growth >= 1 && !plot.dead) cls += " ready";
+                if (plot.golden && !plot.dead) cls += " golden";
+                html += bedArt();
+                html += cropArt(plot.crop, plot.growth, plot.dead);
+                html += '<div class="label">' + (plot.dead ? "Wilted" : plot.growth >= 1 ? "Ready" : crop.name) + "</div>";
+                html += '<div class="meter"><i></i></div>';
+                if (plot.dead) html += '<div class="badge dead">Dead</div>';
+                else if (plot.golden) html += '<div class="badge gold">Golden</div>';
+                else if (plot.weeds) html += '<div class="badge weeds">Weeds</div>';
+                else if (plot.water < 12 && plot.growth < 1) html += '<div class="badge dry">Dry!</div>';
+                else if (plot.fert) html += '<div class="badge fert">Fert</div>';
+                html += '<div class="wet"></div><div class="drop"></div>';
+                node.setAttribute("aria-label",
+                  crop.name + (plot.dead ? " wilted" : plot.growth >= 1 ? " ready to harvest" : " growing, " + Math.round(plot.growth * 100) + " percent"));
+              } else {
+                html = bedArt() + '<div class="label empty">Empty bed</div><div class="wet"></div><div class="drop"></div>';
+                node.setAttribute("aria-label", "Empty bed");
+              }
+
+              node.className = cls;
+              node.innerHTML = html;
+              node._meter = node.querySelector(".meter i");
+              node._wet = node.querySelector(".wet");
+              node._drop = node.querySelector(".drop");
+              node._growG = node.querySelector(".grow");
+            }
+
+            // Artwork is only redrawn every 1/16th of the growth bar, so scale the
+            // plant between those steps — the crop creeps upward continuously.
+            if (node._growG && plot.crop && !plot.dead) {
+              var step = 1 / 16;
+              var within = (plot.growth % step) / step;
+              node._growG.style.transform = "scale(" + (1 + within * 0.07).toFixed(3) + ")";
+            }
+
+            // cheap per-frame updates
+            if (node._meter && plot.crop) {
+              node._meter.style.width = Math.round(plot.growth * 100) + "%";
+              node._meter.style.background = plot.dead ? "#9c8f7b" : plot.growth >= 1 ? "#ffd45e" : "#7ad06a";
+            }
+            if (node._wet) node._wet.style.opacity = Math.min(0.85, plot.water / 130).toFixed(2);
+            if (node._drop) {
+              var wcol = plot.water > 55 ? "#4f9ad8" : plot.water > 22 ? "#9cc6e4" : "#c9a97f";
+              if (node._dropColor !== wcol) {
+                node._dropColor = wcol;
+                node._drop.innerHTML = PROP.drop(wcol);
+              }
+            }
+          });
+        }
+
+        // Butterflies over the field on nice days, none in the rain.
+        function renderCritters(force) {
+          var w = weather();
+          if (!force && el.field._critterSig === w.id) return;
+          el.field._critterSig = w.id;
+          Array.prototype.forEach.call(el.field.querySelectorAll(".critter, .hen"), function (c) { c.remove(); });
+          // butterflies stay in when it rains; the hens don't mind
+          var count = w.wet ? 0 : w.id === "sun" ? 3 : w.id === "heat" ? 2 : 1;
+          var wings = ["#f0a5c8", "#ffd76a", "#a5d8f0", "#f5b78a"];
+          // two hens pecking around the yard, whatever the weather
+          for (var h = 0; h < 2; h++) {
+            var hen = document.createElement("div");
+            hen.className = "hen";
+            hen.style.bottom = (10 + h * 30) + "px";
+            hen.style.animationDelay = -(h * 13) + "s";
+            // the second hen's step cycle runs slightly off the first
+            hen.style.setProperty("--step", h ? "0.66s" : "0.58s");
+            hen.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+              // legs stride underneath the body
+              '<g class="leg leg-a"><path d="M44 76 v13" stroke="#e08b1c" stroke-width="4.5" stroke-linecap="round"/>' +
+                '<path d="M44 89 l-6 4 M44 89 l6 4" stroke="#e08b1c" stroke-width="4" stroke-linecap="round"/></g>' +
+              '<g class="leg leg-b"><path d="M57 76 v13" stroke="#f0a52c" stroke-width="4.5" stroke-linecap="round"/>' +
+                '<path d="M57 89 l-6 4 M57 89 l6 4" stroke="#f0a52c" stroke-width="4" stroke-linecap="round"/></g>' +
+              '<g class="hen-body">' +
+                // tail feathers
+                '<path d="M26 58 q-16 -6 -19 -20 q13 3 20 11 z" fill="#f3f1e8" stroke="#4a3320" stroke-width="3.5" stroke-linejoin="round"/>' +
+                // body
+                '<ellipse cx="50" cy="60" rx="26" ry="21" fill="#fdfdfa" stroke="#4a3320" stroke-width="4"/>' +
+                // wing, flaps now and then
+                '<path class="hen-wing" d="M40 54 q16 -3 22 10 q-13 9 -24 2 z" fill="#efe6d2" stroke="#4a3320" stroke-width="3.5" stroke-linejoin="round"/>' +
+                // head and neck pivot for pecking
+                '<g class="hen-head">' +
+                  '<path d="M56 46 a15 15 0 1 1 -1 0 z" fill="#fdfdfa" stroke="#4a3320" stroke-width="4"/>' +
+                  '<path d="M56 30 q7 -10 13 -2 q-3 8 -9 9 z" fill="#c94f3a" stroke="#8c2a1f" stroke-width="2"/>' +
+                  '<path d="M70 46 l12 5 l-12 5 z" fill="#f0a52c" stroke="#c47a14" stroke-width="2" stroke-linejoin="round"/>' +
+                  '<path d="M64 56 q4 7 -2 9 q-5 -3 -3 -9 z" fill="#c94f3a"/>' +
+                  '<circle cx="66" cy="42" r="3" fill="#2c1e12"/>' +
+                  '<circle cx="67.2" cy="41" r="1" fill="#ffffff"/>' +
+                "</g>" +
+              "</g>" +
+              "</svg>";
+            el.field.appendChild(hen);
+          }
+
+          for (var i = 0; i < count; i++) {
+            var c = document.createElement("div");
+            c.className = "critter";
+            c.style.top = (12 + Math.random() * 68) + "%";
+            c.style.animationDuration = (16 + Math.random() * 16) + "s";
+            c.style.animationDelay = -(Math.random() * 20) + "s";
+            var color = wings[Math.floor(Math.random() * wings.length)];
+            c.innerHTML = '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+              '<ellipse class="wing" cx="32" cy="44" rx="22" ry="16" fill="' + color + '" opacity="0.92"/>' +
+              '<ellipse class="wing" cx="32" cy="62" rx="17" ry="12" fill="' + color + '" opacity="0.8"/>' +
+              '<ellipse cx="52" cy="54" rx="5" ry="15" fill="#4a3320"/>' +
+              '<path d="M52 40 q6 -10 13 -12 M54 40 q8 -8 15 -14" stroke="#4a3320" stroke-width="2" fill="none"/>' +
+              "</svg>";
+            el.field.appendChild(c);
+          }
+        }
+
+        function renderYard() {
+          var props = ["barn"];
+          YARD_PROPS.forEach(function (id) {
+            if (state.upgrades[id]) props.push(UPGRADE_PROP[id]);
+          });
+          var sig = props.join(",");
+          if (el.yard._sig === sig) return;
+          el.yard._sig = sig;
+          el.yard.innerHTML = props.map(function (p) {
+            var extra = p === "barn" ? " barn-prop" : (p === "stand" || p === "greenhouse" ? " wide" : "");
+            return '<span class="prop' + extra + '">' + PROP[p]() + "</span>";
+          }).join("");
+        }
+
+        function renderSeedbelt() {
+          var ids = Object.keys(state.seeds).filter(function (id) { return state.seeds[id] > 0; });
+          if (!ids.length) {
+            el.seedbelt.innerHTML = '<div class="empty-note" style="padding:8px 4px">No seeds on hand — visit the Store tab.</div>';
+            return;
+          }
+          ids.sort(function (a, b) { return CROP_BY_ID[a].seed - CROP_BY_ID[b].seed; });
+          if (ids.indexOf(state.selectedSeed) === -1) state.selectedSeed = ids[0];
+
+          el.seedbelt.innerHTML = "";
+          ids.forEach(function (id) {
+            var crop = CROP_BY_ID[id];
+            var b = document.createElement("button");
+            b.className = "seed-chip";
+            b.type = "button";
+            b.setAttribute("aria-pressed", String(state.selectedSeed === id));
+            b.innerHTML = seedPacketArt(crop) + "<span><b>" + crop.name + "</b><span>x" + state.seeds[id] + " &middot; " + crop.growSec + "s</span></span>";
+            b.addEventListener("click", function () {
+              state.selectedSeed = id;
+              state.tool = null;
+              render();
+            });
+            el.seedbelt.appendChild(b);
+          });
+        }
+
+        function renderBarn() {
+          var ids = Object.keys(state.barn).filter(function (id) { return state.barn[id] > 0; });
+          if (!ids.length) {
+            el.barn.innerHTML = '<div class="empty-note">The barn is empty. Harvest something!</div>';
+            return;
+          }
+          el.barn.innerHTML = "";
+          ids.forEach(function (id) {
+            var crop = CROP_BY_ID[id];
+            var row = document.createElement("div");
+            row.className = "row";
+            row.innerHTML =
+              '<div class="icon">' + produceArt(id) + "</div>" +
+              '<div class="body"><b>' + crop.name + " &times; " + state.barn[id] + "</b>" +
+              "<small>Worth " + (priceOf(id) * state.barn[id]).toLocaleString() + " coins today</small></div>";
+            var btn = document.createElement("button");
+            btn.className = "buy sell";
+            btn.type = "button";
+            btn.textContent = "Sell";
+            btn.addEventListener("click", function (evt) {
+              var got = sell(id, state.barn[id], evt.currentTarget);
+              if (got) toast("+" + got.toLocaleString() + " coins", "cash");
+              render();
+            });
+            row.appendChild(btn);
+            el.barn.appendChild(row);
+          });
+        }
+
+        function priceButton(label, cost, disabled, onClick) {
+          var b = document.createElement("button");
+          b.className = "buy";
+          b.type = "button";
+          b.innerHTML = label + " " + PROP.coin() + "<i style='font-style:normal'>" + cost.toLocaleString() + "</i>";
+          b.disabled = disabled;
+          b.addEventListener("click", onClick);
+          return b;
+        }
+
+        function shelfCard(artMarkup, title, meta, extra) {
+          var card = document.createElement("div");
+          card.className = "shelf-card";
+          card.innerHTML = '<span class="peg"></span><div class="art">' + artMarkup + "</div>" +
+            "<b>" + title + '</b><div class="meta">' + meta + "</div>" + (extra || "");
+          return card;
+        }
+
+        function renderStore() {
+          el.storeSeeds.innerHTML = "";
+          CROPS.forEach(function (crop) {
+            var locked = state.level < crop.level;
+            var owned = state.seeds[crop.id] || 0;
+            var card = shelfCard(
+              seedPacketArt(crop),
+              crop.name + " Seed",
+              locked
+                ? "Unlocks at level " + crop.level
+                : crop.growSec + "s to grow<br>sells around " + crop.price.toLocaleString() + "c",
+              owned && !locked ? '<span class="own-pill">' + owned + " in the belt</span>" : ""
+            );
+
+            if (locked) {
+              card.className += " locked";
+              card.insertAdjacentHTML("afterbegin", '<span class="lock-tag">' + PROP.lock() + "Lv " + crop.level + "</span>");
+            } else {
+              var buys = document.createElement("div");
+              buys.className = "buys";
+              [1, 5].forEach(function (qty) {
+                buys.appendChild(priceButton("x" + qty, crop.seed * qty, state.coins < crop.seed * qty, function () {
+                  buySeed(crop.id, qty);
+                }));
+              });
+              card.appendChild(buys);
+            }
+            el.storeSeeds.appendChild(card);
+          });
+
+          el.storeGoods.innerHTML = "";
+
+          var fCard = shelfCard(PROP.fert(), "Fertilizer Bag",
+            "+35% growth and a double harvest on one bed<br>" + fertilizerCost() + "c a bag",
+            state.fertilizer ? '<span class="own-pill">' + state.fertilizer + " in the shed</span>" : "");
+          var fBuys = document.createElement("div");
+          fBuys.className = "buys";
+          [1, 5].forEach(function (qty) {
+            var fcost = fertilizerCost() * qty;
+            fBuys.appendChild(priceButton("x" + qty, fcost, state.coins < fcost, function () { buyFertilizer(qty); }));
+          });
+          fCard.appendChild(fBuys);
+          el.storeGoods.appendChild(fCard);
+
+          UPGRADES.forEach(function (up) {
+            var owned = !!state.upgrades[up.id];
+            var card = shelfCard(PROP[UPGRADE_PROP[up.id]](), up.name, owned ? (up.desc2 || "Owned.") : up.desc,
+              owned ? '<span class="own-pill">Owned</span>' : "");
+            if (!owned) {
+              var btn = priceButton("Buy", up.cost, state.coins < up.cost, function () { buyUpgrade(up); });
+              btn.className += " wide";
+              card.appendChild(btn);
+            }
+            el.storeGoods.appendChild(card);
+          });
+        }
+
+        function renderMarket() {
+          el.market.innerHTML = "";
+
+          // today's biggest riser gets the hot ribbon
+          var hotId = null, hotDiff = 8;
+          var barnValue = 0;
+          CROPS.forEach(function (crop) {
+            var price = priceOf(crop.id);
+            var prev = state.prevPrices[crop.id] || crop.price;
+            var diff = Math.round(((price - prev) / prev) * 100);
+            if (diff > hotDiff) { hotDiff = diff; hotId = crop.id; }
+            barnValue += price * (state.barn[crop.id] || 0);
+          });
+          el.barnValue.textContent = barnValue.toLocaleString() + "c";
+
+          CROPS.forEach(function (crop) {
+            var have = state.barn[crop.id] || 0;
+            var price = priceOf(crop.id);
+            var prev = state.prevPrices[crop.id] || crop.price;
+            var diff = Math.round(((price - prev) / prev) * 100);
+            var cls = diff > 2 ? "up" : diff < -2 ? "down" : "";
+            var arrow = diff > 2 ? "▲" : diff < -2 ? "▼" : "▬";
+
+            var stall = document.createElement("div");
+            stall.className = "stall" + (have ? "" : " empty-stock");
+            stall.innerHTML =
+              (crop.id === hotId ? '<span class="hot-ribbon">Hot today</span>' : "") +
+              '<div class="crate">' + crateArt(crop.id) + "</div>" +
+              '<div class="slate">' +
+                '<div class="name">' + crop.name + "</div>" +
+                '<div class="priceline"><b>' + price.toLocaleString() + 'c</b><span class="pill ' + cls + '">' + arrow + " " + Math.abs(diff) + "%</span></div>" +
+                sparkline(state.history[crop.id], diff >= 0) +
+                '<div class="stock">In barn: <b>' + have + "</b></div>" +
+              "</div>";
+
+            var b = document.createElement("button");
+            b.className = "buy sell wide";
+            b.type = "button";
+            b.innerHTML = have
+              ? "Sell " + have + " " + PROP.coin() + "<i style='font-style:normal'>" + (price * have).toLocaleString() + "</i>"
+              : "Nothing to sell";
+            b.disabled = !have;
+            b.addEventListener("click", function (evt) {
+              var got = sell(crop.id, have, evt.currentTarget);
+              toast("+" + got.toLocaleString() + " coins for " + have + " " + crop.name.toLowerCase() + ".", "cash");
+              render();
+            });
+            stall.appendChild(b);
+            el.market.appendChild(stall);
+          });
+
+          el.records.innerHTML =
+            '<div class="row"><div class="icon">' + PROP.basket() + '</div><div class="body"><b>' + state.stats.harvested.toLocaleString() + "</b><small>Crops harvested</small></div></div>" +
+            '<div class="row"><div class="icon">' + PROP.coin() + '</div><div class="body"><b>' + state.stats.earned.toLocaleString() + "</b><small>Coins earned at market</small></div></div>" +
+            '<div class="row"><div class="icon">' + PROP.shop() + '</div><div class="body"><b>' + state.stats.spent.toLocaleString() + "</b><small>Coins spent at the store</small></div></div>" +
+            '<div class="row"><div class="icon">' + PROP.sprout() + '</div><div class="body"><b>' + (state.stats.saved || 0).toLocaleString() + "</b><small>Seeds saved from harvests</small></div></div>" +
+            '<div class="row"><div class="icon">' + produceArt("bluelotus") + '</div><div class="body"><b>' + (state.stats.golden || 0).toLocaleString() + "</b><small>Golden crops harvested</small></div></div>" +
+            '<div class="row"><div class="icon">' + PROP.fert() + '</div><div class="body"><b>' + state.stats.wilted.toLocaleString() + "</b><small>Crops lost to drought</small></div></div>";
+        }
+
+        // Sky colour, sun arc and rain follow the clock and the weather.
+        function renderSky() {
+          var w = weather();
+          var t = state.dayT;
+          var night = t > 0.86 ? (t - 0.86) / 0.14 : t < 0.08 ? 1 - t / 0.08 : 0;
+          var sky1 = w.sky[0], sky2 = w.sky[1];
+          if (night > 0.05) {
+            sky1 = mix(sky1, "#2c3557", night);
+            sky2 = mix(sky2, "#63709b", night);
+          }
+          var root = document.documentElement.style;
+          root.setProperty("--sky1", sky1);
+          root.setProperty("--sky2", sky2);
+          root.setProperty("--grass1", mix("#8ed167", "#4a6b46", night * 0.7));
+          root.setProperty("--grass2", mix("#5da743", "#2f4a33", night * 0.7));
+
+          el.sun.style.left = (6 + t * 88) + "%";
+          el.sun.style.top = (34 - Math.sin(t * Math.PI) * 26) + "%";
+          el.sun.style.opacity = w.id === "storm" || w.id === "rain" ? 0.25 : (1 - night * 0.85).toFixed(2);
+          el.world.classList.toggle("wet", !!w.wet);
+        }
+
+        function mix(a, b, amount) {
+          amount = Math.max(0, Math.min(1, amount));
+          function part(hex, i) { return parseInt(hex.substr(1 + i * 2, 2), 16); }
+          var out = "#";
+          for (var i = 0; i < 3; i++) {
+            var v = Math.round(part(a, i) * (1 - amount) + part(b, i) * amount);
+            out += ("0" + v.toString(16)).slice(-2);
+          }
+          return out;
+        }
+
+        function renderHUD() {
+          el.coins.textContent = Math.floor(state.coins).toLocaleString();
+          el.day.textContent = state.day;
+          el.level.textContent = state.level;
+          el.xp.style.width = Math.min(100, (state.xp / xpForLevel(state.level)) * 100) + "%";
+
+          var w = weather();
+          if (el.weatherIcon._id !== w.id) {
+            el.weatherIcon._id = w.id;
+            el.weatherIcon.innerHTML = PROP[WEATHER_ICON[w.id]]();
+          }
+          el.weatherText.textContent = w.name + " — " + w.text;
+          el.daybar.style.width = (state.dayT * 100).toFixed(1) + "%";
+          el.clock.textContent = state.dayT < 0.3 ? "Morning" : state.dayT < 0.55 ? "Midday" : state.dayT < 0.8 ? "Afternoon" : "Dusk";
+
+          el.canText.textContent = state.can + "/" + state.canMax;
+          el.fertText.textContent = "x" + state.fertilizer;
+          if (el.mute._muted !== !!state.muted) {
+            el.mute._muted = !!state.muted;
+            el.mute.innerHTML = PROP.speaker(!!state.muted);
+            el.mute.setAttribute("aria-pressed", String(!!state.muted));
+          }
+          el.toolWater.setAttribute("aria-pressed", String(state.tool === "water"));
+          el.toolFert.setAttribute("aria-pressed", String(state.tool === "fert"));
+          el.toolHoe.setAttribute("aria-pressed", String(state.tool === "hoe"));
+          el.toolShovel.setAttribute("aria-pressed", String(state.tool === "shovel"));
+          renderSky();
+        }
+
+        function render() {
+          renderHUD();
+          renderPlots();
+          renderYard();
+          renderCritters();
+          renderSeedbelt();
+          renderBarn();
+          renderStore();
+          renderMarket();
+        }
+
+        /* ================================================================== *
+         * Wiring
+         * ================================================================== */
+
+        document.getElementById("tab-farm").insertAdjacentHTML("afterbegin", PROP.sprout());
+        document.getElementById("tab-store").insertAdjacentHTML("afterbegin", PROP.shop());
+        document.getElementById("tab-market").insertAdjacentHTML("afterbegin", PROP.coin());
+        el.toolWater.insertAdjacentHTML("afterbegin", PROP.can());
+        document.getElementById("tool-refill").insertAdjacentHTML("afterbegin", PROP.drop());
+        el.toolHoe.insertAdjacentHTML("afterbegin", PROP.hoe());
+        el.toolShovel.insertAdjacentHTML("afterbegin", PROP.shovel());
+        el.toolFert.insertAdjacentHTML("afterbegin", PROP.fert());
+        document.getElementById("tool-harvest-all").insertAdjacentHTML("afterbegin", PROP.basket());
+        document.querySelector("#panel-farm .card:last-child h2").insertAdjacentHTML("afterbegin", PROP.barn());
+        document.getElementById("shop-sign-seeds").insertAdjacentHTML("afterbegin", PROP.shop());
+        document.getElementById("scene").innerHTML = sceneArt();
+
+        // drifting clouds
+        (function clouds() {
+          var world = el.world;
+          for (var i = 0; i < 5; i++) {
+            var c = document.createElement("div");
+            c.className = "cloud";
+            var scale = 0.6 + Math.random() * 0.9;
+            c.style.top = (4 + Math.random() * 26) + "%";
+            c.style.width = Math.round(150 * scale) + "px";
+            c.style.animationDuration = (70 + Math.random() * 70) + "s";
+            c.style.animationDelay = -(Math.random() * 90) + "s";
+            c.style.opacity = 0.55 + Math.random() * 0.4;
+            c.innerHTML = '<svg viewBox="0 0 160 70" aria-hidden="true"><path d="M22 60 a20 20 0 0 1 6 -39 a26 26 0 0 1 49 -6 a19 19 0 0 1 26 12 a18 18 0 0 1 -4 33 z" fill="#ffffff"/></svg>';
+            world.appendChild(c);
+          }
+        })();
+
+        Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (tab) {
+          tab.addEventListener("click", function () {
+            Array.prototype.forEach.call(document.querySelectorAll(".tab"), function (t) {
+              t.setAttribute("aria-selected", String(t === tab));
+            });
+            Array.prototype.forEach.call(document.querySelectorAll(".panel"), function (p) {
+              p.classList.toggle("active", p.id === "panel-" + tab.dataset.panel);
+            });
+          });
+        });
+
+        [["water", el.toolWater], ["fert", el.toolFert], ["hoe", el.toolHoe], ["shovel", el.toolShovel]].forEach(function (pair) {
+          pair[1].addEventListener("click", function () {
+            state.tool = state.tool === pair[0] ? null : pair[0];
+            renderHUD();
+          });
+        });
+
+        document.getElementById("tool-refill").addEventListener("click", refillCan);
+        document.getElementById("tool-harvest-all").addEventListener("click", harvestAll);
+        document.getElementById("sell-all").addEventListener("click", sellAll);
+
+        el.mute.addEventListener("click", function () {
+          state.muted = !state.muted;
+          renderHUD();
+          if (!state.muted) SFX.harvest();
+        });
+
+        document.getElementById("reset-game").addEventListener("click", function () {
+          if (!window.confirm("Reset the farm and start over from day 1?")) return;
+          state = freshState();
+          buildPlots();
+          el.yard._sig = null;
+          el.field._critterSig = null;
+          render();
+          toast("Fresh start — welcome back to day 1.", null);
+        });
+
+        /* ================================================================== *
+         * Boot
+         * ================================================================== */
+
+        state = load();
+        state.streak = 0;
+        buildPlots();
+        render();
+        renderCritters();
+
+        var last = performance.now();
+        var uiAccum = 0;
+        var simAccum = 0;
+        var STEP = 0.25;      // fixed simulation step
+        var CATCH_UP = 120;   // seconds of away-time the farm will make up
+
+        // The sim runs on wall-clock time in fixed steps, so a throttled or
+        // backgrounded tab still grows crops at the advertised rate — and coming
+        // back after a while makes up to two minutes of farm time up at once.
+        function loop(now) {
+          var elapsed = (now - last) / 1000;
+          last = now;
+          simAccum = Math.min(simAccum + elapsed, CATCH_UP);
+
+          var steps = 0;
+          var catchingUp = simAccum > 2;   // more than a couple of seconds owed = we were away
+          while (simAccum >= STEP && steps < CATCH_UP / STEP) {
+            tick(STEP, catchingUp);
+            simAccum -= STEP;
+            steps++;
+          }
+
+          uiAccum += elapsed;
+          if (uiAccum >= 0.2) {
+            uiAccum = 0;
+            renderHUD();
+            renderPlots();
+          }
+          requestAnimationFrame(loop);
+        }
+        requestAnimationFrame(loop);
+
+        setInterval(save, 5000);
+        window.addEventListener("beforeunload", save);
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) save();
+        });
+      })();
+    </script>
+  </body>
+</html>
