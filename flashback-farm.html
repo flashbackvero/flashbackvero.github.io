@@ -14,10 +14,10 @@
         --green: #2f7a34;
         --gold: #c9911a;
         --red: #b0342c;
-        --sky1: #6fc3f7;
-        --sky2: #cdefff;
-        --grass1: #8ed167;
-        --grass2: #5da743;
+        --sky1: #3fa9f5;
+        --sky2: #cfefff;
+        --grass1: #86d95f;
+        --grass2: #4cae37;
       }
 
       html, body { height: 100%; }
@@ -28,7 +28,9 @@
         color: var(--ink);
         font-family: Arial, Helvetica, sans-serif;
         -webkit-tap-highlight-color: transparent;
-        overflow-x: hidden;
+        /* the farm is built to fit the screen, so the page itself never scrolls —
+           anything that can outgrow its box scrolls inside that box instead */
+        overflow: hidden;
       }
 
       button { font-family: inherit; cursor: pointer; }
@@ -40,7 +42,7 @@
         inset: 0;
         z-index: -2;
         overflow: hidden;
-        background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 46%, #a9dc84 46.1%, var(--grass2) 100%);
+        background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 46%, var(--grass1) 46.1%, var(--grass2) 100%);
         transition: background 2s linear;
       }
 
@@ -48,22 +50,15 @@
         position: absolute;
         left: 12%;
         top: 12%;
-        width: 92px;
-        height: 92px;
-        margin: -46px 0 0 -46px;
+        width: 116px;
+        height: 116px;
+        margin: -58px 0 0 -58px;
         border-radius: 50%;
-        background: radial-gradient(circle at 42% 38%, #fffbe0, #ffd857 58%, rgba(255, 216, 87, 0));
-        filter: drop-shadow(0 0 30px rgba(255, 214, 74, 0.6));
+        background: radial-gradient(circle at 40% 34%, #fffdf0 8%, #ffe066 46%, #ffc93c 66%, rgba(255, 201, 60, 0));
+        filter: drop-shadow(0 0 42px rgba(255, 206, 60, 0.85));
         transition: left 2s linear, top 2s linear, opacity 2s linear;
       }
 
-      .world .hills {
-        position: absolute;
-        left: -5%;
-        right: -5%;
-        top: 38%;
-        height: 22%;
-      }
 
       .world .cloud {
         position: absolute;
@@ -100,13 +95,56 @@
         to { transform: translateY(40px); }
       }
 
-      /* ================= page shell ================= */
+      /* ================= page shell =================
+         One screen, top to bottom: a header strip, the tab signs, and then the
+         active panel taking every pixel that is left over. Each element in that
+         chain needs min-height:0 or the flex items refuse to shrink and the
+         field pushes the bottom of the farm off the screen. */
       .page {
-        width: min(1260px, calc(100% - 26px));
+        width: min(1260px, calc(100% - 22px));
+        height: 100dvh;
         margin: 0 auto;
-        padding: 20px 0 70px;
+        padding: 10px 0 8px;
         position: relative;
         z-index: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        overflow: hidden;
+      }
+
+      .panel.active {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* the card holding the field stretches; the barn strip under it does not */
+      .panel.active > .card.flex-card {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .panel.active > .card.strip-card { flex: 0 0 auto; }
+
+      /* the store and market are lists, so they scroll inside their own card */
+      .panel.active > .card.scroll-card {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .scroll-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding-right: 4px;
       }
 
       h1, h2, h3 {
@@ -121,13 +159,14 @@
         justify-content: space-between;
         gap: 12px;
         flex-wrap: wrap;
-        margin-bottom: 14px;
+        flex: 0 0 auto;
+        margin-bottom: 0;
       }
 
       /* the farm's hand-painted sign, hung from two posts */
       .title-block {
         position: relative;
-        padding: 14px 26px 16px;
+        padding: 8px 22px 9px;
         border: 5px solid #6b4526;
         border-radius: 18px;
         background:
@@ -154,15 +193,15 @@
 
       .title-block h1 {
         margin: 0;
-        font-size: clamp(32px, 5.4vw, 50px);
+        font-size: clamp(24px, 3.4vw, 36px);
         line-height: 1;
         color: #7a3d18;
         text-shadow: 0 2px 0 rgba(255, 255, 255, 0.65), 0 4px 0 rgba(120, 78, 38, 0.35);
       }
 
       .title-block p {
-        margin: 6px 0 0;
-        font-size: 13.5px;
+        margin: 3px 0 0;
+        font-size: 12px;
         font-weight: bold;
         color: #7a5f3c;
       }
@@ -238,8 +277,9 @@
         position: relative;
         display: flex;
         gap: 14px;
-        margin: 0 0 22px;
-        padding-top: 20px;
+        margin: 0;
+        padding-top: 13px;
+        flex: 0 0 auto;
         flex-wrap: wrap;
       }
 
@@ -260,8 +300,8 @@
         align-items: center;
         justify-content: center;
         gap: 11px;
-        min-height: 64px;
-        margin-top: 16px;
+        min-height: 46px;
+        margin-top: 9px;
         padding: 0 18px;
         border: 4px solid #6b4526;
         border-radius: 14px;
@@ -308,16 +348,17 @@
         50% { transform: rotate(1.1deg); }
       }
 
+      /* the active panel's own layout is set up in the page shell block above —
+         it must stay a flex column, so don't hand it display:block here */
       .panel { display: none; }
-      .panel.active { display: block; }
 
       /* every panel is a nailed-up wooden board, not a web card */
       .card {
         position: relative;
         border: 5px solid #6b4526;
         border-radius: 22px;
-        padding: 20px;
-        margin-bottom: 20px;
+        padding: 14px;
+        margin-bottom: 0;
         color: #4a3320;
         background-image:
           radial-gradient(circle at 15px 15px, rgba(90, 58, 28, 0.5) 0 4px, transparent 5px),
@@ -391,13 +432,20 @@
       /* seeds down the left, field in the middle, tools down the right */
       .play-area {
         display: grid;
-        grid-template-columns: 208px minmax(0, 1fr) 208px;
-        gap: 14px;
-        align-items: start;
+        grid-template-columns: 196px minmax(0, 1fr) 196px;
+        gap: 12px;
+        align-items: stretch;
+        flex: 1 1 auto;
+        min-height: 0;
       }
 
+      /* both rails are full-height columns; if the list outgrows the screen it
+         scrolls inside the rail rather than stretching the farm */
       .side {
-        padding: 12px 12px 14px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        padding: 10px 10px 12px;
         border: 4px solid #6b4526;
         border-radius: 18px;
         background:
@@ -407,22 +455,35 @@
       }
 
       .side-title {
-        margin: 0 0 10px;
+        flex: 0 0 auto;
+        margin: 0 0 6px;
         text-align: center;
-        font-size: 22px;
+        font-size: 19px;
         color: #fdf3dc;
         text-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
       }
 
       .seeds-side .seedbelt {
+        flex: 1 1 auto;
+        min-height: 0;
         flex-direction: column;
-        overflow: visible;
-        padding: 16px 2px 2px;
-        gap: 10px;
+        overflow-x: visible;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 14px 2px 2px;
+        gap: 8px;
       }
 
       .seeds-side .seed-chip { min-width: 0; width: 100%; }
-      .tools-side .rail { flex-direction: column; margin: 0; padding: 0; border: 0; background: none; box-shadow: none; }
+      .tools-side .rail {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        flex-direction: column;
+        flex-wrap: nowrap;
+        margin: 0; padding: 0; border: 0; background: none; box-shadow: none;
+      }
       .tools-side .tool { width: 100%; }
       .tools-side .tool span { flex: 1 1 auto; }
 
@@ -530,87 +591,58 @@
       .seed-chip span { font-size: 12px; color: #86663f; }
 
       /* ================= the field ================= */
+      /* One picture, the way the app icon is put together: sky and hills across
+         the whole box, the farm standing in it, and the beds in front along the
+         bottom. Nothing in the backdrop is interactive — the only things you can
+         touch out here are the plants. */
       .field {
         position: relative;
-        padding: 162px 26px 24px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        padding: 0;
         border: 5px solid #5e3c22;
         border-radius: 18px;
-        background:
-          url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='44' height='18'%3E%3Cpath d='M3 18 Q5 8 7 18 M13 18 Q16 5 18 18 M25 18 Q27 9 30 18 M36 18 Q39 4 41 18' fill='none' stroke='%23ffffff' stroke-opacity='.25' stroke-width='2'/%3E%3C/svg%3E"),
-          linear-gradient(180deg, var(--grass1), var(--grass2));
-        box-shadow: inset 0 -12px 26px rgba(28, 70, 20, 0.32), 0 8px 0 #4e3018;
+        background: linear-gradient(180deg, var(--sky1) 0%, var(--sky2) 38%, var(--grass1) 38.1%, var(--grass2) 100%);
+        box-shadow: 0 8px 0 #4e3018, inset 0 -14px 30px rgba(28, 70, 20, 0.28);
         overflow: hidden;
       }
 
-      /* the illustrated backdrop: hills, barn, silo, windmill, treeline */
-      .scene {
+      /* The panorama fits the field's width and hangs from the bottom of this
+         band, so its ground line lands just above where the beds begin — the
+         beds then stand a little in front of the farm rather than beside it. */
+      .field .scenery {
         position: absolute;
         left: 0; right: 0; top: 0;
-        height: 152px;
+        height: 42%;
+        z-index: 0;
         pointer-events: none;
       }
 
-      .scene svg { display: block; width: 100%; height: 100%; }
+      .field .scenery svg { display: block; width: 100%; height: 100%; }
 
-      /* the dirt path the beds sit on */
-      .field::after {
-        content: "";
-        position: absolute;
-        left: 0; right: 0; top: 130px;
-        height: 24px;
-        background:
-          repeating-linear-gradient(93deg, rgba(0, 0, 0, 0.09) 0 3px, transparent 3px 15px),
-          linear-gradient(180deg, #b07f4e, #8a5f2c);
-        box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.22);
-        pointer-events: none;
-      }
-
-      /* picket fencing around all four sides of the plot */
-      .field .fence {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 4;
-      }
-
-      .field .fence::before,
-      .field .fence::after {
-        content: "";
-        position: absolute;
-        left: 0; right: 0;
-        height: 34px;
-        background:
-          linear-gradient(#e2c396, #b08a52) 0 9px / 100% 6px repeat-x,
-          linear-gradient(#e2c396, #b08a52) 0 21px / 100% 6px repeat-x,
-          repeating-linear-gradient(90deg, #edd3a8 0 11px, transparent 11px 34px);
-        filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.25));
-      }
-
-      .field .fence::before { top: 0; }
-      .field .fence::after { bottom: 0; transform: scaleY(-1); }
-
-      .field .rails {
-        position: absolute;
-        inset: 0;
-        pointer-events: none;
-        z-index: 4;
-        background:
-          linear-gradient(90deg, #c79a63 0 13px, transparent 13px),
-          linear-gradient(270deg, #c79a63 0 13px, transparent 13px);
-        box-shadow: inset 13px 0 0 -10px #7a5228, inset -13px 0 0 -10px #7a5228;
-      }
-
+      /* The bed grid fills whatever space is left under the backdrop. The column
+         count comes from fitPlots() in script, which picks whichever count keeps
+         the beds closest to square — that is what lets every bed stay on screen
+         as the farm grows from six plots to twenty-four. */
       .plots {
         position: relative;
         z-index: 2;
+        flex: 1 1 auto;
+        min-height: 0;
+        max-height: 56%;
+        margin-top: auto;
+        padding: 0 14px 12px;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(158px, 1fr));
-        gap: 13px;
+        grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr));
+        grid-auto-rows: minmax(0, 1fr);
+        gap: 10px;
       }
 
       .plot {
         position: relative;
-        aspect-ratio: 1;
+        min-width: 0;
+        min-height: 0;
         padding: 0;
         border: 0;
         border-radius: 14px;
@@ -661,12 +693,18 @@
 
       /* the plant is nested: .grow scales smoothly between drawn stages,
          .plant does the idle sway so the two transforms never fight */
+      /* The plant art is only redrawn at sixteen points across the growth bar.
+         Between those, .grow eases up to the size the next drawing will be, so
+         the crop creeps upward continuously instead of ticking. The pop is kept
+         for the three moments that deserve one — sprouting, maturing, ripening —
+         and applied as a class so it doesn't fire on every redraw. */
       .grow {
         transform-box: view-box;
         transform-origin: 50% 88%;
-        transition: transform 0.25s linear;
-        animation: stageIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: transform 0.34s cubic-bezier(0.33, 0.9, 0.5, 1);
       }
+
+      .grow.pop { animation: stageIn 0.55s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
       .plant {
         transform-box: view-box;
@@ -684,8 +722,8 @@
       }
 
       @keyframes stageIn {
-        0% { transform: scale(0.82) translateY(3px); }
-        60% { transform: scale(1.05) translateY(-1px); }
+        0% { transform: scale(0.86) translateY(3px); }
+        60% { transform: scale(1.04) translateY(-1px); }
         100% { transform: scale(1) translateY(0); }
       }
 
@@ -749,15 +787,34 @@
         border-radius: 50%;
         background: #c8a870;
         box-shadow: inset -2px -2px 0 rgba(0, 0, 0, 0.25);
-        animation: seedDrop 0.5s ease-in forwards;
+        animation: seedDrop 0.66s linear forwards;
         pointer-events: none;
       }
 
+      /* A seed under gravity: it accelerates down, squashes on the soil, gives a
+         small bounce, then settles in. The per-keyframe timing functions are what
+         make it read as weight rather than a linear slide. */
       @keyframes seedDrop {
-        0% { transform: translateY(0) rotate(0deg); opacity: 0; }
-        15% { opacity: 1; }
-        80% { transform: translateY(56px) rotate(220deg); opacity: 1; }
-        100% { transform: translateY(60px) scale(0.5, 0.3); opacity: 0; }
+        0% {
+          transform: translateY(-8px) rotate(0deg);
+          opacity: 0;
+          animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.55);
+        }
+        12% { opacity: 1; }
+        58% {
+          transform: translateY(52px) rotate(200deg) scale(1);
+          opacity: 1;
+          animation-timing-function: ease-out;
+        }
+        66% {
+          transform: translateY(56px) rotate(210deg) scale(1.34, 0.62);
+          animation-timing-function: cubic-bezier(0.3, 0, 0.7, 0.5);
+        }
+        80% {
+          transform: translateY(42px) rotate(224deg) scale(0.92, 1.12);
+          animation-timing-function: cubic-bezier(0.4, 0, 0.9, 0.55);
+        }
+        100% { transform: translateY(58px) rotate(232deg) scale(0.72, 0.42); opacity: 0; }
       }
 
       /* produce flying out of a harvested bed */
@@ -768,15 +825,26 @@
         height: 54px;
         margin: -27px 0 0 -27px;
         pointer-events: none;
-        animation: flyOut 0.85s cubic-bezier(0.22, 0.7, 0.3, 1) forwards;
+        animation: flyOut 0.95s linear forwards;
       }
 
       .flyer svg { width: 100%; height: 100%; }
 
+      /* Harvested produce is thrown, not floated away: it decelerates up to the
+         top of its arc, hangs, then accelerates back down out of frame. */
       @keyframes flyOut {
-        0% { transform: translate(0, 0) scale(0.5) rotate(-12deg); opacity: 0; }
-        25% { transform: translate(0, -34px) scale(1.15) rotate(6deg); opacity: 1; }
-        100% { transform: translate(14px, -74px) scale(0.55) rotate(16deg); opacity: 0; }
+        0% {
+          transform: translate(0, 0) scale(0.45) rotate(-14deg);
+          opacity: 0;
+          animation-timing-function: cubic-bezier(0.16, 0.85, 0.35, 1);
+        }
+        12% { opacity: 1; }
+        40% {
+          transform: translate(9px, -56px) scale(1.18) rotate(9deg);
+          opacity: 1;
+          animation-timing-function: cubic-bezier(0.42, 0, 0.9, 0.5);
+        }
+        100% { transform: translate(42px, 34px) scale(0.72) rotate(54deg); opacity: 0; }
       }
 
       .plot .wet {
@@ -810,13 +878,13 @@
 
       .plot .badge {
         position: absolute;
-        top: 6px; right: 6px;
-        padding: 2px 7px;
+        top: 4px; right: 4px;
+        padding: 1px 5px;
         border: 2px solid var(--ink);
-        border-radius: 7px;
+        border-radius: 6px;
         background: #fff;
         font-family: "Arial Narrow", Impact, sans-serif;
-        font-size: 13px;
+        font-size: 11px;
         text-transform: uppercase;
       }
 
@@ -827,38 +895,51 @@
 
       @keyframes dryBlink { 50% { opacity: 0.4; } }
 
+      /* The name sits on one line along the top of the bed. Beds get small once
+         the farm is full, so it must never wrap across the plant. */
       .plot .label {
         position: absolute;
-        top: 6px; left: 9px;
+        top: 3px; left: 6px; right: 6px;
         text-align: left;
         font-family: "Arial Narrow", Impact, sans-serif;
-        font-size: 15px;
+        font-size: 11px;
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        letter-spacing: 0.01em;
         text-transform: uppercase;
         color: #fff;
         text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9), 0 0 6px rgba(0, 0, 0, 0.5);
         pointer-events: none;
       }
 
-      .plot .label.empty { top: 44%; left: 0; right: 0; text-align: center; opacity: 0.75; }
+      .plot .label.empty { top: 42%; left: 0; right: 0; text-align: center; opacity: 0.72; }
 
       /* farmyard strip under the plots */
+      /* The yard of bought props sits under the beds. It must never grow at the
+         beds' expense, so it is a fixed-size strip that clips rather than a
+         flex item that can push the field open. */
       .yard {
         position: relative;
         z-index: 2;
+        flex: 0 0 auto;
         display: flex;
         align-items: flex-end;
         justify-content: center;
-        gap: 10px;
-        flex-wrap: wrap;
-        margin-top: 16px;
-        padding-top: 12px;
+        gap: 8px;
+        flex-wrap: nowrap;
+        overflow: hidden;
+        margin-top: 10px;
+        padding-top: 8px;
         border-top: 3px dashed rgba(255, 255, 255, 0.55);
         filter: drop-shadow(0 4px 3px rgba(20, 50, 15, 0.35));
       }
 
-      .yard .prop { width: 100px; height: 100px; }
-      .yard .prop.wide { width: 132px; }
-      .yard .prop.barn-prop { width: 124px; height: 124px; }
+      .yard .prop { flex: 0 1 auto; width: 62px; height: 62px; }
+      .yard .prop.wide { width: 80px; }
+      .yard .prop.barn-prop { width: 74px; height: 74px; }
+      .yard .prop svg { display: block; width: 100%; height: 100%; }
 
       /* ================= lists ================= */
       .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(272px, 1fr)); gap: 12px; }
@@ -1054,6 +1135,40 @@
       }
 
       .lock-tag svg { width: 14px; height: 14px; }
+
+      /* rarity ribbon on the pricier seed packets */
+      .rarity-tag {
+        position: absolute;
+        z-index: 2;
+        top: 8px; left: 8px;
+        padding: 3px 9px;
+        border: 2px solid #3f2a17;
+        border-radius: 999px;
+        font-family: "Arial Narrow", Impact, sans-serif;
+        font-size: 12px;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        color: #fdf3dc;
+        text-shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+        background: linear-gradient(180deg, #8f9aa8, #6b7684);
+      }
+
+      .rarity-tag.rare { background: linear-gradient(180deg, #6fa8dc, #3d78b0); }
+      .rarity-tag.machine { background: linear-gradient(180deg, #d98b3a, #a35c14); }
+      .rarity-tag.exotic { background: linear-gradient(180deg, #b978e0, #7a3fb0); }
+      .rarity-tag.legendary { background: linear-gradient(180deg, #ffd76a, #d19412); color: #4a3320; text-shadow: none; }
+
+      /* the one crop above all the others gets a slow shimmer */
+      .rarity-tag.mythic {
+        border-color: #1b3a6b;
+        background: linear-gradient(100deg, #5b8cff, #9dd6ff, #5b8cff);
+        background-size: 220% 100%;
+        animation: mythicSheen 3.4s linear infinite;
+      }
+
+      @keyframes mythicSheen {
+        to { background-position: 220% 0; }
+      }
 
       .own-pill {
         align-self: center;
@@ -1681,6 +1796,159 @@
         text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
       }
 
+      /* ================= fitting it all on one screen =================
+         Everything below trims the chrome around the field and turns the two
+         list-heavy panels into their own scroll areas, so the farm itself is
+         always fully visible without the page moving. */
+
+      .scroll-body {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      /* The farm panel is a window onto the world behind it, not a wooden board
+         laid over the top — that is what lets the barn and windmill read as
+         scenery while the beds stand in front of them. */
+      #panel-farm > .flex-card {
+        padding: 0;
+        border: 0;
+        background: none;
+        box-shadow: none;
+      }
+
+      .weather-strip { padding: 7px 14px; margin-bottom: 10px; font-size: 15px; }
+      .weather-strip .wicon { width: 32px; height: 32px; flex: 0 0 32px; }
+
+      .play-hint {
+        flex: 0 0 auto;
+        margin: 8px 0 0;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+
+      /* the barn: one strip of chips rather than a stacked list, so the whole
+         haul reads at a glance instead of pushing the field off screen */
+      .barn-head {
+        display: flex;
+        align-items: baseline;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 8px;
+      }
+
+      .barn-head h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0;
+        font-size: 23px;
+      }
+
+      /* script drops a barn icon in here, so it needs its own size cap now that
+         the heading is no longer a direct child of the card */
+      .barn-head h2 svg { width: 30px; height: 30px; flex: 0 0 30px; }
+      .barn-head .hint { margin: 0; font-size: 12.5px; }
+
+      .barn-strip {
+        display: flex;
+        gap: 8px;
+        min-height: 62px;
+        align-items: center;
+        overflow-x: auto;
+        overscroll-behavior-x: contain;
+        padding-bottom: 3px;
+      }
+
+      .barn-chip {
+        flex: 0 0 auto;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 5px 9px 5px 5px;
+        border: 3px solid #6b4526;
+        border-radius: 12px;
+        background: linear-gradient(180deg, #fdf3dc, #ecd9b0);
+        box-shadow: 0 4px 0 #4e3018;
+      }
+
+      .barn-chip .art { width: 44px; height: 44px; flex: 0 0 44px; }
+      .barn-chip .art svg { display: block; width: 100%; height: 100%; }
+      .barn-chip b { display: block; font-size: 14px; line-height: 1.15; color: #5e3c22; }
+      .barn-chip small { display: block; font-size: 11px; color: #86663f; }
+      .barn-chip .buy { min-height: 32px; padding: 0 11px; font-size: 13px; box-shadow: 0 3px 0 #2f6b1e; }
+      .barn-chip .buy:active { box-shadow: 0 1px 0 #2f6b1e; }
+
+      .legal { flex: 0 0 auto; margin: 0; font-size: 10.5px; }
+
+      /* Laptop-height screens: the chrome gives up room before the field does. */
+      @media (max-height: 900px) {
+        .title-block { padding: 5px 16px 6px; }
+        .title-block h1 { font-size: clamp(21px, 2.6vw, 28px); }
+        .title-block p { display: none; }
+        .stat { min-width: 78px; padding: 5px 10px; }
+        .stat strong { font-size: 21px; }
+        .tab { min-height: 40px; font-size: 20px; margin-top: 7px; }
+        .tabs { padding-top: 11px; }
+        .card { padding: 11px; }
+        .weather-strip { padding: 5px 12px; margin-bottom: 7px; font-size: 14px; }
+        .barn-head { margin-bottom: 5px; }
+        .barn-head h2 { font-size: 19px; }
+        .barn-head .hint { display: none; }
+        .barn-strip { min-height: 52px; }
+        .barn-chip .art { width: 36px; height: 36px; flex: 0 0 36px; }
+        .yard .prop { width: 48px; height: 48px; }
+        .yard .prop.wide { width: 62px; }
+        .yard .prop.barn-prop { width: 56px; height: 56px; }
+        .play-hint { display: none; }
+        .legal { display: none; }
+      }
+
+      /* Narrow screens can't hold three columns, so the farm scrolls inside its
+         own panel there — the page still never scrolls. */
+      @media (max-width: 900px) {
+        /* Everything below stops shrinking to fit and takes the height it needs
+           instead — the card around it scrolls, so the beds are never squeezed. */
+        .play-area {
+          grid-template-columns: 1fr;
+          flex: 0 0 auto;
+          min-height: auto;
+          align-items: start;
+        }
+        /* fitPlots() stands down here, so the beds fall back to a plain
+           auto-filling grid of square-ish tiles that flows as tall as it needs */
+        .plots {
+          grid-template-columns: repeat(auto-fill, minmax(112px, 1fr));
+          grid-auto-rows: auto;
+          flex: 0 0 auto;
+          min-height: auto;
+          max-height: none;
+          margin-top: 0;
+          padding: 10px 12px 14px;
+        }
+        .plot { aspect-ratio: 1; }
+
+        /* the panorama becomes a band in the flow rather than an overlay, so the
+           beds start underneath it instead of being pinned to the field's floor */
+        .field .scenery {
+          position: relative;
+          height: auto;
+          aspect-ratio: 1400 / 300;
+        }
+        .panel.active > .card.flex-card { overflow-y: auto; overscroll-behavior: contain; }
+        .play-area { min-height: 0; }
+        .seeds-side .seedbelt {
+          flex-direction: row;
+          overflow-x: auto;
+          overflow-y: visible;
+        }
+        .seeds-side .seed-chip { min-width: 132px; width: auto; }
+        .tools-side .rail { flex-direction: row; flex-wrap: wrap; overflow: visible; }
+        .tools-side .tool { width: auto; flex: 1 1 44%; }
+        .side { min-height: auto; }
+        .field { min-height: 0; }
+      }
+
       @media (max-width: 560px) {
         .stat { min-width: 88px; padding: 7px 11px; }
         .stat strong { font-size: 22px; }
@@ -1689,11 +1957,7 @@
         .seeds-side .seed-chip { min-width: 132px; width: auto; }
         .tools-side .rail { flex-direction: row; flex-wrap: wrap; }
         .tools-side .tool { width: auto; flex: 1 1 46%; }
-        .plots { grid-template-columns: repeat(auto-fill, minmax(114px, 1fr)); gap: 10px; }
-        .field { padding: 116px 12px 16px; }
-        .scene { height: 106px; }
-        .field::after { top: 88px; height: 18px; }
-        .field .fence::before, .field .fence::after { height: 26px; }
+        .plots { gap: 8px; }
         .card { padding: 14px; }
         .title-block { transform: none; padding: 12px 18px 14px; }
         .tab { font-size: 21px; min-height: 54px; }
@@ -1711,10 +1975,6 @@
   <body>
     <div class="world" id="world">
       <div class="sun" id="sun"></div>
-      <svg class="hills" viewBox="0 0 1200 200" preserveAspectRatio="none" aria-hidden="true">
-        <path d="M0 200 L0 120 Q150 40 320 105 Q470 165 620 95 Q780 20 950 100 Q1080 160 1200 110 L1200 200 Z" fill="#7fb85f" opacity="0.85" />
-        <path d="M0 200 L0 150 Q180 95 360 145 Q540 195 720 140 Q900 85 1080 145 L1200 165 L1200 200 Z" fill="#69a94d" />
-      </svg>
       <div class="field-far"></div>
       <div class="rain"></div>
       <div class="rainbow" id="rainbow"></div>
@@ -1749,7 +2009,7 @@
 
       <!-- ============ FARM ============ -->
       <section class="panel active" id="panel-farm" role="tabpanel" aria-labelledby="tab-farm">
-        <div class="card">
+        <div class="card flex-card">
           <div class="weather-strip">
             <span class="wicon" id="weather-icon"></span>
             <span id="weather-text">Clear skies</span>
@@ -1766,9 +2026,9 @@
             </aside>
 
             <div class="field">
-              <div class="scene" id="scene"></div>
-              <div class="fence"></div>
-              <div class="rails"></div>
+              <!-- the farm itself: hills, windmill, barn, silo, animals. It is a
+                   full-bleed backdrop, not a strip — the beds stand in front of it -->
+              <div class="scenery" id="scene"></div>
               <div class="plots" id="plots"></div>
               <div class="yard" id="yard"></div>
             </div>
@@ -1786,22 +2046,25 @@
             </aside>
           </div>
 
-          <p class="hint" style="margin: 12px 0 0;">
+          <p class="hint play-hint">
             Tap an empty bed to plant the selected seed. Tap a growing crop to water it, a golden
             crop to harvest, and a weedy bed to pull the weeds. Dry soil grows nothing and kills crops.
             Most harvests also hand you a seed or two back — fertilized beds do it more often.
           </p>
         </div>
 
-        <div class="card">
-          <h2>Barn</h2>
-          <p class="hint">Everything you have harvested. Take it to the Market tab to sell.</p>
-          <div class="grid" id="barn"></div>
+        <div class="card strip-card">
+          <div class="barn-head">
+            <h2>Barn</h2>
+            <p class="hint">Everything you have harvested — sell it over in the Market tab.</p>
+          </div>
+          <div class="barn-strip" id="barn"></div>
         </div>
       </section>
 
       <!-- ============ STORE ============ -->
       <section class="panel" id="panel-store" role="tabpanel" aria-labelledby="tab-store">
+       <div class="scroll-body">
         <div class="card">
           <div class="shopfront">
             <div class="awning"></div>
@@ -1816,10 +2079,12 @@
           <p class="hint">Permanent upgrades are bought once and show up out on your farm. Fertilizer is a consumable.</p>
           <div class="shelf" id="store-goods"></div>
         </div>
+       </div>
       </section>
 
       <!-- ============ MARKET ============ -->
       <section class="panel" id="panel-market" role="tabpanel" aria-labelledby="tab-market">
+       <div class="scroll-body">
         <div class="card">
           <div class="board">
             <h3>Produce Market</h3>
@@ -1842,6 +2107,7 @@
             <button class="ghost danger" id="reset-game">Reset Farm</button>
           </div>
         </div>
+       </div>
       </section>
 
       <footer class="legal">Progress saves automatically in this browser.</footer>
@@ -1870,9 +2136,15 @@
           { id: "blueberry",  name: "Blueberry",  seed: 185, growSec: 102, price: 410,  level: 9,  stem: "#4a7a3a", leaf: "#6cb352", fruit: "#5f6fd0" },
           { id: "pumpkin",    name: "Pumpkin",    seed: 250, growSec: 120, price: 552,  level: 10, stem: "#4a7d2c", leaf: "#6fae3f", fruit: "#e07a1f" },
           { id: "melon",      name: "Watermelon", seed: 340, growSec: 142, price: 750,  level: 12, stem: "#3f7a33", leaf: "#5fa84c", fruit: "#2f8f4a" },
-          { id: "grapes",     name: "Grapes",     seed: 470, growSec: 168, price: 1030, level: 14, stem: "#5c7d3a", leaf: "#7cb342", fruit: "#7a4fb0" },
-          { id: "pineapple",  name: "Pineapple",  seed: 640, growSec: 196, price: 1400, level: 16, stem: "#6b8f3a", leaf: "#86bb45", fruit: "#f0b429" },
-          { id: "bluelotus",  name: "Blue Lotus", seed: 950, growSec: 240, price: 2600, level: 18, stem: "#4f9b6a", leaf: "#5fae7a", fruit: "#5b8cff" }
+          { id: "grapes",     name: "Grapes",     seed: 470, growSec: 168, price: 1030, level: 14, rarity: "Rare",      stem: "#5c7d3a", leaf: "#7cb342", fruit: "#7a4fb0" },
+          { id: "pineapple",  name: "Pineapple",  seed: 640, growSec: 196, price: 1400, level: 16, rarity: "Rare",      stem: "#6b8f3a", leaf: "#86bb45", fruit: "#f0b429" },
+          // ---- the rare end of the rack: long grows, big money, and the higher
+          // ---- the tier the later it unlocks. Blue Lotus sits alone at the top.
+          { id: "dragonfruit", name: "Dragon Fruit", seed: 880,  growSec: 218, price: 1950, level: 17, rarity: "Exotic",    stem: "#4e8a4a", leaf: "#5da75d", fruit: "#e0457b" },
+          { id: "starfruit",   name: "Star Fruit",   seed: 1220, growSec: 244, price: 2750, level: 19, rarity: "Exotic",    stem: "#5c8f3a", leaf: "#7cb342", fruit: "#f5c518" },
+          { id: "saffron",     name: "Saffron",      seed: 1750, growSec: 272, price: 3900, level: 21, rarity: "Legendary", stem: "#5f8f6a", leaf: "#6faa7a", fruit: "#a05fd0" },
+          { id: "goldapple",   name: "Golden Apple", seed: 2500, growSec: 305, price: 5600, level: 23, rarity: "Legendary", stem: "#6b4a2f", leaf: "#5da743", fruit: "#f0b429" },
+          { id: "bluelotus",   name: "Blue Lotus",   seed: 4200, growSec: 360, price: 9800, level: 26, rarity: "Mythic",    stem: "#4f9b6a", leaf: "#5fae7a", fruit: "#5b8cff" }
         ];
 
         var CROP_BY_ID = {};
@@ -1888,11 +2160,19 @@
           { id: "beehive", name: "Beehive", cost: 1400, desc: "Pollination: every harvest yields one extra crop.", desc2: "Buzzing — every harvest yields one extra." },
           { id: "hoe", name: "Weeding Hoe", cost: 760, desc: "Weeds take hold half as often across the whole farm.", desc2: "Sharpened — weeds sprout half as often." },
           { id: "trowel", name: "Lucky Trowel", cost: 3200, desc: "Doubles the chance a seed comes up golden.", desc2: "Polished — double the golden crop chance." },
-          { id: "cart", name: "Delivery Cart", cost: 4200, desc: "Market prices never dip below the base rate.", desc2: "On the road — prices never dip below base." }
+          { id: "cart", name: "Delivery Cart", cost: 4200, desc: "Market prices never dip below the base rate.", desc2: "On the road — prices never dip below base." },
+          // ---- machinery: the end-game money sink. Both need level 15 as well as
+          // ---- the coins, and they work the beds on their own once they're out there.
+          { id: "planter", name: "Auto-Planter Rig", cost: 100000, level: 15,
+            desc: "Machinery. Drills your selected seed into any empty bed on its own, as long as you have seed in the belt.",
+            desc2: "Out drilling — empty beds get replanted on their own." },
+          { id: "harvester", name: "Auto-Harvester", cost: 100000, level: 15,
+            desc: "Machinery. Rolls through the field and brings in any bed that has come ready, on its own.",
+            desc2: "Out working — ready beds are brought in on their own." }
         ];
 
         var WEATHERS = [
-          { id: "sun",   name: "Clear skies",  text: "Soil dries fast. Keep the can full.",      dry: 1.0, growth: 1.0,  rain: 0,  sky: ["#6fc3f7", "#cdefff"], clouds: 2, wet: false },
+          { id: "sun",   name: "Clear skies",  text: "Soil dries fast. Keep the can full.",      dry: 1.0, growth: 1.0,  rain: 0,  sky: ["#3fa9f5", "#cfefff"], clouds: 2, wet: false },
           { id: "cloud", name: "Overcast",     text: "Mild day. Soil holds moisture longer.",    dry: 0.6, growth: 1.0,  rain: 0,  sky: ["#9fb3c4", "#dfe7ec"], clouds: 6, wet: false },
           { id: "rain",  name: "Rainy",        text: "Free watering all day long.",              dry: 0,   growth: 1.05, rain: 14, sky: ["#7d93a8", "#c3d2dc"], clouds: 7, wet: true },
           { id: "heat",  name: "Heat wave",    text: "Crops grow fast but the soil bakes dry.",  dry: 1.9, growth: 1.25, rain: 0,  sky: ["#ffb85c", "#ffe6bd"], clouds: 1, wet: false },
@@ -2246,11 +2526,89 @@
 
         // Beds crop in on the part of the canvas where the plant actually lives,
         // so crops read big inside a small tile.
-        var BED_VIEW = "13 24 74 70";
+        var BED_VIEW = "19 27 62 60";
 
+        /* ---- lighting toolkit ---------------------------------------------
+         * Everything on the farm is lit from the upper left. Rather than give
+         * each drawing its own copy of a gradient, the shaders below mint one
+         * gradient per colour, park it in a single hidden <svg>, and hand back
+         * a url(#id) that any inline drawing in the document can point at. A
+         * fill from orb()/cyl()/blade() plus a spec() catchlight is what turns
+         * these flat shapes into models with real volume.
+         * ------------------------------------------------------------------ */
+
+        var gradSeen = {};
+        var gradMarkup = "";
+        var gradHost = null;
+
+        function pushGrad(id, markup) {
+          if (gradSeen[id]) return id;
+          gradSeen[id] = 1;
+          gradMarkup += markup;
+          if (!gradHost) {
+            gradHost = document.createElement("div");
+            gradHost.setAttribute("aria-hidden", "true");
+            gradHost.style.cssText = "position:absolute;left:-9999px;top:0;width:0;height:0;overflow:hidden";
+            document.body.appendChild(gradHost);
+          }
+          gradHost.innerHTML = '<svg width="0" height="0">' + gradMarkup + "</svg>";
+          return id;
+        }
+
+        function lighten(hex, amt) { return mix(hex, "#ffffff", amt); }
+        function darken(hex, amt) { return mix(hex, "#20130a", amt); }
+
+        // Round bodies: a lit crown up at the top left falling away to a dark rim.
+        function orb(color) {
+          var id = "fo" + color.slice(1);
+          return "url(#" + pushGrad(id,
+            '<radialGradient id="' + id + '" cx="34%" cy="26%" r="82%">' +
+              '<stop offset="0%" stop-color="' + lighten(color, 0.54) + '"/>' +
+              '<stop offset="36%" stop-color="' + lighten(color, 0.17) + '"/>' +
+              '<stop offset="70%" stop-color="' + color + '"/>' +
+              '<stop offset="100%" stop-color="' + darken(color, 0.4) + '"/>' +
+            "</radialGradient>") + ")";
+        }
+
+        // Tube bodies — stems, cobs, cucumbers, planks: dark edge, lit band, dark edge.
+        function cyl(color, vertical) {
+          var id = (vertical ? "fv" : "fh") + color.slice(1);
+          return "url(#" + pushGrad(id,
+            '<linearGradient id="' + id + '" x1="0%" y1="0%" x2="' + (vertical ? "0%" : "100%") + '" y2="' + (vertical ? "100%" : "0%") + '">' +
+              '<stop offset="0%" stop-color="' + darken(color, 0.32) + '"/>' +
+              '<stop offset="26%" stop-color="' + lighten(color, 0.36) + '"/>' +
+              '<stop offset="62%" stop-color="' + color + '"/>' +
+              '<stop offset="100%" stop-color="' + darken(color, 0.36) + '"/>' +
+            "</linearGradient>") + ")";
+        }
+
+        // Leaves and petals: lit along the spine, shading down toward the tip.
+        function blade(color) {
+          var id = "fb" + color.slice(1);
+          return "url(#" + pushGrad(id,
+            '<linearGradient id="' + id + '" x1="0%" y1="0%" x2="14%" y2="100%">' +
+              '<stop offset="0%" stop-color="' + lighten(color, 0.44) + '"/>' +
+              '<stop offset="50%" stop-color="' + color + '"/>' +
+              '<stop offset="100%" stop-color="' + darken(color, 0.34) + '"/>' +
+            "</linearGradient>") + ")";
+        }
+
+        // The hard little catchlight that sells a glossy surface.
+        function spec(cx, cy, rx, ry, rot, op) {
+          return '<ellipse cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) +
+            '" fill="#ffffff" opacity="' + (op == null ? 0.5 : op) + '" transform="rotate(' + (rot == null ? -28 : rot) +
+            " " + cx.toFixed(1) + " " + cy.toFixed(1) + ')"/>';
+        }
+
+        // Ambient occlusion under a body so it sits on something instead of floating.
+        function contact(cx, cy, rx, ry, op) {
+          return '<ellipse cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" rx="' + rx.toFixed(1) + '" ry="' + ry.toFixed(1) +
+            '" fill="#1e2c10" opacity="' + (op == null ? 0.22 : op) + '"/>';
+        }
+
+        // Kept for the older drawings that still ask for a plain highlight.
         function gloss(cx, cy, r, rot) {
-          return '<ellipse cx="' + (cx - r * 0.32) + '" cy="' + (cy - r * 0.38) + '" rx="' + (r * 0.2) + '" ry="' + (r * 0.32) +
-            '" fill="#ffffff" opacity="0.45" transform="rotate(' + (rot || -20) + ' ' + cx + ' ' + cy + ')"/>';
+          return spec(cx - r * 0.34, cy - r * 0.4, r * 0.22, r * 0.34, rot == null ? -20 : rot, 0.5);
         }
 
         // A single leaf lying along +x from the origin, then rotated into place.
@@ -2258,9 +2616,12 @@
           var w = len * 0.42;
           var out = '<g transform="translate(' + cx + ' ' + cy + ') rotate(' + rot + ')">' +
             '<path d="M0 0 C ' + len * 0.3 + ' ' + -w + ', ' + len * 0.75 + ' ' + -w * 0.8 + ', ' + len + ' 0 C ' +
-            len * 0.75 + ' ' + w * 0.8 + ', ' + len * 0.3 + ' ' + w + ', 0 0 Z" fill="' + color + '"/>';
+            len * 0.75 + ' ' + w * 0.8 + ', ' + len * 0.3 + ' ' + w + ', 0 0 Z" fill="' + blade(color) + '"/>' +
+            // the upper half catches the light, which gives the blade a fold
+            '<path d="M1 -0.4 C ' + len * 0.32 + ' ' + -w * 0.86 + ', ' + len * 0.72 + ' ' + -w * 0.66 + ', ' + (len - 1) + ' -0.6 Z" ' +
+              'fill="#ffffff" opacity="0.17"/>';
           if (vein !== false) {
-            out += '<path d="M2 0 L' + (len - 2) + ' 0" stroke="#ffffff" stroke-opacity="0.35" stroke-width="1" fill="none"/>';
+            out += '<path d="M2 0 L' + (len - 2) + ' 0" stroke="#ffffff" stroke-opacity="0.4" stroke-width="1" fill="none" stroke-linecap="round"/>';
           }
           return out + "</g>";
         }
@@ -2268,121 +2629,161 @@
         var SHAPE = {
           radish: function (cx, cy, r) {
             return '<path d="M' + cx + ' ' + (cy + r * 0.9) + ' q' + r * 0.35 + ' ' + r * 0.7 + ', ' + r * 0.05 + ' ' + r * 1.35 +
-                '" stroke="#f0e2d0" stroke-width="' + Math.max(1.4, r * 0.14) + '" fill="none" stroke-linecap="round"/>' +
-              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r + '" ry="' + r * 0.98 + '" fill="#d94f6a"/>' +
-              '<path d="M' + (cx - r) + ' ' + (cy + r * 0.35) + ' a' + r + ' ' + r + ' 0 0 0 ' + r * 2 + ' 0 z" fill="#f4e3e0" opacity="0.85"/>' +
-              gloss(cx, cy, r);
+                '" stroke="#efe0cc" stroke-width="' + Math.max(1.4, r * 0.14) + '" fill="none" stroke-linecap="round"/>' +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r + '" ry="' + r * 0.98 + '" fill="' + orb("#d94f6a") + '"/>' +
+              // the pale shoulder where the skin gives way to the root
+              '<path d="M' + (cx - r * 0.97) + ' ' + (cy + r * 0.4) + ' a' + r + ' ' + r + ' 0 0 0 ' + r * 1.94 + ' 0 z" fill="' + orb("#f6e6e2") + '" opacity="0.92"/>' +
+              spec(cx - r * 0.36, cy - r * 0.42, r * 0.2, r * 0.33, -26, 0.62) +
+              spec(cx + r * 0.42, cy + r * 0.3, r * 0.1, r * 0.16, 30, 0.22);
           },
           carrot: function (cx, cy, r) {
             var h = r * 2.3;
-            return '<path d="M' + (cx - r * 0.72) + ' ' + (cy - h * 0.42) + ' L' + (cx + r * 0.72) + ' ' + (cy - h * 0.42) +
-                ' L' + cx + ' ' + (cy + h * 0.58) + ' Z" fill="#e8802c"/>' +
-              '<path d="M' + (cx - r * 0.45) + ' ' + (cy - h * 0.16) + ' L' + (cx + r * 0.3) + ' ' + (cy - h * 0.22) +
-                ' M' + (cx - r * 0.3) + ' ' + (cy + h * 0.08) + ' L' + (cx + r * 0.22) + ' ' + (cy + h * 0.02) +
-                '" stroke="#c4631a" stroke-width="' + Math.max(1, r * 0.13) + '" fill="none" opacity="0.7"/>' +
-              gloss(cx - r * 0.1, cy - h * 0.16, r * 0.7);
+            var top = cy - h * 0.42;
+            var tip = cy + h * 0.58;
+            var out = '<path d="M' + (cx - r * 0.76) + ' ' + top + ' q' + r * 0.76 + ' ' + -r * 0.34 + ', ' + r * 1.52 + ' 0 ' +
+              'q' + -r * 0.3 + ' ' + h * 0.72 + ', ' + -r * 0.76 + ' ' + (tip - top) + ' ' +
+              'q' + -r * 0.46 + ' ' + -h * 0.28 + ', ' + -r * 0.76 + ' ' + -(tip - top) + ' z" fill="' + cyl("#e8802c") + '"/>';
+            // the shallow rings a carrot carries around its shoulders
+            for (var i = 0; i < 4; i++) {
+              var t = 0.12 + i * 0.2;
+              var w = r * 0.66 * (1 - t * 0.8);
+              out += '<path d="M' + (cx - w) + ' ' + (top + (tip - top) * t) + ' q' + w + ' ' + r * 0.16 + ', ' + w * 2 + ' 0" ' +
+                'stroke="#b9560f" stroke-width="' + Math.max(0.8, r * 0.09) + '" fill="none" opacity="0.4"/>';
+            }
+            return out + spec(cx - r * 0.26, top + h * 0.3, r * 0.13, h * 0.24, -6, 0.42);
           },
           lettuce: function (cx, cy, r) {
-            var out = "";
+            var out = contact(cx, cy + r * 0.62, r * 0.86, r * 0.24, 0.16);
+            // outer ruffle first, then tighter hearts stacked on top
             for (var i = 0; i < 6; i++) {
-              var a = (i / 6) * Math.PI * 2;
-              out += '<ellipse cx="' + (cx + Math.cos(a) * r * 0.45) + '" cy="' + (cy + Math.sin(a) * r * 0.38) +
-                '" rx="' + r * 0.62 + '" ry="' + r * 0.54 + '" fill="#6cb352"/>';
+              var a = (i / 6) * Math.PI * 2 + 0.4;
+              out += '<ellipse cx="' + (cx + Math.cos(a) * r * 0.46).toFixed(1) + '" cy="' + (cy + Math.sin(a) * r * 0.4).toFixed(1) +
+                '" rx="' + r * 0.64 + '" ry="' + r * 0.56 + '" fill="' + orb("#5aa544") + '"/>';
+            }
+            for (var k = 0; k < 4; k++) {
+              var b = (k / 4) * Math.PI * 2 - 0.6;
+              out += '<ellipse cx="' + (cx + Math.cos(b) * r * 0.26).toFixed(1) + '" cy="' + (cy + Math.sin(b) * r * 0.22).toFixed(1) +
+                '" rx="' + r * 0.5 + '" ry="' + r * 0.44 + '" fill="' + orb("#7cc45c") + '"/>';
             }
             return out +
-              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.6 + '" fill="#8fd06a"/>' +
-              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.36 + '" ry="' + r * 0.3 + '" fill="#b6e392"/>';
+              '<ellipse cx="' + cx + '" cy="' + (cy - r * 0.06) + '" rx="' + r * 0.4 + '" ry="' + r * 0.34 + '" fill="' + orb("#a8de84") + '"/>' +
+              spec(cx - r * 0.2, cy - r * 0.3, r * 0.16, r * 0.1, -24, 0.42);
           },
           tomato: function (cx, cy, r) {
-            return '<circle cx="' + cx + '" cy="' + cy + '" r="' + r + '" fill="#d13a2c"/>' +
+            // slightly wider than tall, the way a ripe tomato actually sits
+            return '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 1.03 + '" ry="' + r * 0.96 + '" fill="' + orb("#d13a2c") + '"/>' +
+              '<path d="M' + (cx - r * 0.8) + ' ' + (cy + r * 0.5) + ' a' + r * 0.9 + ' ' + r * 0.9 + ' 0 0 0 ' + r * 1.6 + ' 0 z" fill="#7d1a12" opacity="0.16"/>' +
               '<path d="M' + cx + ' ' + (cy - r * 0.85) + ' l' + r * 0.5 + ' -' + r * 0.15 + ' l-' + r * 0.28 + ' ' + r * 0.42 +
                 ' l' + r * 0.42 + ' ' + r * 0.12 + ' l-' + r * 0.64 + ' ' + r * 0.16 + ' l-' + r * 0.64 + ' -' + r * 0.16 +
-                ' l' + r * 0.42 + ' -' + r * 0.12 + ' l-' + r * 0.28 + ' -' + r * 0.42 + ' z" fill="#3f8f38"/>' +
-              '<rect x="' + (cx - r * 0.09) + '" y="' + (cy - r * 1.28) + '" width="' + r * 0.18 + '" height="' + r * 0.42 + '" fill="#3f8f38"/>' +
-              gloss(cx, cy, r);
+                ' l' + r * 0.42 + ' -' + r * 0.12 + ' l-' + r * 0.28 + ' -' + r * 0.42 + ' z" fill="' + blade("#3f8f38") + '"/>' +
+              '<rect x="' + (cx - r * 0.09) + '" y="' + (cy - r * 1.28) + '" width="' + r * 0.18 + '" height="' + r * 0.42 +
+                '" rx="' + r * 0.09 + '" fill="' + cyl("#3f8f38") + '"/>' +
+              spec(cx - r * 0.36, cy - r * 0.42, r * 0.22, r * 0.34, -26, 0.62) +
+              spec(cx + r * 0.44, cy + r * 0.26, r * 0.11, r * 0.18, 32, 0.24);
           },
           corn: function (cx, cy, r) {
-            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.66 + '" ry="' + r * 1.25 + '" fill="#f2c53d"/>';
+            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.68 + '" ry="' + r * 1.25 + '" fill="' + cyl("#f2c53d") + '"/>';
+            // kernels, dimmed toward the edges so the cob keeps its roundness
             for (var row = -3; row <= 3; row++) {
               for (var col = -1; col <= 1; col++) {
-                out += '<circle cx="' + (cx + col * r * 0.32) + '" cy="' + (cy + row * r * 0.3) + '" r="' + r * 0.12 + '" fill="#d8a417" opacity="0.75"/>';
+                out += '<ellipse cx="' + (cx + col * r * 0.33) + '" cy="' + (cy + row * r * 0.3) + '" rx="' + r * 0.13 + '" ry="' + r * 0.11 +
+                  '" fill="' + (col < 0 ? "#fbe08d" : "#c98f0e") + '" opacity="' + (col === 0 ? 0.4 : 0.6) + '"/>';
               }
             }
             out += '<path d="M' + (cx - r * 0.6) + ' ' + (cy - r * 1.1) + ' q-' + r * 0.7 + ' ' + r * 1.1 + ', -' + r * 0.1 + ' ' + r * 2.1 +
-              ' q' + r * 0.45 + ' -' + r * 1.1 + ', ' + r * 0.5 + ' -' + r * 2 + ' z" fill="#7cb342"/>';
+              ' q' + r * 0.45 + ' -' + r * 1.1 + ', ' + r * 0.5 + ' -' + r * 2 + ' z" fill="' + blade("#6ca338") + '"/>';
             out += '<path d="M' + (cx + r * 0.6) + ' ' + (cy - r * 1.1) + ' q' + r * 0.7 + ' ' + r * 1.1 + ', ' + r * 0.1 + ' ' + r * 2.1 +
-              ' q-' + r * 0.45 + ' -' + r * 1.1 + ', -' + r * 0.5 + ' -' + r * 2 + ' z" fill="#8cc351"/>';
-            return out;
+              ' q-' + r * 0.45 + ' -' + r * 1.1 + ', -' + r * 0.5 + ' -' + r * 2 + ' z" fill="' + blade("#8cc351") + '"/>';
+            return out + spec(cx - r * 0.3, cy - r * 0.3, r * 0.12, r * 0.5, -4, 0.34);
           },
           strawberry: function (cx, cy, r) {
             var out = '<path d="M' + cx + ' ' + (cy + r * 1.15) + ' C' + (cx - r * 1.1) + ' ' + (cy + r * 0.35) + ', ' +
               (cx - r) + ' ' + (cy - r * 0.75) + ', ' + cx + ' ' + (cy - r * 0.75) + ' C' + (cx + r) + ' ' + (cy - r * 0.75) + ', ' +
-              (cx + r * 1.1) + ' ' + (cy + r * 0.35) + ', ' + cx + ' ' + (cy + r * 1.15) + ' z" fill="#e0324a"/>';
+              (cx + r * 1.1) + ' ' + (cy + r * 0.35) + ', ' + cx + ' ' + (cy + r * 1.15) + ' z" fill="' + orb("#e0324a") + '"/>';
+            // seeds sit in dimples, so each gets a shadow above the highlight
             for (var i = 0; i < 7; i++) {
               var sx = cx + (((i * 37) % 10) / 10 - 0.45) * r * 1.3;
               var sy = cy - r * 0.4 + ((i * 53) % 10) / 10 * r * 1.2;
-              out += '<circle cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" r="' + r * 0.09 + '" fill="#ffe08a"/>';
+              out += '<ellipse cx="' + sx.toFixed(1) + '" cy="' + (sy + r * 0.05).toFixed(1) + '" rx="' + r * 0.1 + '" ry="' + r * 0.08 +
+                  '" fill="#8f1327" opacity="0.5"/>' +
+                '<ellipse cx="' + sx.toFixed(1) + '" cy="' + sy.toFixed(1) + '" rx="' + r * 0.085 + '" ry="' + r * 0.07 + '" fill="#ffe9a8"/>';
             }
             for (var k = 0; k < 5; k++) {
               out += leaf(cx, cy - r * 0.72, r * 0.72, 200 + k * 35, "#3f8f38", false);
             }
-            return out + '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.25) + '" width="' + r * 0.16 + '" height="' + r * 0.4 + '" fill="#3f8f38"/>' + gloss(cx, cy, r * 0.9);
+            return out + '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.25) + '" width="' + r * 0.16 + '" height="' + r * 0.4 +
+                '" rx="' + r * 0.08 + '" fill="' + cyl("#3f8f38") + '"/>' +
+              spec(cx - r * 0.34, cy - r * 0.3, r * 0.18, r * 0.3, -24, 0.5);
           },
           pumpkin: function (cx, cy, r) {
-            return '<ellipse cx="' + (cx - r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="#c9660f"/>' +
-              '<ellipse cx="' + (cx + r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="#c9660f"/>' +
-              '<ellipse cx="' + (cx - r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="#e07a1f"/>' +
-              '<ellipse cx="' + (cx + r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="#e07a1f"/>' +
-              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.72 + '" ry="' + r + '" fill="#f08c26"/>' +
-              '<rect x="' + (cx - r * 0.12) + '" y="' + (cy - r * 1.3) + '" width="' + r * 0.24 + '" height="' + r * 0.36 + '" rx="' + r * 0.08 + '" fill="#5f7a2a"/>' +
+            // outer ribs are darker and each inner rib is its own shaded lobe
+            return contact(cx, cy + r * 1.02, r * 0.9, r * 0.18, 0.18) +
+              '<ellipse cx="' + (cx - r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="' + orb("#b95a0c") + '"/>' +
+              '<ellipse cx="' + (cx + r * 0.5) + '" cy="' + cy + '" rx="' + r * 0.62 + '" ry="' + r * 0.92 + '" fill="' + orb("#b95a0c") + '"/>' +
+              '<ellipse cx="' + (cx - r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="' + orb("#dd7418") + '"/>' +
+              '<ellipse cx="' + (cx + r * 0.26) + '" cy="' + cy + '" rx="' + r * 0.7 + '" ry="' + r * 0.97 + '" fill="' + orb("#dd7418") + '"/>' +
+              '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.72 + '" ry="' + r + '" fill="' + orb("#f08c26") + '"/>' +
+              '<rect x="' + (cx - r * 0.12) + '" y="' + (cy - r * 1.3) + '" width="' + r * 0.24 + '" height="' + r * 0.36 + '" rx="' + r * 0.08 +
+                '" fill="' + cyl("#5f7a2a") + '"/>' +
               '<path d="M' + (cx + r * 0.1) + ' ' + (cy - r * 1.2) + ' q' + r * 0.6 + ' -' + r * 0.4 + ', ' + r * 0.15 + ' -' + r * 0.7 +
-                '" stroke="#5f7a2a" stroke-width="' + Math.max(1.2, r * 0.1) + '" fill="none"/>';
+                '" stroke="#5f7a2a" stroke-width="' + Math.max(1.2, r * 0.1) + '" fill="none" stroke-linecap="round"/>' +
+              spec(cx - r * 0.22, cy - r * 0.5, r * 0.16, r * 0.26, -20, 0.4);
           },
           melon: function (cx, cy, r) {
-            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 1.12 + '" ry="' + r * 0.9 + '" fill="#2f8f4a"/>';
+            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 1.12 + '" ry="' + r * 0.9 + '" fill="' + orb("#2f8f4a") + '"/>';
+            // stripes bow with the surface, so they read as painted on a ball
             for (var i = -2; i <= 2; i++) {
               out += '<path d="M' + (cx + i * r * 0.42) + ' ' + (cy - r * 0.88) + ' q' + (i * r * 0.16) + ' ' + r * 0.9 + ', 0 ' + r * 1.76 +
-                '" stroke="#1d6b34" stroke-width="' + Math.max(1.4, r * 0.16) + '" fill="none" opacity="0.85"/>';
+                '" stroke="#175a2b" stroke-width="' + Math.max(1.4, r * 0.16) + '" fill="none" opacity="' + (i < 0 ? 0.6 : 0.85) + '"/>';
             }
-            return out + '<ellipse cx="' + (cx - r * 0.4) + '" cy="' + (cy - r * 0.42) + '" rx="' + r * 0.22 + '" ry="' + r * 0.13 +
-              '" fill="#ffffff" opacity="0.35" transform="rotate(-25 ' + cx + ' ' + cy + ')"/>';
+            return out +
+              '<path d="M' + (cx - r * 0.95) + ' ' + (cy + r * 0.42) + ' a' + r + ' ' + r * 0.8 + ' 0 0 0 ' + r * 1.9 + ' 0 z" fill="#0f4a22" opacity="0.18"/>' +
+              spec(cx - r * 0.42, cy - r * 0.4, r * 0.24, r * 0.14, -25, 0.42);
           },
           potato: function (cx, cy, r) {
             var out = '<path d="M' + (cx - r) + ' ' + cy + ' q' + r * 0.1 + ' -' + r * 0.95 + ', ' + r + ' -' + r * 0.82 +
               ' q' + r + ' -' + r * 0.16 + ', ' + r + ' ' + r * 0.72 + ' q0 ' + r * 0.9 + ', -' + r + ' ' + r * 0.82 +
-              ' q-' + r + ' ' + r * 0.1 + ', -' + r + ' -' + r * 0.72 + ' z" fill="#c99b5e" stroke="#8a6535" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>';
+              ' q-' + r + ' ' + r * 0.1 + ', -' + r + ' -' + r * 0.72 + ' z" fill="' + orb("#c99b5e") + '"/>';
+            // eyes are little pits: a dark notch with a lit lower lip
             [[-0.4, -0.25], [0.25, -0.4], [0.42, 0.22], [-0.2, 0.35]].forEach(function (p) {
-              out += '<ellipse cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" rx="' + r * 0.11 + '" ry="' + r * 0.08 +
-                '" fill="#8a6535" opacity="0.75"/>';
+              out += '<ellipse cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" rx="' + r * 0.12 + '" ry="' + r * 0.09 +
+                  '" fill="#7d5a2d" opacity="0.8"/>' +
+                '<ellipse cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r + r * 0.05) + '" rx="' + r * 0.09 + '" ry="' + r * 0.05 +
+                  '" fill="#e8c692" opacity="0.5"/>';
             });
-            return out + gloss(cx - r * 0.15, cy - r * 0.2, r * 0.7);
+            return out + spec(cx - r * 0.34, cy - r * 0.34, r * 0.2, r * 0.13, -22, 0.46);
           },
           cucumber: function (cx, cy, r) {
             var out = '<g transform="rotate(-18 ' + cx + " " + cy + ')">' +
-              '<rect x="' + (cx - r * 0.42) + '" y="' + (cy - r * 1.15) + '" width="' + r * 0.84 + '" height="' + r * 2.3 +
-              '" rx="' + r * 0.42 + '" fill="#4f9b3d" stroke="#2f6b26" stroke-width="' + Math.max(1.4, r * 0.11) + '"/>';
+              '<rect x="' + (cx - r * 0.44) + '" y="' + (cy - r * 1.15) + '" width="' + r * 0.88 + '" height="' + r * 2.3 +
+              '" rx="' + r * 0.44 + '" fill="' + cyl("#4f9b3d") + '"/>';
             for (var i = -3; i <= 3; i++) {
-              out += '<circle cx="' + (cx + (i % 2 ? r * 0.16 : -r * 0.16)) + '" cy="' + (cy + i * r * 0.28) + '" r="' + r * 0.08 + '" fill="#3d8230"/>';
+              out += '<ellipse cx="' + (cx + (i % 2 ? r * 0.16 : -r * 0.16)) + '" cy="' + (cy + i * r * 0.28) + '" rx="' + r * 0.09 + '" ry="' + r * 0.07 +
+                '" fill="#2f6b26" opacity="0.7"/>';
             }
-            out += '<path d="M' + (cx - r * 0.22) + ' ' + (cy - r * 0.8) + ' v' + r * 1.5 + '" stroke="#7fc266" stroke-width="' + Math.max(1.2, r * 0.1) + '" opacity="0.8"/>';
-            out += '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.35) + '" width="' + r * 0.16 + '" height="' + r * 0.24 + '" fill="#3f7a33"/>';
+            out += '<rect x="' + (cx - r * 0.08) + '" y="' + (cy - r * 1.35) + '" width="' + r * 0.16 + '" height="' + r * 0.26 +
+              '" rx="' + r * 0.08 + '" fill="' + cyl("#3f7a33") + '"/>';
+            out += spec(cx - r * 0.19, cy - r * 0.1, r * 0.09, r * 0.72, 0, 0.4);
             return out + "</g>";
           },
           blueberry: function (cx, cy, r) {
             var out = "";
             [[-0.5, 0.18, 0.62], [0.5, 0.24, 0.58], [0, -0.3, 0.72]].forEach(function (p) {
               var br = r * p[2];
-              out += '<circle cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" r="' + br + '" fill="#5f6fd0"/>' +
-                '<circle cx="' + (cx + p[0] * r) + '" cy="' + (cy + p[1] * r) + '" r="' + br * 0.62 + '" fill="#6f80e0" opacity="0.7"/>' +
-                '<path d="M' + (cx + p[0] * r - br * 0.3) + ' ' + (cy + p[1] * r - br * 0.55) + ' l' + br * 0.3 + ' ' + br * 0.28 +
-                  ' l' + br * 0.3 + ' -' + br * 0.28 + '" fill="none" stroke="#3f4aa0" stroke-width="' + Math.max(1, r * 0.07) + '"/>' +
-                '<circle cx="' + (cx + p[0] * r - br * 0.3) + '" cy="' + (cy + p[1] * r - br * 0.35) + '" r="' + br * 0.16 + '" fill="#ffffff" opacity="0.45"/>';
+              var bx = cx + p[0] * r;
+              var by = cy + p[1] * r;
+              out += '<circle cx="' + bx + '" cy="' + by + '" r="' + br + '" fill="' + orb("#5f6fd0") + '"/>' +
+                // the dusty bloom berries carry, plus the little crown scar
+                '<ellipse cx="' + bx + '" cy="' + (by - br * 0.15) + '" rx="' + br * 0.72 + '" ry="' + br * 0.6 + '" fill="#c8d0f5" opacity="0.16"/>' +
+                '<path d="M' + (bx - br * 0.3) + ' ' + (by - br * 0.6) + ' l' + br * 0.3 + ' ' + br * 0.28 +
+                  ' l' + br * 0.3 + ' -' + br * 0.28 + '" fill="none" stroke="#333c8c" stroke-width="' + Math.max(1, r * 0.07) + '"/>' +
+                spec(bx - br * 0.32, by - br * 0.36, br * 0.2, br * 0.14, -28, 0.6);
             });
             return out;
           },
           grapes: function (cx, cy, r) {
             var out = '<path d="M' + cx + ' ' + (cy - r * 1.15) + ' q' + r * 0.3 + ' -' + r * 0.3 + ', ' + r * 0.6 + ' -' + r * 0.1 +
-              '" fill="none" stroke="#6b4a2f" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>' +
+              '" fill="none" stroke="#6b4a2f" stroke-width="' + Math.max(1.4, r * 0.1) + '" stroke-linecap="round"/>' +
               leaf(cx + r * 0.15, cy - r * 1.1, r * 0.75, -35, "#7cb342");
             var rows = [3, 3, 2, 1];
             var br = r * 0.3;
@@ -2390,8 +2791,9 @@
               for (var i = 0; i < n; i++) {
                 var gx = cx + (i - (n - 1) / 2) * br * 1.85;
                 var gy = cy - r * 0.6 + row * br * 1.62;
-                out += '<circle cx="' + gx.toFixed(1) + '" cy="' + gy.toFixed(1) + '" r="' + br + '" fill="' + (row % 2 ? "#7a4fb0" : "#8b5cc4") + '"/>' +
-                  '<circle cx="' + (gx - br * 0.3).toFixed(1) + '" cy="' + (gy - br * 0.32).toFixed(1) + '" r="' + br * 0.22 + '" fill="#ffffff" opacity="0.4"/>';
+                // back rows sit in the shade of the ones hanging in front
+                out += '<circle cx="' + gx.toFixed(1) + '" cy="' + gy.toFixed(1) + '" r="' + br + '" fill="' + orb(row % 2 ? "#6f45a2" : "#8b5cc4") + '"/>' +
+                  spec(gx - br * 0.32, gy - br * 0.36, br * 0.2, br * 0.14, -28, 0.55);
               }
             });
             return out;
@@ -2401,30 +2803,101 @@
             for (var c = 0; c < 5; c++) {
               var lean = (c - 2) * 16;
               out += '<path d="M' + cx + ' ' + (cy - r * 0.72) + ' q' + lean * 0.3 + ' -' + r * 0.7 + ', ' + lean * 0.5 + ' -' + r * 1.05 +
-                ' q' + (10 - Math.abs(lean) * 0.2) + ' ' + r * 0.55 + ', ' + (-lean * 0.5 + 6) + ' ' + r * 1.05 + ' z" fill="#5da743" stroke="#3f7a33" stroke-width="2"/>';
+                ' q' + (10 - Math.abs(lean) * 0.2) + ' ' + r * 0.55 + ', ' + (-lean * 0.5 + 6) + ' ' + r * 1.05 + ' z" fill="' +
+                blade(c === 2 ? "#6cbb4c" : "#54993c") + '"/>';
             }
-            out += '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.2) + '" rx="' + r * 0.82 + '" ry="' + r * 1.02 + '" fill="#f0b429" stroke="#b5822a" stroke-width="' + Math.max(1.4, r * 0.1) + '"/>';
+            out += '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.2) + '" rx="' + r * 0.82 + '" ry="' + r * 1.02 + '" fill="' + orb("#f0b429") + '"/>';
+            // the diamond quilting, drawn as two crossing sets of curves
             for (var a = -2; a <= 2; a++) {
-              out += '<path d="M' + (cx - r * 0.8) + ' ' + (cy + r * 0.2 + a * r * 0.34) + ' q' + r * 0.8 + ' ' + r * 0.22 + ', ' + r * 1.6 + ' 0" fill="none" stroke="#c88f18" stroke-width="' + Math.max(1, r * 0.07) + '"/>' +
-                '<path d="M' + (cx - r * 0.5 + a * r * 0.3) + ' ' + (cy - r * 0.75) + ' q' + r * 0.2 + ' ' + r * 1 + ', 0 ' + r * 2 + '" fill="none" stroke="#c88f18" stroke-width="' + Math.max(1, r * 0.07) + '"/>';
+              out += '<path d="M' + (cx - r * 0.8) + ' ' + (cy + r * 0.2 + a * r * 0.34) + ' q' + r * 0.8 + ' ' + r * 0.22 + ', ' + r * 1.6 + ' 0" fill="none" stroke="#b57f10" stroke-width="' + Math.max(1, r * 0.07) + '" opacity="0.85"/>' +
+                '<path d="M' + (cx - r * 0.5 + a * r * 0.3) + ' ' + (cy - r * 0.75) + ' q' + r * 0.2 + ' ' + r * 1 + ', 0 ' + r * 2 + '" fill="none" stroke="#b57f10" stroke-width="' + Math.max(1, r * 0.07) + '" opacity="0.85"/>';
             }
-            return out;
+            return out + spec(cx - r * 0.38, cy - r * 0.16, r * 0.16, r * 0.3, -18, 0.42);
+          },
+          dragonfruit: function (cx, cy, r) {
+            // magenta barrel with green-tipped scales curling off it
+            var out = '<ellipse cx="' + cx + '" cy="' + cy + '" rx="' + r * 0.78 + '" ry="' + r * 1.06 + '" fill="' + orb("#e0457b") + '"/>';
+            for (var i = 0; i < 7; i++) {
+              var a = -70 + i * 26;
+              var sx = cx + Math.cos(a * Math.PI / 180) * r * 0.66;
+              var sy = cy + Math.sin(a * Math.PI / 180) * r * 0.86;
+              out += '<path d="M' + sx.toFixed(1) + ' ' + sy.toFixed(1) + ' q' + (r * 0.42) + ' ' + (-r * 0.16) + ', ' + (r * 0.66) + ' ' + (-r * 0.34) +
+                ' q' + (-r * 0.34) + ' ' + (r * 0.3) + ', ' + (-r * 0.66) + ' ' + (r * 0.34) + ' z" fill="' + blade(i % 2 ? "#7bc45a" : "#a8d86a") +
+                '" transform="rotate(' + (a + 10).toFixed(0) + " " + sx.toFixed(1) + " " + sy.toFixed(1) + ')"/>';
+            }
+            return out +
+              '<ellipse cx="' + (cx - r * 0.16) + '" cy="' + (cy - r * 0.1) + '" rx="' + r * 0.3 + '" ry="' + r * 0.5 + '" fill="#ffe9f2" opacity="0.28"/>' +
+              spec(cx - r * 0.3, cy - r * 0.42, r * 0.15, r * 0.3, -24, 0.55);
+          },
+          starfruit: function (cx, cy, r) {
+            // a five-point star, cut face on, with ribs catching the light
+            var pts = [];
+            for (var k = 0; k < 10; k++) {
+              var ang = -90 + k * 36;
+              var rad = k % 2 === 0 ? r * 1.08 : r * 0.42;
+              pts.push((cx + Math.cos(ang * Math.PI / 180) * rad).toFixed(1) + "," +
+                       (cy + Math.sin(ang * Math.PI / 180) * rad).toFixed(1));
+            }
+            var out = '<polygon points="' + pts.join(" ") + '" fill="' + orb("#f5c518") + '"/>';
+            for (var p = 0; p < 5; p++) {
+              var pa = -90 + p * 72;
+              out += '<path d="M' + cx + ' ' + cy + ' L' + (cx + Math.cos(pa * Math.PI / 180) * r * 0.98).toFixed(1) + ' ' +
+                (cy + Math.sin(pa * Math.PI / 180) * r * 0.98).toFixed(1) + '" stroke="#c8930c" stroke-width="' +
+                Math.max(0.9, r * 0.08) + '" opacity="0.55" stroke-linecap="round"/>';
+            }
+            return out +
+              '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.2 + '" fill="' + orb("#ffe9a8") + '"/>' +
+              spec(cx - r * 0.22, cy - r * 0.3, r * 0.14, r * 0.1, -30, 0.6);
+          },
+          saffron: function (cx, cy, r) {
+            // a crocus: violet petals cupped around the three crimson threads
+            var out = contact(cx, cy + r * 0.9, r * 0.7, r * 0.18, 0.16);
+            for (var i = 0; i < 6; i++) {
+              var a = (i / 6) * 360 - 90;
+              out += '<path d="M' + cx + ' ' + (cy + r * 0.5) + ' Q' + (cx - r * 0.46) + ' ' + (cy - r * 0.3) + ', ' + cx + ' ' + (cy - r * 1.05) +
+                ' Q' + (cx + r * 0.46) + ' ' + (cy - r * 0.3) + ', ' + cx + ' ' + (cy + r * 0.5) + ' z" fill="' + blade(i % 2 ? "#a05fd0" : "#b978e0") +
+                '" transform="rotate(' + a.toFixed(0) + " " + cx + " " + (cy + r * 0.5) + ')"/>';
+            }
+            // the threads are the whole reason the crop is worth anything
+            for (var t = -1; t <= 1; t++) {
+              out += '<path d="M' + cx + ' ' + (cy + r * 0.3) + ' q' + (t * r * 0.3) + ' ' + (-r * 0.5) + ', ' + (t * r * 0.44) + ' ' + (-r * 0.86) +
+                '" stroke="' + (t === 0 ? "#e04a1f" : "#c93a16") + '" stroke-width="' + Math.max(1.3, r * 0.14) +
+                '" fill="none" stroke-linecap="round"/>';
+            }
+            return out + spec(cx - r * 0.18, cy - r * 0.5, r * 0.12, r * 0.2, -22, 0.4);
+          },
+          goldapple: function (cx, cy, r) {
+            return contact(cx, cy + r * 1.02, r * 0.78, r * 0.16, 0.18) +
+              '<path d="M' + cx + ' ' + (cy - r * 0.72) + ' C' + (cx - r * 1.16) + ' ' + (cy - r * 0.95) + ', ' +
+                (cx - r * 1.04) + ' ' + (cy + r * 0.95) + ', ' + cx + ' ' + (cy + r * 0.98) + ' C' +
+                (cx + r * 1.04) + ' ' + (cy + r * 0.95) + ', ' + (cx + r * 1.16) + ' ' + (cy - r * 0.95) + ', ' +
+                cx + ' ' + (cy - r * 0.72) + ' z" fill="' + orb("#f0b429") + '"/>' +
+              // the dimple at the stem, then a warm rim bounce along the base
+              '<ellipse cx="' + cx + '" cy="' + (cy - r * 0.74) + '" rx="' + r * 0.24 + '" ry="' + r * 0.12 + '" fill="#b57f10" opacity="0.45"/>' +
+              '<path d="M' + (cx - r * 0.86) + ' ' + (cy + r * 0.42) + ' a' + r * 0.9 + ' ' + r * 0.8 + ' 0 0 0 ' + r * 1.72 + ' 0 z" fill="#fff0b8" opacity="0.2"/>' +
+              '<rect x="' + (cx - r * 0.09) + '" y="' + (cy - r * 1.22) + '" width="' + r * 0.18 + '" height="' + r * 0.48 +
+                '" rx="' + r * 0.09 + '" fill="' + cyl("#6b4a2f") + '"/>' +
+              leaf(cx + r * 0.06, cy - r * 1.06, r * 0.66, -34, "#5da743") +
+              spec(cx - r * 0.36, cy - r * 0.3, r * 0.2, r * 0.34, -26, 0.62);
           },
           bluelotus: function (cx, cy, r) {
-            var out = '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.5) + '" rx="' + r * 1.25 + '" ry="' + r * 0.4 + '" fill="#3f8f6a" opacity="0.55"/>';
+            var out = '<ellipse cx="' + cx + '" cy="' + (cy + r * 0.5) + '" rx="' + r * 1.25 + '" ry="' + r * 0.4 + '" fill="' + orb("#3f8f6a") + '" opacity="0.6"/>';
             for (var ring = 0; ring < 2; ring++) {
               var petals = ring ? 6 : 7;
               var len = ring ? r * 0.78 : r * 1.15;
               for (var i = 0; i < petals; i++) {
                 var a = (i / petals) * 360 + (ring ? 26 : 0);
+                // each petal is a cupped blade, lit at the base and deeper at the tip
                 out += '<path d="M' + cx + ' ' + cy + ' Q' + (cx - len * 0.42) + ' ' + (cy - len * 0.7) + ', ' + cx + ' ' + (cy - len) +
-                  ' Q' + (cx + len * 0.42) + ' ' + (cy - len * 0.7) + ', ' + cx + ' ' + cy + ' z" fill="' + (ring ? "#8fb4ff" : "#5b8cff") +
-                  '" stroke="#3f63c4" stroke-width="1.5" transform="rotate(' + a + " " + cx + " " + cy + ')"/>';
+                  ' Q' + (cx + len * 0.42) + ' ' + (cy - len * 0.7) + ', ' + cx + ' ' + cy + ' z" fill="' + blade(ring ? "#9dbeff" : "#5b8cff") +
+                  '" transform="rotate(' + a + " " + cx + " " + cy + ')"/>' +
+                  '<path d="M' + cx + ' ' + (cy - len * 0.12) + ' L' + cx + ' ' + (cy - len * 0.88) + '" stroke="#ffffff" stroke-opacity="0.3" ' +
+                  'stroke-width="' + Math.max(0.8, r * 0.06) + '" transform="rotate(' + a + " " + cx + " " + cy + ')"/>';
               }
             }
-            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.3 + '" fill="#fff3c4"/>';
-            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.17 + '" fill="#ffd54a"/>';
-            return out;
+            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.3 + '" fill="' + orb("#fff3c4") + '"/>';
+            out += '<circle cx="' + cx + '" cy="' + cy + '" r="' + r * 0.17 + '" fill="' + orb("#ffd54a") + '"/>';
+            return out + spec(cx - r * 0.1, cy - r * 0.12, r * 0.08, r * 0.06, -20, 0.55);
           }
         };
 
@@ -2444,20 +2917,20 @@
           var furrows = "";
           for (var f = 0; f < 4; f++) {
             var y = 34 + f * 14;
-            furrows += '<path d="M12 ' + y + ' Q50 ' + (y - 4) + ' 88 ' + y + '" stroke="#553823" stroke-width="3" fill="none" opacity="0.45"/>';
+            furrows += '<path d="M12 ' + y + ' Q50 ' + (y - 4) + ' 88 ' + y + '" stroke="#6b4626" stroke-width="3" fill="none" opacity="0.42"/>';
           }
 
           return '<svg class="bed" viewBox="0 0 100 100" aria-hidden="true">' +
-            // soil mound
-            '<path d="M6 26 Q50 14 94 26 L96 90 Q50 98 4 90 Z" fill="#7d5735"/>' +
-            '<path d="M6 26 Q50 14 94 26 L94 36 Q50 26 6 36 Z" fill="#916440"/>' +
-            '<path d="M4 74 Q50 84 96 74 L96 90 Q50 98 4 90 Z" fill="#5f4127"/>' +
+            // soil, mounded up so the light catches the crown and the front face falls away
+            '<path d="M6 26 Q50 14 94 26 L96 90 Q50 98 4 90 Z" fill="' + orb("#9c6b3f") + '"/>' +
+            '<path d="M6 26 Q50 14 94 26 L94 38 Q50 28 6 38 Z" fill="#c08a55" opacity="0.9"/>' +
+            '<path d="M4 72 Q50 82 96 72 L96 90 Q50 98 4 90 Z" fill="#63421f" opacity="0.8"/>' +
             furrows + clods +
             // wooden frame: side rails, then front and back planks
-            '<rect x="0" y="20" width="10" height="74" rx="4" fill="#b98550" stroke="#4e3018" stroke-width="3"/>' +
-            '<rect x="90" y="20" width="10" height="74" rx="4" fill="#a9764a" stroke="#4e3018" stroke-width="3"/>' +
-            '<rect x="0" y="14" width="100" height="14" rx="5" fill="#c79a63" stroke="#4e3018" stroke-width="3"/>' +
-            '<rect x="0" y="84" width="100" height="15" rx="5" fill="#b98550" stroke="#4e3018" stroke-width="3"/>' +
+            '<rect x="0" y="20" width="10" height="74" rx="4" fill="' + cyl("#cf9a5c") + '" stroke="#5e3c22" stroke-width="3"/>' +
+            '<rect x="90" y="20" width="10" height="74" rx="4" fill="' + cyl("#bd8a4f") + '" stroke="#5e3c22" stroke-width="3"/>' +
+            '<rect x="0" y="14" width="100" height="14" rx="5" fill="' + cyl("#e0ac6c", true) + '" stroke="#5e3c22" stroke-width="3"/>' +
+            '<rect x="0" y="84" width="100" height="15" rx="5" fill="' + cyl("#cf9a5c", true) + '" stroke="#5e3c22" stroke-width="3"/>' +
             '<circle cx="9" cy="21" r="1.8" fill="#4e3018"/><circle cx="91" cy="21" r="1.8" fill="#4e3018"/>' +
             '<circle cx="9" cy="91" r="1.8" fill="#4e3018"/><circle cx="91" cy="91" r="1.8" fill="#4e3018"/>' +
             // grass tufts poking over the back plank
@@ -2466,14 +2939,23 @@
         }
 
         function seedMound(s) {
-          return '<ellipse cx="50" cy="' + (GROUND - 1) + '" rx="' + (8 + s * 3) + '" ry="' + (4 + s) + '" fill="#4a3320"/>' +
-            '<circle cx="47" cy="' + (GROUND - 3) + '" r="2" fill="#c8a870"/>' +
-            '<circle cx="53" cy="' + (GROUND - 2) + '" r="1.7" fill="#b3925c"/>';
+          return '<ellipse cx="50" cy="' + (GROUND - 1) + '" rx="' + (8 + s * 3) + '" ry="' + (4 + s) + '" fill="' + orb("#4a3320") + '"/>' +
+            '<ellipse cx="47" cy="' + (GROUND - 3) + '" rx="2.1" ry="1.9" fill="' + orb("#c8a870") + '"/>' +
+            '<ellipse cx="53" cy="' + (GROUND - 2) + '" rx="1.8" ry="1.6" fill="' + orb("#b3925c") + '"/>' +
+            spec(46.4, GROUND - 3.6, 0.7, 0.5, -25, 0.6);
+        }
+
+        // A gradient needs a box with real width, so the stem is a rounded rect
+        // rather than a stroked line — a bare vertical stroke has a flat bbox
+        // and the fill would drop out entirely.
+        function stem(x, yBottom, h, w, color) {
+          return '<rect x="' + (x - w / 2).toFixed(2) + '" y="' + (yBottom - h).toFixed(2) + '" width="' + w + '" height="' + h.toFixed(2) +
+            '" rx="' + (w / 2).toFixed(2) + '" fill="' + cyl(color) + '"/>';
         }
 
         function sprout(crop, s) {
           var h = 7 + 12 * s;
-          return '<path d="M50 ' + GROUND + ' L50 ' + (GROUND - h) + '" stroke="' + crop.stem + '" stroke-width="3" stroke-linecap="round" fill="none"/>' +
+          return stem(50, GROUND, h, 3.2, crop.stem) +
             leaf(50, GROUND - h + 1, 8 + 7 * s, -150, crop.leaf) +
             leaf(50, GROUND - h + 1, 8 + 7 * s, -30, crop.leaf);
         }
@@ -2538,7 +3020,7 @@
             }
             case "corn": {
               var ch = 34 + 34 * s;
-              body += '<rect x="48.4" y="' + (GROUND - ch) + '" width="3.2" height="' + ch + '" fill="' + crop.stem + '"/>';
+              body += stem(50, GROUND, ch, 3.4, crop.stem);
               for (var L = 0; L < 4; L++) {
                 var ly = GROUND - ch * (0.3 + L * 0.19);
                 var dir = L % 2 === 0 ? -1 : 1;
@@ -2583,7 +3065,7 @@
             }
             case "potato": {
               var ph = 16 + 16 * s;
-              body += '<path d="M50 ' + GROUND + ' L50 ' + (GROUND - ph) + '" stroke="' + crop.stem + '" stroke-width="3" stroke-linecap="round" fill="none"/>';
+              body += stem(50, GROUND, ph, 3.2, crop.stem);
               for (var pl = 0; pl < 5; pl++) body += leaf(50, GROUND - ph * (0.4 + (pl % 3) * 0.22), 12 + 9 * s, -160 + pl * 32, crop.leaf);
               if (ripe > 0) {
                 body += SHAPE.potato(38, GROUND - 3 - 3 * ripe, 4 + 5 * ripe);
@@ -2633,6 +3115,64 @@
               if (ripe > 0) body += SHAPE.pineapple(50, GROUND - 14 - 10 * ripe, 6 + 9 * ripe);
               break;
             }
+            case "dragonfruit": {
+              // a climbing cactus on a post, fruit hanging off the arms
+              var dh = 30 + 32 * s;
+              body += '<rect x="47" y="' + (GROUND - dh - 6) + '" width="6" height="' + (dh + 6) + '" rx="3" fill="' + cyl("#a97c4c") + '"/>';
+              for (var dm = 0; dm < 3; dm++) {
+                var dy = GROUND - dh * (0.36 + dm * 0.26);
+                var dd = dm % 2 === 0 ? -1 : 1;
+                body += '<path d="M50 ' + dy + ' q' + dd * 14 + ' -6, ' + dd * (17 + 7 * s) + ' 6" stroke="' + crop.stem +
+                  '" stroke-width="5" fill="none" stroke-linecap="round"/>';
+              }
+              if (ripe > 0) {
+                var dr = 4 + 5.5 * ripe;
+                body += SHAPE.dragonfruit(35, GROUND - dh * 0.55, dr);
+                if (ripe > 0.55) body += SHAPE.dragonfruit(65, GROUND - dh * 0.82, dr * 0.9);
+              }
+              break;
+            }
+            case "starfruit": {
+              var sh = 32 + 34 * s;
+              body += stem(50, GROUND, sh, 4, crop.stem);
+              for (var sf2 = 0; sf2 < 6; sf2++) {
+                body += leaf(50, GROUND - sh * (0.35 + (sf2 % 3) * 0.22), 13 + 9 * s, -158 + sf2 * 31, crop.leaf);
+              }
+              if (ripe > 0) {
+                var sr = 3.5 + 5 * ripe;
+                body += SHAPE.starfruit(38, GROUND - sh * 0.6, sr);
+                if (ripe > 0.5) body += SHAPE.starfruit(63, GROUND - sh * 0.82, sr * 0.88);
+              }
+              break;
+            }
+            case "saffron": {
+              // low grassy blades with the crocus opening late
+              for (var sb = 0; sb < 7; sb++) {
+                var slean = -26 + sb * 9;
+                var sbh = 16 + 22 * s;
+                body += '<path d="M50 ' + GROUND + ' Q' + (50 + slean * 0.4) + ' ' + (GROUND - sbh * 0.6) + ', ' + (50 + slean) + ' ' + (GROUND - sbh) +
+                  '" stroke="' + crop.leaf + '" stroke-width="2.8" fill="none" stroke-linecap="round"/>';
+              }
+              if (ripe > 0) body += SHAPE.saffron(50, GROUND - 12 - 12 * ripe, 6 + 9 * ripe);
+              break;
+            }
+            case "goldapple": {
+              // a little tree: trunk, canopy, then the fruit hanging in it
+              var th2 = 26 + 24 * s;
+              body += stem(50, GROUND, th2, 6, "#6b4a2f");
+              body += '<ellipse cx="50" cy="' + (GROUND - th2 - 8 * s - 6) + '" rx="' + (16 + 13 * s) + '" ry="' + (12 + 10 * s) +
+                '" fill="' + orb(crop.leaf) + '"/>';
+              body += '<ellipse cx="' + (50 - 10 - 5 * s) + '" cy="' + (GROUND - th2 - 2) + '" rx="' + (10 + 7 * s) + '" ry="' + (8 + 5 * s) +
+                '" fill="' + orb("#4f9640") + '"/>';
+              body += '<ellipse cx="' + (50 + 10 + 5 * s) + '" cy="' + (GROUND - th2 - 2) + '" rx="' + (10 + 7 * s) + '" ry="' + (8 + 5 * s) +
+                '" fill="' + orb("#63ac4c") + '"/>';
+              if (ripe > 0) {
+                var gr = 3.4 + 4.4 * ripe;
+                body += SHAPE.goldapple(41, GROUND - th2 - 2, gr);
+                if (ripe > 0.5) body += SHAPE.goldapple(60, GROUND - th2 - 8, gr * 0.92);
+              }
+              break;
+            }
             case "bluelotus": {
               // grows out of a little pool rather than dry soil
               body += '<ellipse cx="50" cy="' + (GROUND - 2) + '" rx="30" ry="8" fill="#3f7fd0" opacity="0.55"/>' +
@@ -2659,9 +3199,10 @@
         function produceArt(cropId) {
           var sizes = {
             radish: 26, carrot: 22, potato: 27, lettuce: 30, cucumber: 22, tomato: 27, corn: 20,
-            strawberry: 26, blueberry: 22, pumpkin: 27, melon: 30, grapes: 22, pineapple: 24, bluelotus: 26
+            strawberry: 26, blueberry: 22, pumpkin: 27, melon: 30, grapes: 22, pineapple: 24,
+            dragonfruit: 26, starfruit: 26, saffron: 25, goldapple: 26, bluelotus: 26
           };
-          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 44 : 50;
+          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 44 : cropId === "saffron" ? 54 : 50;
           return svg(SHAPE[cropId](50, cy, sizes[cropId]));
         }
 
@@ -2669,9 +3210,10 @@
         function crateArt(cropId) {
           var sizes = {
             radish: 21, carrot: 19, potato: 22, lettuce: 24, cucumber: 17, tomato: 22, corn: 17,
-            strawberry: 21, blueberry: 18, pumpkin: 22, melon: 24, grapes: 18, pineapple: 19, bluelotus: 21
+            strawberry: 21, blueberry: 18, pumpkin: 22, melon: 24, grapes: 18, pineapple: 19,
+            dragonfruit: 21, starfruit: 21, saffron: 20, goldapple: 21, bluelotus: 21
           };
-          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 42 : 48;
+          var cy = cropId === "carrot" ? 42 : cropId === "grapes" ? 42 : cropId === "saffron" ? 52 : 48;
           return svg(
             // produce first, then the crate front on top of it so it sits inside
             SHAPE[cropId](50, cy, sizes[cropId]) +
@@ -2811,6 +3353,30 @@
               '<path d="M50 52 v22" stroke="#c9911a" stroke-width="3"/>' +
               '<path d="M74 26 l2 -6 l2 6 l6 2 l-6 2 l-2 6 l-2 -6 l-6 -2 z" fill="#fff3c4"/>');
           },
+          // a seed drill: hopper on a tractor frame, spouts feeding the ground
+          planter: function () {
+            return svg('<rect x="20" y="30" width="44" height="26" rx="4" fill="' + cyl("#e0a52c") + '" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M24 56 h36 l-5 12 h-26 z" fill="' + cyl("#c98a18") + '" stroke="#4a3320" stroke-width="3" stroke-linejoin="round"/>' +
+              '<rect x="60" y="40" width="22" height="20" rx="4" fill="' + cyl("#4f8ac0") + '" stroke="#22415e" stroke-width="3"/>' +
+              '<rect x="64" y="26" width="5" height="16" rx="2.5" fill="#5c6870" stroke="#3b4650" stroke-width="2.5"/>' +
+              '<path d="M31 68 v9 M42 68 v9 M53 68 v9" stroke="#4a3320" stroke-width="3" stroke-linecap="round"/>' +
+              '<circle cx="33" cy="82" r="4" fill="#c8a870"/><circle cx="46" cy="85" r="3.4" fill="#b3925c"/><circle cx="57" cy="82" r="3.4" fill="#c8a870"/>' +
+              '<circle cx="27" cy="76" r="10" fill="#4a4a52" stroke="#2b2b31" stroke-width="3"/>' +
+              '<circle cx="72" cy="76" r="13" fill="#4a4a52" stroke="#2b2b31" stroke-width="3"/>' +
+              '<circle cx="72" cy="76" r="5" fill="#9aa8b2"/>');
+          },
+          // and a combine: header out front, grain tank behind, big rear wheel
+          harvester: function () {
+            return svg('<rect x="30" y="28" width="40" height="28" rx="5" fill="' + cyl("#c0392b") + '" stroke="#4a2018" stroke-width="3"/>' +
+              '<rect x="60" y="16" width="20" height="20" rx="4" fill="' + cyl("#7fb3dd") + '" stroke="#22415e" stroke-width="3"/>' +
+              '<path d="M8 52 h26 v18 h-26 z" fill="' + cyl("#e0a52c") + '" stroke="#4a3320" stroke-width="3"/>' +
+              '<path d="M8 52 v-8 M15 52 v-8 M22 52 v-8 M29 52 v-8" stroke="#4a3320" stroke-width="2.5" stroke-linecap="round"/>' +
+              '<circle cx="20" cy="44" r="8" fill="none" stroke="#8a5f2c" stroke-width="3"/>' +
+              '<path d="M70 40 h16 v6 h-16 z" fill="#8a5f2c" stroke="#4a3320" stroke-width="2.5"/>' +
+              '<circle cx="42" cy="76" r="14" fill="#4a4a52" stroke="#2b2b31" stroke-width="3"/>' +
+              '<circle cx="42" cy="76" r="5" fill="#9aa8b2"/>' +
+              '<circle cx="76" cy="80" r="9" fill="#4a4a52" stroke="#2b2b31" stroke-width="3"/>');
+          },
           cart: function () {
             return svg('<path d="M20 40 h52 l-6 30 h-40 z" fill="#c08b4c" stroke="#4a3320" stroke-width="3" stroke-linejoin="round"/>' +
               '<path d="M26 52 h42 M30 62 h34" stroke="#8a5f2c" stroke-width="3"/>' +
@@ -2862,69 +3428,153 @@
           }
         };
 
-        // The illustrated backdrop behind the beds: hills, treeline, barn, silo,
-        // windmill and a distant fence. Drawn once, stretched across the field.
+        // The farm panorama that lives behind the whole page. Its bottom edge is
+        // the horizon line of the sky gradient, so everything drawn here stands on
+        // the spot where sky meets grass. Nothing in here is interactive — the play
+        // area in front of it holds the beds and nothing else.
         function sceneArt() {
-          var tree = function (x, y, s, dark) {
-            return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">' +
-              '<rect x="-4" y="0" width="8" height="20" rx="3" fill="#7a5228"/>' +
-              '<circle cx="0" cy="-14" r="20" fill="' + (dark ? "#3f7a33" : "#4f9640") + '"/>' +
-              '<circle cx="-14" cy="-4" r="14" fill="' + (dark ? "#356b2b" : "#458537") + '"/>' +
-              '<circle cx="14" cy="-4" r="14" fill="' + (dark ? "#458537" : "#59a648") + '"/>' +
-              '<circle cx="-4" cy="-24" r="12" fill="' + (dark ? "#59a648" : "#6cb352") + '"/>' +
+          var GY = 300;
+
+          var tree = function (x, s, dark) {
+            return '<g transform="translate(' + x + ' ' + GY + ') scale(' + s + ')">' +
+              '<ellipse cx="2" cy="-2" rx="24" ry="7" fill="#2f6b28" opacity="0.3"/>' +
+              '<rect x="-7" y="-30" width="14" height="30" rx="6" fill="' + cyl("#8a5a33") + '"/>' +
+              '<circle cx="-18" cy="-40" r="17" fill="' + orb(dark ? "#3f8f38" : "#4fa03e") + '"/>' +
+              '<circle cx="18" cy="-40" r="17" fill="' + orb(dark ? "#4fa03e" : "#65bd52") + '"/>' +
+              '<circle cx="0" cy="-54" r="23" fill="' + orb(dark ? "#4aa03f" : "#5cb84a") + '"/>' +
+              '<circle cx="-7" cy="-68" r="14" fill="' + orb(dark ? "#65bd52" : "#7ad063") + '"/>' +
               "</g>";
           };
 
-          return '<svg viewBox="0 0 1000 152" preserveAspectRatio="xMidYMax slice" aria-hidden="true">' +
-            // rolling hills
-            '<path d="M0 152 V96 Q120 60 250 92 Q380 122 520 88 Q660 52 800 90 Q900 116 1000 92 V152 Z" fill="#82c163"/>' +
-            '<path d="M0 152 V116 Q160 92 320 118 Q500 148 680 116 Q840 88 1000 118 V152 Z" fill="#6fb350"/>' +
-            // distant crop rows
-            '<path d="M0 138 H1000" stroke="#5da743" stroke-width="6" opacity="0.5"/>' +
-            // treeline
-            tree(70, 128, 1, true) + tree(140, 132, 0.8) + tree(905, 126, 1.05, true) + tree(960, 133, 0.75) +
-            // windmill
-            '<g transform="translate(300 60)">' +
-              '<path d="M-13 78 L-7 0 L7 0 L13 78 Z" fill="#e8d3a8" stroke="#5e3c22" stroke-width="4"/>' +
-              '<path d="M-11 46 H11" stroke="#5e3c22" stroke-width="3"/>' +
-              '<circle cx="0" cy="-2" r="6" fill="#c94f3a" stroke="#5e3c22" stroke-width="3"/>' +
+          // A proper dairy cow: barrel body, four legs with hooves, head turned out
+          // to the viewer with muzzle, ears and horns.
+          // Animals graze up on the hillside rather than down on the front ground
+          // line, so a full farm's front row of beds never buries them.
+          var cow = function (x, y, s) {
+            return '<g transform="translate(' + x + ' ' + y + ') scale(' + s + ')">' +
+              '<ellipse cx="0" cy="-2" rx="52" ry="9" fill="#2f6b28" opacity="0.32"/>' +
+              // far pair of legs, sitting in the body's own shade
+              '<rect x="-20" y="-32" width="11" height="32" rx="5.5" fill="' + cyl("#cdc4b4") + '"/>' +
+              '<rect x="9" y="-32" width="11" height="32" rx="5.5" fill="' + cyl("#cdc4b4") + '"/>' +
+              // tail with its tuft
+              '<path d="M42 -68 q17 11, 11 36" stroke="#ece5d8" stroke-width="6" fill="none" stroke-linecap="round"/>' +
+              '<ellipse cx="54" cy="-28" rx="6" ry="9" fill="' + orb("#3f3f46") + '"/>' +
+              // barrel
+              '<ellipse cx="0" cy="-50" rx="46" ry="29" fill="' + orb("#fdfaf3") + '"/>' +
+              '<ellipse cx="-14" cy="-60" rx="16" ry="12" fill="' + orb("#33333a") + '" transform="rotate(-12 -14 -60)"/>' +
+              '<ellipse cx="19" cy="-43" rx="13" ry="10" fill="' + orb("#33333a") + '" transform="rotate(14 19 -43)"/>' +
+              '<ellipse cx="33" cy="-64" rx="8" ry="6" fill="' + orb("#33333a") + '"/>' +
+              // near pair of legs, hooves on the ends
+              '<rect x="-31" y="-34" width="12" height="34" rx="6" fill="' + cyl("#fdfaf3") + '"/>' +
+              '<rect x="19" y="-34" width="12" height="34" rx="6" fill="' + cyl("#fdfaf3") + '"/>' +
+              '<rect x="-31" y="-11" width="12" height="11" rx="4.5" fill="' + cyl("#3f3f46") + '"/>' +
+              '<rect x="19" y="-11" width="12" height="11" rx="4.5" fill="' + cyl("#3f3f46") + '"/>' +
+              // head
+              '<ellipse cx="-53" cy="-68" rx="21" ry="18" fill="' + orb("#fdfaf3") + '"/>' +
+              '<ellipse cx="-57" cy="-83" rx="9" ry="6" fill="' + orb("#33333a") + '"/>' +
+              '<ellipse cx="-73" cy="-79" rx="9" ry="5.5" fill="' + orb("#ece5d8") + '" transform="rotate(-28 -73 -79)"/>' +
+              '<ellipse cx="-34" cy="-81" rx="9" ry="5.5" fill="' + orb("#ece5d8") + '" transform="rotate(26 -34 -81)"/>' +
+              '<path d="M-63 -85 q-6 -9, 1 -13 M-43 -85 q6 -9, -1 -13" stroke="#e0cfa6" stroke-width="5" fill="none" stroke-linecap="round"/>' +
+              '<ellipse cx="-56" cy="-55" rx="15" ry="11" fill="' + orb("#f9bcc7") + '"/>' +
+              '<ellipse cx="-62" cy="-57" rx="2.6" ry="3.2" fill="#cf8896"/>' +
+              '<ellipse cx="-50" cy="-56" rx="2.6" ry="3.2" fill="#cf8896"/>' +
+              '<circle cx="-64" cy="-70" r="3.2" fill="#2b2b31"/><circle cx="-44" cy="-70" r="3.2" fill="#2b2b31"/>' +
+              '<circle cx="-65" cy="-71.2" r="1.2" fill="#ffffff"/><circle cx="-45" cy="-71.2" r="1.2" fill="#ffffff"/>' +
+              spec(-16, -66, 11, 5, -20, 0.35) +
+              "</g>";
+          };
+
+          // A plump hen: tail feathers behind, folded wing, comb, wattle and beak.
+          var hen = function (x, y, s, flip) {
+            return '<g transform="translate(' + x + ' ' + y + ') scale(' + (flip ? -s : s) + ' ' + s + ')">' +
+              '<ellipse cx="0" cy="-1" rx="23" ry="5" fill="#2f6b28" opacity="0.3"/>' +
+              '<path d="M-5 -15 v13 M7 -15 v13" stroke="#eb9a17" stroke-width="3.4" stroke-linecap="round"/>' +
+              '<path d="M-10 -2 h9 M2 -2 h9" stroke="#eb9a17" stroke-width="3" stroke-linecap="round"/>' +
+              // two swept tail feathers
+              '<path d="M14 -33 q19 -12, 25 3 q-14 5, -24 0 z" fill="' + blade("#b8642f") + '"/>' +
+              '<path d="M14 -28 q17 -5, 22 9 q-14 3, -21 -3 z" fill="' + blade("#8f4c22") + '"/>' +
+              '<ellipse cx="0" cy="-26" rx="21" ry="17" fill="' + orb("#fdf6e6") + '"/>' +
+              // one folded wing rather than a row of lumps
+              '<path d="M2 -32 q17 -5, 19 8 q-6 8, -16 4 q-6 -5, -3 -12 z" fill="' + orb("#c9743c") + '"/>' +
+              '<path d="M7 -27 q9 -1, 12 5 M6 -22 q8 0, 11 4" stroke="#9c5527" stroke-width="1.6" fill="none" stroke-linecap="round" opacity="0.75"/>' +
+              '<ellipse cx="-17" cy="-41" rx="11" ry="10.5" fill="' + orb("#fdf6e6") + '"/>' +
+              // comb: three rounded points standing on the crown, not a band
+              '<circle cx="-22" cy="-50" r="3.4" fill="' + orb("#e0402f") + '"/>' +
+              '<circle cx="-17" cy="-52.5" r="4" fill="' + orb("#e0402f") + '"/>' +
+              '<circle cx="-12" cy="-50" r="3.4" fill="' + orb("#e0402f") + '"/>' +
+              '<ellipse cx="-24" cy="-34" rx="3" ry="4.4" fill="' + orb("#d0301f") + '"/>' +
+              // beak, upper and lower
+              '<path d="M-26 -42 l-9 3.4 l9 2 z" fill="' + orb("#f5a81c") + '"/>' +
+              '<path d="M-26 -38.6 l-7 1.6 l7 1.4 z" fill="' + orb("#d98a10") + '"/>' +
+              '<circle cx="-19" cy="-44" r="2.4" fill="#2b2b31"/>' +
+              '<circle cx="-19.9" cy="-44.9" r="0.9" fill="#ffffff"/>' +
+              spec(-4, -33, 6, 4, -24, 0.4) +
+              "</g>";
+          };
+
+          return '<svg viewBox="0 0 1400 300" preserveAspectRatio="xMidYMax meet" aria-hidden="true">' +
+            // three layers of rounded hills, brightest along the crests
+            '<path d="M0 300 V150 Q150 62 320 128 Q500 196 700 118 Q900 42 1110 122 Q1260 180 1400 126 V300 Z" fill="' + blade("#94dc6e") + '"/>' +
+            '<path d="M0 300 V186 Q190 108 400 178 Q620 250 840 176 Q1060 104 1400 184 V300 Z" fill="' + blade("#74c953") + '"/>' +
+            '<path d="M0 300 V228 Q240 176 470 228 Q720 284 970 222 Q1190 170 1400 226 V300 Z" fill="' + blade("#57b83e") + '"/>' +
+            // ploughed rows running off toward the horizon
+            '<path d="M0 250 H1400 M0 266 H1400 M0 282 H1400" stroke="#49a634" stroke-width="7" opacity="0.4"/>' +
+            // fence line, drawn before the buildings so they stand in front of it
+            '<g opacity="0.8">' +
+              '<path d="M0 240 H1400" stroke="#d3a870" stroke-width="6"/>' +
+              '<path d="M0 256 H1400" stroke="#b98d58" stroke-width="6"/>' +
+            "</g>" +
+            tree(70, 1.5, true) + tree(168, 1.15) + tree(1298, 1.5, true) + tree(1370, 1.1) +
+            // the windmill, out on the left of the panorama
+            '<g transform="translate(300 300) scale(1.16)">' +
+              '<ellipse cx="0" cy="-2" rx="38" ry="8" fill="#2f6b28" opacity="0.3"/>' +
+              '<path d="M-28 0 L-14 -150 L14 -150 L28 0 Z" fill="' + cyl("#f2dfb4") + '" stroke="#5e3c22" stroke-width="5" stroke-linejoin="round"/>' +
+              '<path d="M-23 -48 H23 M-19 -96 H19" stroke="#5e3c22" stroke-width="4" opacity="0.65"/>' +
+              '<rect x="-10" y="-40" width="20" height="40" rx="3" fill="' + cyl("#a5713f") + '" stroke="#5e3c22" stroke-width="4"/>' +
+              '<path d="M-20 -150 Q0 -184 20 -150 Z" fill="' + orb("#d9553d") + '" stroke="#5e3c22" stroke-width="5" stroke-linejoin="round"/>' +
               '<g class="blades">' +
-                '<path d="M0 -2 L-6 -44 L6 -46 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
-                '<path d="M0 -2 L42 -8 L44 4 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
-                '<path d="M0 -2 L6 40 L-6 42 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
-                '<path d="M0 -2 L-42 2 L-44 -10 Z" fill="#f5eeda" stroke="#5e3c22" stroke-width="3"/>' +
+                '<path d="M0 -159 L-12 -238 L12 -242 Z" fill="' + blade("#fdf5e2") + '" stroke="#5e3c22" stroke-width="4.5" stroke-linejoin="round"/>' +
+                '<path d="M0 -159 L79 -170 L83 -147 Z" fill="' + blade("#fdf5e2") + '" stroke="#5e3c22" stroke-width="4.5" stroke-linejoin="round"/>' +
+                '<path d="M0 -159 L12 -80 L-12 -76 Z" fill="' + blade("#fdf5e2") + '" stroke="#5e3c22" stroke-width="4.5" stroke-linejoin="round"/>' +
+                '<path d="M0 -159 L-79 -147 L-83 -170 Z" fill="' + blade("#fdf5e2") + '" stroke="#5e3c22" stroke-width="4.5" stroke-linejoin="round"/>' +
               "</g>" +
+              '<circle cx="0" cy="-159" r="11" fill="' + orb("#d9553d") + '" stroke="#5e3c22" stroke-width="4.5"/>' +
             "</g>" +
+            cow(600, 250, 0.94) +
             // silo
-            '<g transform="translate(690 44)">' +
-              '<rect x="-24" y="16" width="48" height="78" rx="6" fill="#d8d2c4" stroke="#5e3c22" stroke-width="4"/>' +
-              '<path d="M-26 18 Q0 -12 26 18 Z" fill="#9aa3ab" stroke="#5e3c22" stroke-width="4"/>' +
-              '<path d="M-24 40 H24 M-24 62 H24" stroke="#b3ab9b" stroke-width="4"/>' +
+            '<g transform="translate(786 300) scale(1.12)">' +
+              '<ellipse cx="0" cy="-2" rx="44" ry="9" fill="#2f6b28" opacity="0.3"/>' +
+              '<rect x="-36" y="-132" width="72" height="132" rx="9" fill="' + cyl("#e6e0d2") + '" stroke="#5e3c22" stroke-width="5"/>' +
+              '<path d="M-39 -132 Q0 -180 39 -132 Z" fill="' + cyl("#a7b0b8") + '" stroke="#5e3c22" stroke-width="5" stroke-linejoin="round"/>' +
+              '<path d="M-36 -98 H36 M-36 -62 H36 M-36 -26 H36" stroke="#b5ac9a" stroke-width="4.5" opacity="0.8"/>' +
             "</g>" +
-            // the big barn
-            '<g transform="translate(790 34)">' +
-              '<path d="M-70 40 L0 -6 L70 40 V104 H-70 Z" fill="#c0392b" stroke="#4a2018" stroke-width="5" stroke-linejoin="round"/>' +
-              '<path d="M-70 40 L0 -6 L70 40" fill="none" stroke="#8c2a1f" stroke-width="5"/>' +
-              '<rect x="-26" y="52" width="52" height="52" fill="#e9d8b8" stroke="#4a2018" stroke-width="5"/>' +
-              '<path d="M-26 52 L26 104 M26 52 L-26 104 M0 52 V104" stroke="#4a2018" stroke-width="4"/>' +
-              '<rect x="-9" y="16" width="18" height="16" fill="#e9d8b8" stroke="#4a2018" stroke-width="4"/>' +
+            // the barn, standing biggest of the lot
+            '<g transform="translate(1010 300) scale(1.2)">' +
+              '<ellipse cx="0" cy="-2" rx="112" ry="10" fill="#2f6b28" opacity="0.32"/>' +
+              '<path d="M-95 0 V-112 H95 V0 Z" fill="' + cyl("#d33f2e") + '" stroke="#4a2018" stroke-width="6" stroke-linejoin="round"/>' +
+              '<path d="M-70 -110 V-2 M-45 -110 V-2 M-20 -110 V-2 M20 -110 V-2 M45 -110 V-2 M70 -110 V-2" ' +
+                'stroke="#9c2a1f" stroke-width="3.5" opacity="0.5"/>' +
+              '<path d="M-110 -112 L0 -198 L110 -112 Z" fill="' + cyl("#a92e21") + '" stroke="#4a2018" stroke-width="6" stroke-linejoin="round"/>' +
+              '<path d="M-110 -112 L0 -198 L110 -112" fill="none" stroke="#822016" stroke-width="6"/>' +
+              '<rect x="-114" y="-120" width="228" height="14" rx="7" fill="' + cyl("#93261a") + '" stroke="#4a2018" stroke-width="5"/>' +
+              '<rect x="-40" y="-82" width="80" height="82" rx="4" fill="' + cyl("#f5e4c0") + '" stroke="#4a2018" stroke-width="6"/>' +
+              '<path d="M-40 -43 H40 M0 -82 V0" stroke="#d33f2e" stroke-width="9"/>' +
+              '<path d="M-40 -43 H40 M0 -82 V0" stroke="#4a2018" stroke-width="3.5" opacity="0.5"/>' +
+              '<rect x="-16" y="-160" width="32" height="28" rx="3" fill="' + cyl("#f5e4c0") + '" stroke="#4a2018" stroke-width="5"/>' +
             "</g>" +
-            // fence line along the horizon
-            '<g opacity="0.85">' +
-              '<path d="M0 128 H1000" stroke="#c79a63" stroke-width="5"/>' +
-              '<path d="M0 138 H1000" stroke="#b08a52" stroke-width="5"/>' +
-            "</g>" +
+            hen(688, 262, 1.0) + hen(730, 266, 0.86, true) +
             "</svg>";
         }
 
         var WEATHER_ICON = { sun: "sunny", cloud: "cloudy", rain: "rainy", storm: "stormy", heat: "hot" };
         var UPGRADE_PROP = {
           can2: "can", sprinkler: "sprinkler", greenhouse: "greenhouse", scarecrow: "scarecrow", stand: "stand",
-          compost: "compost", beehive: "beehive", hoe: "hoe", trowel: "trowel", cart: "cart"
+          compost: "compost", beehive: "beehive", hoe: "hoe", trowel: "trowel", cart: "cart",
+          planter: "planter", harvester: "harvester"
         };
 
         // which upgrades actually stand out in the farmyard
-        var YARD_PROPS = ["sprinkler", "greenhouse", "scarecrow", "stand", "compost", "beehive", "cart"];
+        var YARD_PROPS = ["planter", "harvester", "sprinkler", "greenhouse", "scarecrow", "stand", "compost", "beehive", "cart"];
 
         /* ================================================================== *
          * Actions
@@ -2989,14 +3639,21 @@
           }
         }
 
-        function plant(idx) {
+        // `auto` is the planter rig working: it names its own seed and stays quiet
+        // about failures instead of nagging you every cycle.
+        function plant(idx, cropIdOverride, auto) {
           var plot = state.plots[idx];
-          var cropId = state.selectedSeed;
-          if (!cropId) { toast("Pick a seed from the belt first.", "bad"); return; }
+          var cropId = cropIdOverride || state.selectedSeed;
+          if (!cropId) {
+            if (!auto) toast("Pick a seed from the belt first.", "bad");
+            return false;
+          }
           if (!(state.seeds[cropId] > 0)) {
-            toast("No " + CROP_BY_ID[cropId].name + " seeds left — buy more at the store.", "bad");
-            SFX.nope();
-            return;
+            if (!auto) {
+              toast("No " + CROP_BY_ID[cropId].name + " seeds left — buy more at the store.", "bad");
+              SFX.nope();
+            }
+            return false;
           }
           state.seeds[cropId]--;
           plot.crop = cropId;
@@ -3011,7 +3668,8 @@
           if (!(state.seeds[cropId] > 0)) delete state.seeds[cropId];
           render();
           seedFall(idx);
-          SFX.plant();
+          if (!auto) SFX.plant();
+          return true;
         }
 
         function waterPlot(idx, silent) {
@@ -3082,14 +3740,16 @@
           render();
         }
 
-        function harvest(idx, node, quiet) {
+        // `auto` is a machine bringing the bed in: no streak combo, no sound and no
+        // banner, since it fires on a timer rather than because you did something.
+        function harvest(idx, node, quiet, auto) {
           var plot = state.plots[idx];
           if (!plot.crop) return null;
           var crop = CROP_BY_ID[plot.crop];
 
           if (plot.dead) {
             plot.crop = null; plot.growth = 0; plot.dead = false; plot.fert = false; plot.weeds = false; plot.dryTime = 0;
-            toast("Cleared the withered " + crop.name.toLowerCase() + ".", null);
+            if (!quiet) toast("Cleared the withered " + crop.name.toLowerCase() + ".", null);
             render();
             return null;
           }
@@ -3113,12 +3773,16 @@
           }
 
           // Harvesting again quickly keeps a streak alive, and the streak tips coins.
-          var now = Date.now();
-          state.streak = now - (harvestClock || 0) < 4200 ? (state.streak || 0) + 1 : 1;
-          harvestClock = now;
-          var bonus = state.streak > 2 ? Math.round(priceOf(crop.id) * 0.06 * Math.min(state.streak, 12)) : 0;
-          if (bonus) { state.coins += bonus; state.stats.earned += bonus; }
-          showStreak(state.streak, bonus);
+          // Machines don't get to build one — that bonus is for your own hands.
+          var bonus = 0;
+          if (!auto) {
+            var now = Date.now();
+            state.streak = now - (harvestClock || 0) < 4200 ? (state.streak || 0) + 1 : 1;
+            harvestClock = now;
+            bonus = state.streak > 2 ? Math.round(priceOf(crop.id) * 0.06 * Math.min(state.streak, 12)) : 0;
+            if (bonus) { state.coins += bonus; state.stats.earned += bonus; }
+            showStreak(state.streak, bonus);
+          }
 
           addXP(Math.round(crop.price * 0.12 * yieldCount) + (golden ? 20 : 0));
 
@@ -3135,10 +3799,10 @@
               : { count: 12, spread: 76, size: 11, colors: [crop.fruit, crop.leaf, "#fff3c4"] });
             if (bonus) coinFly(cx, cy, Math.min(4, 1 + Math.floor(state.streak / 3)));
           }
-          if (golden) {
+          if (golden && !auto) {
             SFX.golden();
             banner("Golden " + crop.name + "!", "Triple harvest and a free seed");
-          } else {
+          } else if (!auto) {
             SFX.harvest();
           }
           if (seedsBack && !quiet) {
@@ -3188,6 +3852,51 @@
           if (plot.growth >= 1) { harvest(idx, node); return; }
 
           if (waterPlot(idx)) { render(); splash(idx); }
+        }
+
+        /* ---- machinery ----------------------------------------------------
+         * Bought at level 15 for 100,000 coins each, the rig and the combine
+         * work one bed per cycle rather than clearing the field in a frame —
+         * you can watch them move down the rows. Everything they do runs through
+         * the same plant()/harvest() the player uses, in quiet auto mode.
+         * ------------------------------------------------------------------ */
+
+        var machineTimer = 0;
+        var MACHINE_CYCLE = 1.6;
+
+        // What the planter reaches for: your selected seed if it's in stock,
+        // otherwise whatever you have most of, so the rig keeps working.
+        function machineSeed() {
+          if (state.seeds[state.selectedSeed] > 0) return state.selectedSeed;
+          var best = null;
+          var most = 0;
+          Object.keys(state.seeds).forEach(function (id) {
+            if (CROP_BY_ID[id] && state.seeds[id] > most) { most = state.seeds[id]; best = id; }
+          });
+          return best;
+        }
+
+        function runMachines() {
+          var i;
+          if (state.upgrades.harvester) {
+            for (i = 0; i < state.plots.length; i++) {
+              var p = state.plots[i];
+              // dead beds get cleared too, so the planter has somewhere to work
+              if (p.unlocked && p.crop && (p.dead || p.growth >= 1)) {
+                harvest(i, null, true, true);
+                break;
+              }
+            }
+          }
+          if (state.upgrades.planter) {
+            var seed = machineSeed();
+            if (seed) {
+              for (i = 0; i < state.plots.length; i++) {
+                var q = state.plots[i];
+                if (q.unlocked && !q.crop) { plant(i, seed, true); break; }
+              }
+            }
+          }
         }
 
         function harvestAll() {
@@ -3241,6 +3950,11 @@
 
         function buyUpgrade(up) {
           if (state.upgrades[up.id]) return;
+          if (up.level && state.level < up.level) {
+            toast(up.name + " needs level " + up.level + ".", "bad");
+            SFX.nope();
+            return;
+          }
           if (state.coins < up.cost) { toast("Not enough coins.", "bad"); return; }
           state.coins -= up.cost;
           state.stats.spent += up.cost;
@@ -3386,6 +4100,18 @@
             if (plot.growth >= 1) plot.growth = 1;
           });
 
+          // machinery keeps working while you're on another tab, and keeps
+          // working through the time made up after you've been away
+          if (state.upgrades.planter || state.upgrades.harvester) {
+            machineTimer -= dt;
+            if (machineTimer <= 0) {
+              machineTimer = MACHINE_CYCLE;
+              renderPaused = catchingUp;
+              runMachines();
+              renderPaused = false;
+            }
+          }
+
           state.eventTimer -= dt;
           if (state.eventTimer <= 0) {
             state.eventTimer = 18 + Math.random() * 22;
@@ -3484,8 +4210,77 @@
           });
         }
 
+        // How many beds are actually on screen: every unlocked plot, plus the one
+        // overgrown plot offered next. renderPlots() hides the rest.
+        function visiblePlotCount() {
+          var n = 0;
+          for (var i = 0; i < state.plots.length; i++) {
+            if (state.plots[i].unlocked) { n++; continue; }
+            if (i === 0 || state.plots[i - 1].unlocked) n++;
+            break;
+          }
+          return n;
+        }
+
+        /* The beds have to fit the space under the backdrop with nothing cut off,
+         * however many there are. Rather than a fixed tile size, try every column
+         * count and keep whichever leaves the beds closest to square — six plots
+         * on a wide screen land on 3x2, twenty-four on 6x4, and the tiles simply
+         * get smaller as the farm fills up. */
+        var lastFit = "";
+
+        function fitPlots() {
+          if (!el.plots || !el.field) return;
+
+          // Below the three-column breakpoint the farm scrolls inside its own
+          // card, so the bed grid has no bounded height to fit into. Hand sizing
+          // back to CSS there instead of fitting against a runaway box.
+          if (window.matchMedia("(max-width: 900px)").matches) {
+            if (el.plots._loose !== true) {
+              el.plots._loose = true;
+              el.plots.style.removeProperty("--cols");
+              lastFit = "";
+            }
+            return;
+          }
+          el.plots._loose = false;
+
+          var n = visiblePlotCount();
+
+          var box = el.plots.getBoundingClientRect();
+          if (!n || box.width < 40 || box.height < 40) return;
+
+          var sig = n + "x" + Math.round(box.width) + "x" + Math.round(box.height);
+          if (sig === lastFit) return;
+          lastFit = sig;
+
+          var gap = parseFloat(getComputedStyle(el.plots).gap) || 10;
+          var best = 1;
+          var bestScore = Infinity;
+          for (var cols = 1; cols <= n; cols++) {
+            var rows = Math.ceil(n / cols);
+            var w = (box.width - gap * (cols - 1)) / cols;
+            var h = (box.height - gap * (rows - 1)) / rows;
+            if (w < 24 || h < 24) continue;
+            // squareness first, with a nudge toward layouts that waste less width
+            var score = Math.abs(Math.log(w / h)) + (cols * rows - n) * 0.04;
+            if (score < bestScore) { bestScore = score; best = cols; }
+          }
+          el.plots.style.setProperty("--cols", best);
+        }
+
         // Only rebuild a bed's artwork when its look actually changes — that keeps
         // the sway animation smooth and avoids re-parsing SVG five times a second.
+        // The moments in a crop's life worth animating: it breaks ground, it
+        // sprouts, it bulks up, fruit sets, and it's ready.
+        function growthPhase(p) {
+          if (p < 0.09) return 0;
+          if (p < 0.3) return 1;
+          if (p < 0.62) return 2;
+          if (p < 1) return 3;
+          return 4;
+        }
+
         function plotSignature(plot, i) {
           if (!plot.unlocked) return "lock:" + plotCost(i);
           if (!plot.crop) return "empty";
@@ -3552,14 +4347,24 @@
               node._wet = node.querySelector(".wet");
               node._drop = node.querySelector(".drop");
               node._growG = node.querySelector(".grow");
+
+              // Only the real milestones get the springy pop; the other fifteen
+              // redraws per crop hand off silently to the scaling below.
+              var phase = plot.crop && !plot.dead ? growthPhase(plot.growth) : -1;
+              if (node._growG && phase !== node._phase) node._growG.classList.add("pop");
+              node._phase = phase;
             }
 
-            // Artwork is only redrawn every 1/16th of the growth bar, so scale the
-            // plant between those steps — the crop creeps upward continuously.
+            // Between redraws the plant eases up to the size the next drawing
+            // will be, so growth reads as continuous rather than sixteen ticks.
+            // The gain is how much the art actually grows over one step, which
+            // shrinks as the plant matures — hence the divide by (1 + maturity).
             if (node._growG && plot.crop && !plot.dead) {
               var step = 1 / 16;
               var within = (plot.growth % step) / step;
-              node._growG.style.transform = "scale(" + (1 + within * 0.07).toFixed(3) + ")";
+              var maturity = Math.max(0, (plot.growth - 0.3) / 0.7);
+              var gain = plot.growth < 0.3 ? 0.15 : 0.092 / (1 + maturity);
+              node._growG.style.transform = "scale(" + (1 + within * gain).toFixed(4) + ")";
             }
 
             // cheap per-frame updates
@@ -3639,18 +4444,23 @@
           }
         }
 
+        // The props you have bought, lined up under the beds. The barn used to
+        // stand here too, but the backdrop has a full-size one now, so the strip
+        // holds only real upgrades — and collapses entirely until you own one.
         function renderYard() {
-          var props = ["barn"];
+          var props = [];
           YARD_PROPS.forEach(function (id) {
             if (state.upgrades[id]) props.push(UPGRADE_PROP[id]);
           });
           var sig = props.join(",");
           if (el.yard._sig === sig) return;
           el.yard._sig = sig;
+          el.yard.style.display = props.length ? "" : "none";
           el.yard.innerHTML = props.map(function (p) {
-            var extra = p === "barn" ? " barn-prop" : (p === "stand" || p === "greenhouse" ? " wide" : "");
+            var extra = p === "stand" || p === "greenhouse" ? " wide" : "";
             return '<span class="prop' + extra + '">' + PROP[p]() + "</span>";
           }).join("");
+          lastFit = "";
         }
 
         function renderSeedbelt() {
@@ -3688,12 +4498,12 @@
           el.barn.innerHTML = "";
           ids.forEach(function (id) {
             var crop = CROP_BY_ID[id];
-            var row = document.createElement("div");
-            row.className = "row";
-            row.innerHTML =
-              '<div class="icon">' + produceArt(id) + "</div>" +
-              '<div class="body"><b>' + crop.name + " &times; " + state.barn[id] + "</b>" +
-              "<small>Worth " + (priceOf(id) * state.barn[id]).toLocaleString() + " coins today</small></div>";
+            var chip = document.createElement("div");
+            chip.className = "barn-chip";
+            chip.innerHTML =
+              '<div class="art">' + produceArt(id) + "</div>" +
+              "<div><b>" + crop.name + " &times; " + state.barn[id] + "</b>" +
+              "<small>" + (priceOf(id) * state.barn[id]).toLocaleString() + "c today</small></div>";
             var btn = document.createElement("button");
             btn.className = "buy sell";
             btn.type = "button";
@@ -3703,8 +4513,8 @@
               if (got) toast("+" + got.toLocaleString() + " coins", "cash");
               render();
             });
-            row.appendChild(btn);
-            el.barn.appendChild(row);
+            chip.appendChild(btn);
+            el.barn.appendChild(chip);
           });
         }
 
@@ -3740,6 +4550,12 @@
               owned && !locked ? '<span class="own-pill">' + owned + " in the belt</span>" : ""
             );
 
+            // the top tiers wear their rarity so the rack reads at a glance
+            if (crop.rarity) {
+              card.insertAdjacentHTML("afterbegin",
+                '<span class="rarity-tag ' + crop.rarity.toLowerCase() + '">' + crop.rarity + "</span>");
+            }
+
             if (locked) {
               card.className += " locked";
               card.insertAdjacentHTML("afterbegin", '<span class="lock-tag">' + PROP.lock() + "Lv " + crop.level + "</span>");
@@ -3772,9 +4588,19 @@
 
           UPGRADES.forEach(function (up) {
             var owned = !!state.upgrades[up.id];
-            var card = shelfCard(PROP[UPGRADE_PROP[up.id]](), up.name, owned ? (up.desc2 || "Owned.") : up.desc,
+            var tooLow = !!up.level && state.level < up.level;
+            var card = shelfCard(PROP[UPGRADE_PROP[up.id]](), up.name,
+              owned ? (up.desc2 || "Owned.") : tooLow ? "Unlocks at level " + up.level + "<br>" + up.desc : up.desc,
               owned ? '<span class="own-pill">Owned</span>' : "");
-            if (!owned) {
+
+            if (up.level) card.insertAdjacentHTML("afterbegin", '<span class="rarity-tag machine">Machinery</span>');
+
+            if (owned) {
+              // nothing to buy
+            } else if (tooLow) {
+              card.className += " locked";
+              card.insertAdjacentHTML("afterbegin", '<span class="lock-tag">' + PROP.lock() + "Lv " + up.level + "</span>");
+            } else {
               var btn = priceButton("Buy", up.cost, state.coins < up.cost, function () { buyUpgrade(up); });
               btn.className += " wide";
               card.appendChild(btn);
@@ -3856,8 +4682,8 @@
           var root = document.documentElement.style;
           root.setProperty("--sky1", sky1);
           root.setProperty("--sky2", sky2);
-          root.setProperty("--grass1", mix("#8ed167", "#4a6b46", night * 0.7));
-          root.setProperty("--grass2", mix("#5da743", "#2f4a33", night * 0.7));
+          root.setProperty("--grass1", mix("#86d95f", "#4a6b46", night * 0.7));
+          root.setProperty("--grass2", mix("#4cae37", "#2f4a33", night * 0.7));
 
           el.sun.style.left = (6 + t * 88) + "%";
           el.sun.style.top = (34 - Math.sin(t * Math.PI) * 26) + "%";
@@ -3905,8 +4731,15 @@
           renderSky();
         }
 
+        // Machinery working through made-up time would otherwise repaint the whole
+        // UI once per bed — dozens of full renders in one frame when you come back
+        // after being away. The state work still happens; only the paint is held.
+        var renderPaused = false;
+
         function render() {
+          if (renderPaused) return;
           renderHUD();
+          fitPlots();
           renderPlots();
           renderYard();
           renderCritters();
@@ -4024,11 +4857,17 @@
           if (uiAccum >= 0.2) {
             uiAccum = 0;
             renderHUD();
+            fitPlots();
             renderPlots();
           }
           requestAnimationFrame(loop);
         }
         requestAnimationFrame(loop);
+
+        // Re-fit the beds when the window changes shape — including the mobile
+        // address bar sliding away, which only shows up as a resize.
+        window.addEventListener("resize", function () { lastFit = ""; fitPlots(); });
+        window.addEventListener("orientationchange", function () { lastFit = ""; fitPlots(); });
 
         setInterval(save, 5000);
         window.addEventListener("beforeunload", save);
