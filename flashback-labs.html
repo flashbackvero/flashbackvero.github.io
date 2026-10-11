@@ -67,6 +67,17 @@
       .labs-game-section .shop-photo-card strong {
         font-size: clamp(25px, 2.5vw, 36px);
       }
+
+      .flashback-arcade-card img {
+        object-fit: contain;
+        background: #ffffff;
+      }
+
+      .flashback-arcade-card small::before {
+        content: "App icon · ";
+        color: #b3402e;
+        font-weight: 900;
+      }
     </style>
   </head>
   <body>
@@ -125,11 +136,11 @@
             </div>
           </a>
 
-          <a class="shop-photo-card" href="./downloads/Flashback-Arcade-0.9.99.113-windows.zip" download aria-label="Download Flashback Arcade for Windows">
+          <a class="shop-photo-card flashback-arcade-card" href="./downloads/Flashback-Arcade-0.9.99.113-windows.zip" download aria-label="Download Flashback Arcade for Windows">
             <img src="./Pictures/flashback-logo-preview.png" alt="Flashback Arcade desktop build preview" />
             <div>
               <strong>Flashback Arcade</strong>
-              <small>Download the current Windows build, version 0.9.99.113.</small>
+              <small>Download the current Windows build, version 0.9.99.113. The Flashback Arcade app icon is shown above.</small>
             </div>
           </a>
         </div>
