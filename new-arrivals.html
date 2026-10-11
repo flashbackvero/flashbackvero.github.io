@@ -9,6 +9,121 @@
       .new-arrivals-hero {
         grid-template-columns: 1fr;
       }
+
+      .auction-section {
+        margin-top: 28px;
+      }
+
+      .auction-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .auction-card {
+        overflow: hidden;
+        display: grid;
+        grid-template-rows: auto 1fr;
+        border: 2px solid rgba(32, 32, 32, 0.16);
+        border-radius: 8px;
+        background: #fffdf5;
+        box-shadow: 0 14px 28px rgba(61, 60, 55, 0.12);
+        color: inherit;
+        text-decoration: none;
+        transition: transform 140ms ease, box-shadow 140ms ease, border-color 140ms ease;
+      }
+
+      .auction-card:hover,
+      .auction-card:focus-visible {
+        border-color: rgba(20, 82, 140, 0.42);
+        outline: none;
+        transform: translateY(-3px);
+        box-shadow: 0 18px 34px rgba(61, 60, 55, 0.16);
+      }
+
+      .auction-card.featured {
+        grid-column: span 2;
+        grid-template-columns: minmax(220px, 0.9fr) minmax(0, 1.1fr);
+        grid-template-rows: 1fr;
+      }
+
+      .auction-art {
+        display: grid;
+        place-items: center;
+        min-height: 190px;
+        padding: 18px;
+        background: #f1eadc;
+      }
+
+      .auction-art img {
+        width: 100%;
+        max-width: 320px;
+        aspect-ratio: 1.45;
+        object-fit: contain;
+        border: 2px solid rgba(32, 32, 32, 0.12);
+        background: #ffffff;
+      }
+
+      .auction-card-body {
+        display: grid;
+        align-content: center;
+        gap: 10px;
+        padding: 22px;
+      }
+
+      .auction-card-body strong {
+        color: #2a8f8a;
+        font-family: "Trebuchet MS", "Segoe UI", Arial, sans-serif;
+        font-size: clamp(24px, 3vw, 38px);
+        line-height: 1.08;
+      }
+
+      .auction-card:not(.featured) .auction-card-body strong {
+        font-size: clamp(24px, 2.5vw, 32px);
+      }
+
+      .auction-card-body p,
+      .auction-card-body small {
+        margin: 0;
+        color: #263238;
+        font-weight: 700;
+        line-height: 1.5;
+      }
+
+      .auction-card-body small {
+        color: #8d2f24;
+      }
+
+      .auction-badge {
+        width: fit-content;
+        padding: 5px 9px;
+        border-radius: 999px;
+        background: #cf2b21;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 900;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .auction-note {
+        margin: 18px 0 0;
+        color: #5a5a5a;
+        font-size: 14px;
+        font-weight: 700;
+      }
+
+      @media (max-width: 700px) {
+        .auction-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .auction-card.featured {
+          grid-column: auto;
+          grid-template-columns: 1fr;
+          grid-template-rows: auto 1fr;
+        }
+      }
     </style>
   </head>
   <body>
@@ -57,14 +172,55 @@
             </div>
           </a>
 
-          <a class="shop-photo-card" href="./flashback-farm.html" aria-label="Open the playable Flashback Farm growing simulator">
-            <img src="./Pictures/flashback-farm-icon.png" alt="Flashback Farm game preview" />
-            <div>
-              <strong>Flashback Farm</strong>
-              <small>Plant growing simulator — buy seeds, water the beds, and sell the harvest at market.</small>
+        </div>
+      </section>
+
+      <section class="content-section auction-section" aria-labelledby="ebay-auctions-title">
+        <div class="section-heading">
+          <span class="kicker">Vero Flashback eBay</span>
+          <h2 id="ebay-auctions-title">Live Auctions</h2>
+          <p>Fresh listings from the eBay shop, with the rare Balenciaga bag leading the drop.</p>
+        </div>
+
+        <div class="auction-grid">
+          <a class="auction-card featured" href="https://www.ebay.com/usr/veroflashback" target="_blank" rel="noopener noreferrer" aria-label="Open the featured Balenciaga auction on eBay">
+            <div class="auction-art">
+              <img src="./Pictures/social-media-logos.svg" alt="Vero Flashback eBay store artwork" />
+            </div>
+            <div class="auction-card-body">
+              <span class="auction-badge">Featured auction</span>
+              <strong>Balenciaga Black Lambskin Giant Gold Hardware Large City Bag Rare</strong>
+              <p>Current bid shown on eBay: €136.03 · 17 bids</p>
+              <small>Open the seller page to view the live photo gallery, bid, and time remaining.</small>
+            </div>
+          </a>
+
+          <a class="auction-card" href="https://www.ebay.com/itm/960039030442" target="_blank" rel="noopener noreferrer" aria-label="Open the supplied eBay auction listing">
+            <div class="auction-art">
+              <img src="./Pictures/Flashback Logo.png" alt="Vero Flashback logo for the supplied eBay auction" />
+            </div>
+            <div class="auction-card-body">
+              <span class="auction-badge">New listing</span>
+              <strong>Fresh eBay auction</strong>
+              <p>Item #960039030442 · Open the live listing for its current bid and photos.</p>
+              <small>View listing on eBay</small>
+            </div>
+          </a>
+
+          <a class="auction-card" href="https://www.ebay.com/usr/veroflashback" target="_blank" rel="noopener noreferrer" aria-label="Browse all Vero Flashback eBay auctions">
+            <div class="auction-art">
+              <img src="./Pictures/flashback-labs-logo.png" alt="Flashback Labs logo for the eBay auction roundup" />
+            </div>
+            <div class="auction-card-body">
+              <span class="auction-badge">More to browse</span>
+              <strong>More live auctions</strong>
+              <p>See the newest $1-start auctions and current bids from Vero Flashback.</p>
+              <small>Browse the eBay store</small>
             </div>
           </a>
         </div>
+
+        <p class="auction-note">Prices, bids, and remaining time can change live on eBay. Listing photos open on eBay so shoppers always see the current gallery.</p>
       </section>
     </main>
     <script src="./page-background.js"></script>

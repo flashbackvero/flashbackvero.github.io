@@ -41,4 +41,8 @@ if (existsSync("booth pics")) {
   await cp("booth pics", join(distDir, "booth pics"), { recursive: true });
 }
 
+if (existsSync("downloads")) {
+  await cp("downloads", join(distDir, "downloads"), { recursive: true });
+}
+
 console.log(`Built ${pages.length} pages into ${distDir}`);
