@@ -59,6 +59,14 @@
       .note a {
         font-weight: 900;
       }
+
+      .labs-game-section {
+        margin-top: 28px;
+      }
+
+      .labs-game-section .shop-photo-card strong {
+        font-size: clamp(25px, 2.5vw, 36px);
+      }
     </style>
   </head>
   <body>
@@ -93,36 +101,38 @@
         <img src="./Pictures/flashback-labs-logo.png" alt="Flashback Labs logo" />
       </section>
 
-      <section class="note-band">
-        <article class="note">
-          <b>Knightfall Chess</b>
-          <p>
-            A playable 3D chess match against Bekah, our house engine — three difficulty levels, a full game report,
-            and a little trash talk when she wins. Playable free in your browser right now.
-          </p>
-        </article>
-        <article class="note">
-          <b>Particle Simulator</b>
-          <p>
-            A falling-sand physics sandbox with 80+ elements, machines, portals, and a fixed 70,000-particle engine.
-            Coming soon to the App Store and Google Play.
-          </p>
-        </article>
-        <article class="note">
-          <b>Flashback Arcade</b>
-          <p>
-            The newest Windows build of the original Flashback Arcade desktop app, now at version 0.9.99.113.
-            Download the complete runnable package from Flashback Labs.
-          </p>
-          <p><a class="contact-link" href="./downloads/Flashback-Arcade-0.9.99.113-windows.zip" download>Download for Windows</a></p>
-        </article>
-        <article class="note">
-          <b>What's Next</b>
-          <p>
-            More small, polished retro-flavored games are on the bench. Follow the Whats New page for playable
-            previews as they land.
-          </p>
-        </article>
+      <section class="content-section labs-game-section" aria-labelledby="labs-games-title">
+        <div class="section-heading">
+          <span class="kicker">Flashback Labs Games</span>
+          <h2 id="labs-games-title">Playable Builds</h2>
+          <p>Open the current game cards and desktop build from the lab.</p>
+        </div>
+
+        <div class="shop-gallery">
+          <a class="shop-photo-card" href="./knightfall-chess.html" aria-label="Open playable Knightfall Chess 3D game">
+            <img src="./Pictures/knightfall-chess-icon.png" alt="Knightfall Chess game preview" />
+            <div>
+              <strong>Knightfall Chess</strong>
+              <small>Playable 3D chess against the computer with easy, mid, and pro levels.</small>
+            </div>
+          </a>
+
+          <a class="shop-photo-card" href="./particle-lab/" aria-label="Open the playable Particle Simulator physics sandbox">
+            <img src="./particle-lab/icon-512.png" alt="Particle Simulator elemental app icon" />
+            <div>
+              <strong>Particle Simulator</strong>
+              <small>Falling-sand physics sandbox with 80+ elements, machines, and portals.</small>
+            </div>
+          </a>
+
+          <a class="shop-photo-card" href="./downloads/Flashback-Arcade-0.9.99.113-windows.zip" download aria-label="Download Flashback Arcade for Windows">
+            <img src="./Pictures/flashback-logo-preview.png" alt="Flashback Arcade desktop build preview" />
+            <div>
+              <strong>Flashback Arcade</strong>
+              <small>Download the current Windows build, version 0.9.99.113.</small>
+            </div>
+          </a>
+        </div>
       </section>
 
       <section class="note-band" aria-label="Customer support for mobile games">

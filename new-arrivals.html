@@ -113,8 +113,41 @@
         font-weight: 700;
       }
 
+      .auction-photo-strip {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .auction-photo-strip figure {
+        overflow: hidden;
+        margin: 0;
+        border: 2px solid rgba(32, 32, 32, 0.12);
+        border-radius: 8px;
+        background: #fffdf5;
+      }
+
+      .auction-photo-strip img {
+        display: block;
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        object-fit: cover;
+      }
+
+      .auction-photo-strip figcaption {
+        padding: 9px 11px;
+        color: #5a5a5a;
+        font-size: 13px;
+        font-weight: 800;
+      }
+
       @media (max-width: 700px) {
         .auction-grid {
+          grid-template-columns: 1fr;
+        }
+
+        .auction-photo-strip {
           grid-template-columns: 1fr;
         }
 
@@ -145,33 +178,6 @@
         <div>
           <h1>Whats New</h1>
           <p>New Items and Events Coming Soon.</p>
-        </div>
-      </section>
-
-      <section class="content-section">
-        <div class="section-heading">
-          <span class="kicker">Flashback Labs Apps</span>
-          <h2>Playable Games</h2>
-          <p>Play the latest Flashback Labs games and experiments right from the archive.</p>
-        </div>
-
-        <div class="shop-gallery">
-          <a class="shop-photo-card" href="./knightfall-chess.html" aria-label="Open playable Knightfall Chess 3D game">
-            <img src="./Pictures/knightfall-chess-icon.png" alt="Knightfall Chess game preview" />
-            <div>
-              <strong>Knightfall Chess</strong>
-              <small>Playable 3D chess against the computer with easy, mid, and pro levels.</small>
-            </div>
-          </a>
-
-          <a class="shop-photo-card" href="./particle-lab/" aria-label="Open the playable Particle Simulator physics sandbox">
-            <img src="./particle-lab/icon-512.png" alt="Particle Simulator elemental app icon" />
-            <div>
-              <strong>Particle Simulator</strong>
-              <small>Falling-sand physics sandbox with 80+ elements, machines, and portals.</small>
-            </div>
-          </a>
-
         </div>
       </section>
 
@@ -218,6 +224,21 @@
               <small>Browse the eBay store</small>
             </div>
           </a>
+        </div>
+
+        <div class="auction-photo-strip" aria-label="Vero Flashback item photo previews">
+          <figure>
+            <img src="./Pictures/Crown Jewel Item.jpeg" alt="Sealed Pokemon Fossil booster packs" />
+            <figcaption>Collector item photo preview</figcaption>
+          </figure>
+          <figure>
+            <img src="./Pictures/Crown Jewel Item 2.jpeg" alt="Graded Pokemon Yellow Game Boy game" />
+            <figcaption>Graded item photo preview</figcaption>
+          </figure>
+          <figure>
+            <img src="./Pictures/Example Item For Sale.jpeg" alt="Pokemon Fossil booster pack pair" />
+            <figcaption>Shop item photo preview</figcaption>
+          </figure>
         </div>
 
         <p class="auction-note">Prices, bids, and remaining time can change live on eBay. Listing photos open on eBay so shoppers always see the current gallery.</p>
