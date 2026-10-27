@@ -45,4 +45,9 @@ if (existsSync("downloads")) {
   await cp("downloads", join(distDir, "downloads"), { recursive: true });
 }
 
+// Keep the playable simulator available in builds as well as root hosting.
+if (existsSync("particle-lab")) {
+  await cp("particle-lab", join(distDir, "particle-lab"), { recursive: true });
+}
+
 console.log(`Built ${pages.length} pages into ${distDir}`);

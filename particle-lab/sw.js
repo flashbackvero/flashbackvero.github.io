@@ -1,4 +1,4 @@
-const CACHE = "particle-simulator-v46";
+const CACHE = "particle-simulator-v58-gravity-flow";
 const SHELL = ["/particle-lab/", "/particle-lab/manifest.webmanifest", "/particle-lab/icon-64.png", "/particle-lab/icon-192.png", "/particle-lab/icon-512.png", "/particle-lab/og-v19.png"];
 
 self.addEventListener("install", (event) => {
@@ -9,7 +9,7 @@ self.addEventListener("install", (event) => {
 self.addEventListener("activate", (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((key) => key !== CACHE).map((key) => caches.delete(key))),
+      Promise.all(keys.filter((key) => key.startsWith("particle-simulator-") && key !== CACHE).map((key) => caches.delete(key))),
     ),
   );
   self.clients.claim();
